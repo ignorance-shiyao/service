@@ -1,0 +1,5 @@
+{
+  "name": "service",
+  "description": "An enterprise-grade Permission Management System featuring Domain, Menu, Role, and User management with a dark-themed UI.",
+  "requestFramePermissions": []
+}
