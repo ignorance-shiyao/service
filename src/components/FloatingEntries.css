@@ -1,0 +1,186 @@
+.ai-entry-halo {
+  position: absolute;
+  inset: -5px;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(103, 232, 249, 0.34) 0%, rgba(34, 211, 238, 0.16) 45%, rgba(14, 116, 217, 0) 78%);
+  filter: blur(3px);
+  animation: ai-entry-halo 2.8s ease-in-out infinite;
+}
+
+.ai-entry-robot-wrap {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  transform-origin: 50% 64%;
+  animation: ai-entry-nod 3.8s ease-in-out infinite;
+}
+
+.ai-entry-robot {
+  width: 49px;
+  height: 49px;
+  position: relative;
+  filter: drop-shadow(0 0 8px rgba(186, 247, 255, 0.55));
+  transform-origin: 50% 50%;
+  animation: ai-entry-blink 3.8s ease-in-out infinite;
+}
+
+.ai-entry-spark {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: #d7f6ff;
+  pointer-events: none;
+  opacity: 0.78;
+  box-shadow: 0 0 10px rgba(167, 243, 255, 0.7);
+}
+
+.ai-entry-spark-a {
+  right: 10px;
+  top: 13px;
+  animation: ai-entry-spark-a 2.2s ease-in-out infinite;
+}
+
+.ai-entry-spark-b {
+  left: 8px;
+  bottom: 12px;
+  width: 4px;
+  height: 4px;
+  animation: ai-entry-spark-b 2.6s ease-in-out infinite;
+}
+
+.ai-entry-card-robot {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 0 7px rgba(170, 244, 255, 0.45));
+}
+
+@keyframes ai-entry-nod {
+  0%,
+  8%,
+  20%,
+  32%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  12% {
+    transform: translateY(0.8px) rotate(2deg);
+  }
+  16% {
+    transform: translateY(0.2px) rotate(0.5deg);
+  }
+  26% {
+    transform: translateY(1px) rotate(-1.8deg);
+  }
+  30% {
+    transform: translateY(0.3px) rotate(-0.4deg);
+  }
+}
+
+@keyframes ai-entry-blink {
+  0%,
+  11%,
+  13.5%,
+  24%,
+  26.5%,
+  100% {
+    transform: scaleY(1);
+  }
+  12%,
+  25% {
+    transform: scaleY(0.12);
+  }
+}
+
+@keyframes ai-entry-halo {
+  0%,
+  100% {
+    transform: scale(0.96);
+    opacity: 0.52;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 0.9;
+  }
+}
+
+@keyframes ai-entry-spark-a {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate(2px, -3px);
+    opacity: 1;
+  }
+}
+
+@keyframes ai-entry-spark-b {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.32;
+  }
+  50% {
+    transform: translate(-2px, 2px);
+    opacity: 0.88;
+  }
+}
+
+.group:hover .ai-entry-robot-wrap {
+  animation: ai-entry-nod-hover 2.1s ease-in-out infinite;
+}
+
+.group:hover .ai-entry-robot {
+  animation: ai-entry-blink-hover 2.1s ease-in-out infinite;
+}
+
+.group:hover .ai-entry-halo {
+  animation-duration: 1.8s;
+}
+
+.group:hover .ai-entry-spark-a {
+  animation-duration: 1.45s;
+}
+
+.group:hover .ai-entry-spark-b {
+  animation-duration: 1.6s;
+}
+
+@keyframes ai-entry-nod-hover {
+  0%,
+  10%,
+  26%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  14% {
+    transform: translateY(1.2px) rotate(2.8deg);
+  }
+  18% {
+    transform: translateY(0.4px) rotate(0.8deg);
+  }
+  30% {
+    transform: translateY(1.4px) rotate(-2.4deg);
+  }
+  34% {
+    transform: translateY(0.4px) rotate(-0.7deg);
+  }
+}
+
+@keyframes ai-entry-blink-hover {
+  0%,
+  11%,
+  13.5%,
+  23%,
+  25.5%,
+  100% {
+    transform: scaleY(1);
+  }
+  12%,
+  24% {
+    transform: scaleY(0.08);
+  }
+}

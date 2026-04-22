@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Cpu, Shield, Settings, Users, Network, Menu as MenuIcon, LogOut, ChevronDown, User as UserIcon, LayoutGrid, ArrowRightLeft, Check, Layout, FolderTree, Briefcase, Book, FileText, Loader2, BookOpen, AlertTriangle, Bot, GripVertical, FilePieChart, Zap, Home, BarChart3, Boxes, Workflow, Monitor, Bell, Siren, Clapperboard, Headset, ChevronLeft, ChevronRight, Search, X, List, Maximize2, Minimize2 } from 'lucide-react';
+import { Cpu, Shield, Settings, Users, Network, Menu as MenuIcon, LogOut, ChevronDown, User as UserIcon, LayoutGrid, ArrowRightLeft, Check, Layout, FolderTree, Briefcase, Book, FileText, Loader2, Zap, Home, BarChart3, Boxes, Workflow, Monitor, Bell, Siren, Clapperboard, Headset, ChevronLeft, ChevronRight, Search, X, List, Maximize2, Minimize2 } from 'lucide-react';
 import { GlobalContext, ViewMode } from './GlobalContext';
 import { MOCK_DOMAINS } from './constants';
 import { Domain } from './types';
@@ -15,6 +15,7 @@ import { IDCOverview } from './pages/IDCOverview';
 import { CloudNetworkOverview } from './pages/CloudNetworkOverview';
 import { QuantumSDWANOverview } from './pages/QuantumSDWANOverview';
 import { NotificationMatrix } from './Assistant/NotificationMatrix';
+import { FloatingEntries } from './components/FloatingEntries';
 
 // --- Lazy Load Pages ---
 const DomainManager = lazy(() => import('./pages/DomainManager').then(module => ({ default: module.DomainManager })));
@@ -175,181 +176,6 @@ const HomeScreenThumbnail: React.FC = () => (
     <div className="absolute inset-x-0 bottom-0 h-10 bg-[linear-gradient(180deg,transparent,rgba(6,27,57,0.95))]" />
   </div>
 );
-
-// --- Floating Entry Component ---
-const FloatingEntries: React.FC<{ 
-    onOpenKB: () => void, 
-    onOpenFault: () => void, 
-    onOpenReport: () => void,
-    onOpenAssistant: () => void 
-}> = ({ onOpenKB, onOpenFault, onOpenReport, onOpenAssistant }) => {
-    const [position, setPosition] = useState({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = useState(false);
-    const [collapsed, setCollapsed] = useState(true);
-    const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
-    const dragMovedRef = useRef(false);
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    const clampToViewport = (x: number, y: number) => {
-        const el = containerRef.current;
-        const width = el?.offsetWidth ?? (collapsed ? 40 : 64);
-        const height = el?.offsetHeight ?? (collapsed ? 40 : 360);
-        const padding = 8;
-        const minX = padding;
-        const minY = padding;
-        const maxX = Math.max(minX, window.innerWidth - width - padding);
-        const maxY = Math.max(minY, window.innerHeight - height - padding);
-        return {
-            x: Math.min(Math.max(x, minX), maxX),
-            y: Math.min(Math.max(y, minY), maxY),
-        };
-    };
-
-    // Initial positioning (near right center)
-    useEffect(() => {
-        const initial = clampToViewport(window.innerWidth - 56, window.innerHeight / 2 - 150);
-        setPosition(initial);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-      const fit = () => setPosition((prev) => clampToViewport(prev.x, prev.y));
-      fit();
-      window.addEventListener('resize', fit);
-      return () => window.removeEventListener('resize', fit);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [collapsed]);
-
-    const startDrag = (e: React.MouseEvent) => {
-        e.preventDefault();
-        setIsDragging(true);
-        dragMovedRef.current = false;
-        dragRef.current = {
-            startX: e.clientX,
-            startY: e.clientY,
-            startPosX: position.x,
-            startPosY: position.y,
-        };
-    };
-
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!isDragging || !dragRef.current) return;
-            const deltaX = e.clientX - dragRef.current.startX;
-            const deltaY = e.clientY - dragRef.current.startY;
-            if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) dragMovedRef.current = true;
-            const next = clampToViewport(
-              dragRef.current.startPosX + deltaX,
-              dragRef.current.startPosY + deltaY
-            );
-            setPosition(next);
-        };
-
-        const handleMouseUp = () => {
-            setIsDragging(false);
-        };
-
-        if (isDragging) {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
-        }
-
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isDragging, collapsed]);
-
-    if (collapsed) {
-      return (
-        <div
-          ref={containerRef}
-          style={{ left: `${position.x}px`, top: `${position.y}px` }}
-          className={`fixed z-[100] flex flex-col items-end ${isDragging ? 'cursor-grabbing' : ''}`}
-        >
-          <button
-            type="button"
-            onMouseDown={startDrag}
-            onClick={() => {
-              if (dragMovedRef.current) {
-                dragMovedRef.current = false;
-                return;
-              }
-              setCollapsed(false);
-            }}
-            className="group flex h-10 w-10 cursor-grab items-center justify-center rounded-xl border border-slate-700/60 bg-slate-900/90 text-slate-300 shadow-xl transition hover:border-blue-500/60 hover:bg-blue-700/35 hover:text-white active:cursor-grabbing"
-            title="展开AI助手"
-          >
-            <Bot size={16} />
-          </button>
-        </div>
-      );
-    }
-
-    return (
-        <div 
-            ref={containerRef}
-            style={{ left: `${position.x}px`, top: `${position.y}px` }}
-            className={`fixed flex flex-col items-center z-[100] transition-shadow duration-300 ${isDragging ? 'cursor-grabbing' : ''}`}
-        >
-            {/* Drag Handle Area */}
-            <div 
-                onMouseDown={startDrag}
-                className="w-16 h-6 flex items-center justify-between px-1.5 cursor-grab active:cursor-grabbing bg-slate-800/40 rounded-t-xl border border-slate-700/50 hover:bg-slate-700/60 transition-colors"
-                title="拖拽移动位置"
-            >
-                <GripVertical size={14} className="text-slate-500" />
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onClick={() => setCollapsed(true)}
-                  className="rounded p-0.5 text-slate-400 transition hover:bg-slate-700/60 hover:text-white"
-                  title="收起AI助手"
-                >
-                  <ChevronRight size={12} />
-                </button>
-            </div>
-
-            <div className="flex flex-col gap-1 w-16">
-                {/* 1. Knowledge Base */}
-                <div className="group cursor-pointer" onClick={onOpenKB}>
-                    <div className="bg-slate-900/90 border-l-4 border-blue-500/70 border-y border-slate-700/50 hover:bg-blue-600 transition-all duration-300 py-3 flex flex-col items-center gap-1.5 backdrop-blur-xl shadow-xl group-hover:translate-x-[-4px]">
-                        <BookOpen size={20} className="text-blue-400 group-hover:text-white transition-colors" />
-                        <span className="text-[10px] font-bold text-slate-300 group-hover:text-white whitespace-nowrap">知识库</span>
-                    </div>
-                </div>
-
-                {/* 2. One-Click Fault Reporting */}
-                <div className="group cursor-pointer" onClick={onOpenFault}>
-                    <div className="bg-slate-900/90 border-l-4 border-amber-500/70 border-y border-slate-700/50 hover:bg-amber-600 transition-all duration-300 py-3 flex flex-col items-center gap-1.5 backdrop-blur-xl shadow-xl group-hover:translate-x-[-4px]">
-                        <AlertTriangle size={20} className="text-amber-400 group-hover:text-white transition-colors" />
-                        <span className="text-[10px] font-bold text-slate-300 group-hover:text-white whitespace-nowrap">报障</span>
-                    </div>
-                </div>
-
-                {/* 3. Intelligent Briefing (Automatic Reporting) */}
-                <div className="group cursor-pointer" onClick={onOpenReport}>
-                    <div className="bg-slate-900/90 border-l-4 border-indigo-500/70 border-y border-slate-700/50 hover:bg-indigo-600 transition-all duration-300 py-3 flex flex-col items-center gap-1.5 backdrop-blur-xl shadow-xl group-hover:translate-x-[-4px]">
-                        <FilePieChart size={20} className="text-indigo-400 group-hover:text-white transition-colors" />
-                        <span className="text-[10px] font-bold text-slate-300 group-hover:text-white whitespace-nowrap">简报</span>
-                    </div>
-                </div>
-
-                {/* 4. AI Agent / Assistant (UPDATED) */}
-                <div className="group cursor-pointer" onClick={onOpenAssistant}>
-                    <div className="bg-[#0f172a]/95 border-l-4 border-indigo-500/70 border-y border-slate-700/50 hover:bg-indigo-600 transition-all duration-300 py-4 flex flex-col items-center gap-2 backdrop-blur-xl shadow-[0_0_20px_rgba(79,70,229,0.2)] group-hover:translate-x-[-4px] relative overflow-hidden rounded-bl-xl">
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-transparent animate-pulse pointer-events-none"></div>
-                        <div className="bg-indigo-500/20 p-1.5 rounded-full text-indigo-400 group-hover:bg-white group-hover:text-indigo-600 transition-all animate-bounce-slow">
-                            <Bot size={22} />
-                        </div>
-                        <span className="text-[11px] font-black text-indigo-200 group-hover:text-white whitespace-nowrap z-10">AI管家</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 const App: React.FC = () => {
   const navigate = useNavigate();
