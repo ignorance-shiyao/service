@@ -7,7 +7,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-docc
+docs
+migrated_prompt_history
 .codex
 archives
 node_modules
