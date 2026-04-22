@@ -64,17 +64,86 @@ const tabClass = (active: boolean) =>
     active ? 'bg-[rgba(0,212,255,0.12)] text-[#00d4ff]' : 'text-[#90c4e8] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#d4eeff]'
   }`;
 
-const mapPoints: SitePoint[] = [
-  { name: '合肥', x: 56, y: 52, count: 5, status: 'online', quantum: true, type: 'POP', model: 'WTSDK-8200', tunnels: 28 },
-  { name: '芜湖', x: 67, y: 64, count: 3, status: 'warning', quantum: true, type: 'CPE', model: 'WTSDK-4200', tunnels: 21 },
-  { name: '蚌埠', x: 56, y: 33, count: 1, status: 'online', quantum: false, type: 'CPE', model: 'WTSDK-4100', tunnels: 12 },
-  { name: '马鞍山', x: 78, y: 61, count: 2, status: 'online', quantum: true, type: 'CPE', model: 'WTSDK-4200', tunnels: 18 },
-  { name: '安庆', x: 36, y: 71, count: 2, status: 'online', quantum: false, type: 'CPE', model: 'WTSDK-4000', tunnels: 14 },
-  { name: '阜阳', x: 27, y: 43, count: 1, status: 'offline', quantum: false, type: 'CPE', model: 'WTSDK-3200', tunnels: 9 },
-  { name: '滁州', x: 66, y: 45, count: 2, status: 'online', quantum: true, type: 'CPE', model: 'WTSDK-4200', tunnels: 19 },
-  { name: '铜陵', x: 57, y: 75, count: 1, status: 'warning', quantum: true, type: 'CPE', model: 'WTSDK-4200', tunnels: 11 },
-  { name: '黄山', x: 66, y: 88, count: 1, status: 'online', quantum: false, type: 'CPE', model: 'WTSDK-3000', tunnels: 8 },
-];
+const buildMapPoints = (): SitePoint[] => {
+  let state = 20260423 >>> 0;
+  const rng = () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+  const anhuiCities = [
+    '合肥',
+    '芜湖',
+    '蚌埠',
+    '淮南',
+    '马鞍山',
+    '淮北',
+    '铜陵',
+    '安庆',
+    '黄山',
+    '滁州',
+    '阜阳',
+    '宿州',
+    '六安',
+    '亳州',
+    '池州',
+    '宣城',
+  ];
+  const cityCoords: Record<string, { x: number; y: number }> = {
+    合肥: { x: 56, y: 52 },
+    芜湖: { x: 67, y: 64 },
+    蚌埠: { x: 56, y: 33 },
+    淮南: { x: 49, y: 45 },
+    马鞍山: { x: 78, y: 61 },
+    淮北: { x: 52, y: 20 },
+    铜陵: { x: 57, y: 75 },
+    安庆: { x: 36, y: 71 },
+    黄山: { x: 66, y: 88 },
+    滁州: { x: 66, y: 45 },
+    阜阳: { x: 27, y: 43 },
+    宿州: { x: 62, y: 28 },
+    六安: { x: 36, y: 62 },
+    亳州: { x: 20, y: 30 },
+    池州: { x: 56, y: 84 },
+    宣城: { x: 73, y: 81 },
+  };
+
+  const targetTotal = 640;
+  const baseEach = 12;
+  const weights = anhuiCities.map((name) => {
+    const w = 0.9 + rng() * 1.05;
+    return name === '合肥' ? w * 2.8 : w;
+  });
+  const weightSum = weights.reduce((a, b) => a + b, 0);
+  const remainder = targetTotal - baseEach * anhuiCities.length;
+  const counts = anhuiCities.map((_, i) => baseEach + Math.round((remainder * weights[i]) / weightSum));
+  let diff = targetTotal - counts.reduce((a, b) => a + b, 0);
+  while (diff !== 0) {
+    const idx = diff > 0 ? 0 : counts.findIndex((c, i) => c > 8 && i !== 0);
+    const safeIdx = idx >= 0 ? idx : 1;
+    counts[safeIdx] += diff > 0 ? 1 : -1;
+    diff += diff > 0 ? -1 : 1;
+  }
+
+  return anhuiCities.map((name, i) => {
+    const statusRoll = rng();
+    const status: SitePoint['status'] = statusRoll < 0.08 ? 'offline' : statusRoll < 0.25 ? 'warning' : 'online';
+    const quantum = name === '合肥' ? true : rng() > 0.46;
+    const count = counts[i];
+    return {
+      name,
+      x: cityCoords[name]?.x ?? 50,
+      y: cityCoords[name]?.y ?? 50,
+      count,
+      status,
+      quantum,
+      type: name === '合肥' ? 'POP' : 'CPE',
+      model: name === '合肥' ? 'WTSDK-8600' : rng() > 0.5 ? 'WTSDK-4200' : 'WTSDK-4100',
+      tunnels: name === '合肥' ? 32 : Math.max(8, Math.round(6 + Math.log2(count + 1) * 4)),
+    };
+  });
+};
+
+const mapPoints: SitePoint[] = buildMapPoints();
 
 const qssList = [
   { name: 'QSS-HEF-01', endpoint: '111.39.251.120:6001', status: '已连接', keepAlive: '7ms', version: 'v1.2', app: 'qkapp', zone: '合肥主中心' },
@@ -96,34 +165,94 @@ const realtimeAlarms = [
   { level: '四级', site: '蚌埠-CPE-04', reason: '时延恢复至基线', time: '09:55:18' },
 ];
 
-const topologyNodes = [
-  { id: '合肥POP-01', x: 46, y: 45, type: 'POP', status: 'online' },
-  { id: '阜阳POP-03', x: 18, y: 30, type: 'POP', status: 'online' },
-  { id: '蚌埠POP-02', x: 76, y: 30, type: 'POP', status: 'online' },
-  { id: '亳州CPE', x: 12, y: 16, type: 'CPE', status: 'online' },
-  { id: '阜阳CPE', x: 11, y: 41, type: 'CPE', status: 'warning' },
-  { id: '六安CPE', x: 25, y: 58, type: 'CPE', status: 'online' },
-  { id: '安庆CPE', x: 41, y: 70, type: 'CPE', status: 'online' },
-  { id: '铜陵CPE', x: 56, y: 68, type: 'CPE', status: 'online' },
-  { id: '芜湖CPE', x: 68, y: 62, type: 'CPE', status: 'warning' },
-  { id: '滁州CPE', x: 84, y: 50, type: 'CPE', status: 'online' },
-  { id: '淮北CPE', x: 79, y: 14, type: 'CPE', status: 'online' },
-  { id: '宿州CPE', x: 90, y: 28, type: 'CPE', status: 'offline' },
+type TopologyNode = {
+  id: string;
+  x: number;
+  y: number;
+  type: 'HQ' | 'CITY';
+  status: 'online' | 'warning' | 'offline';
+};
+
+type TopologyLink = {
+  from: string;
+  to: string;
+  quantum: boolean;
+};
+
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
+const createSeededRng = (seed: number) => {
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+};
+
+const clampPercent = (v: number, min = 6, max = 94) => Math.max(min, Math.min(max, v));
+
+const ANHUI_CITIES = [
+  '合肥',
+  '芜湖',
+  '蚌埠',
+  '淮南',
+  '马鞍山',
+  '淮北',
+  '铜陵',
+  '安庆',
+  '黄山',
+  '滁州',
+  '阜阳',
+  '宿州',
+  '六安',
+  '亳州',
+  '池州',
+  '宣城',
 ];
 
-const topologyLinks = [
-  { from: '合肥POP-01', to: '阜阳POP-03', quantum: true },
-  { from: '合肥POP-01', to: '蚌埠POP-02', quantum: true },
-  { from: '合肥POP-01', to: '六安CPE', quantum: true },
-  { from: '合肥POP-01', to: '安庆CPE', quantum: true },
-  { from: '合肥POP-01', to: '铜陵CPE', quantum: true },
-  { from: '合肥POP-01', to: '芜湖CPE', quantum: false },
-  { from: '阜阳POP-03', to: '亳州CPE', quantum: true },
-  { from: '阜阳POP-03', to: '阜阳CPE', quantum: false },
-  { from: '蚌埠POP-02', to: '淮北CPE', quantum: true },
-  { from: '蚌埠POP-02', to: '宿州CPE', quantum: false },
-  { from: '蚌埠POP-02', to: '滁州CPE', quantum: false },
-];
+const buildTopologyData = (): { nodes: TopologyNode[]; links: TopologyLink[] } => {
+  const rng = createSeededRng(20260422);
+  const nodes: TopologyNode[] = [];
+  const links: TopologyLink[] = [];
+
+  const HQ_ID = '总部-01';
+  const centerX = 46;
+  const centerY = 45;
+
+  nodes.push({ id: HQ_ID, x: centerX, y: centerY, type: 'HQ', status: 'online' });
+
+  const shuffledCities = [...ANHUI_CITIES];
+  for (let i = shuffledCities.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [shuffledCities[i], shuffledCities[j]] = [shuffledCities[j], shuffledCities[i]];
+  }
+  const selectedCityCount = 6 + Math.floor(rng() * 5);
+  const selectedCities = shuffledCities.slice(0, selectedCityCount);
+
+  selectedCities.forEach((cityName, cityIdx) => {
+    const cityAngle = -Math.PI / 2 + (cityIdx * 2 * Math.PI) / selectedCities.length + (rng() - 0.5) * 0.32;
+    const cityR = 30 + rng() * 3.5;
+    const cityAnchorX = centerX + Math.cos(cityAngle) * cityR;
+    const cityAnchorY = centerY + Math.sin(cityAngle) * cityR;
+    const siteCount = 1 + Math.floor(rng() * 3);
+
+    for (let siteIdx = 1; siteIdx <= siteCount; siteIdx++) {
+      const localAngle = -Math.PI / 3 + (siteIdx * 2 * Math.PI) / (siteCount + 1) + (rng() - 0.5) * 0.45;
+      const localR = 2.8 + rng() * 2.2;
+      const x = clampPercent(cityAnchorX + Math.cos(localAngle) * localR);
+      const y = clampPercent(cityAnchorY + Math.sin(localAngle) * localR);
+      const statusRoll = rng();
+      const status = statusRoll < 0.12 ? 'offline' : statusRoll < 0.3 ? 'warning' : 'online';
+      const id = `${cityName}-${pad2(siteIdx)}`;
+      nodes.push({ id, x: Number(x.toFixed(2)), y: Number(y.toFixed(2)), type: 'CITY', status });
+      links.push({ from: HQ_ID, to: id, quantum: rng() > 0.42 });
+    }
+  });
+
+  return { nodes, links };
+};
+
+const { nodes: topologyNodes, links: topologyLinks } = buildTopologyData();
 
 const metricCards = [
   { label: '站点总数(个)', value: '18', icon: Building2, iconBg: 'bg-[#06374d]', iconColor: 'text-[#00d4ff]' },
@@ -137,7 +266,7 @@ const dateMonth = ['03-18', '03-22', '03-26', '03-30', '04-03', '04-07', '04-11'
 
 const siteBandwidthTopData = mapPoints
   .map((site) => {
-    const base = 42 + site.tunnels * 1.7 + site.count * 2.4;
+    const base = 28 + site.tunnels * 1.9 + Math.log2(site.count + 1) * 8;
     const statusAdjust = site.status === 'offline' ? -18 : site.status === 'warning' ? -8 : 0;
     const quantumAdjust = site.quantum ? 6 : 0;
     const value = Math.max(22, Math.min(96, Math.round(base + statusAdjust + quantumAdjust)));
@@ -726,6 +855,12 @@ export const QuantumSDWANOverview: React.FC = () => {
     [anchorsToUse, drillCity, hoveredCity]
   );
 
+  const mapOverlayCountRange = useMemo(() => {
+    const values = mapOverlayItems.filter((c) => c.showBubble).map((c) => c.siteCount);
+    if (!values.length) return { min: 0, max: 1 };
+    return { min: Math.min(...values), max: Math.max(...values) };
+  }, [mapOverlayItems]);
+
   useEffect(() => {
     if (mapTab !== 'map') return;
     const host = mapSvgRef.current;
@@ -884,13 +1019,13 @@ export const QuantumSDWANOverview: React.FC = () => {
   const topologyNodeInfoMap = useMemo(() => {
     const map = new Map<string, { type: string; model: string; tunnels: number; quantum: string }>();
     topologyNodes.forEach((n) => {
-      const city = n.id.replace(/POP-\d+|CPE/g, '').replace(/-/g, '').replace(/[0-9]/g, '');
-      const citySite = mapPoints.find((p) => p.name && city.includes(p.name));
+      const matchedLink = topologyLinks.find((l) => l.to === n.id);
+      const siteSeq = Number(n.id.split('-').pop() || 1);
       map.set(n.id, {
-        type: n.type,
-        model: n.type === 'POP' ? 'QSR-POP-8600' : citySite?.model || 'WTSDK-4200',
-        tunnels: n.type === 'POP' ? 24 : citySite?.tunnels || 8,
-        quantum: n.type === 'POP' ? '核心量子汇聚' : citySite?.quantum ? '已启用' : '未启用',
+        type: n.type === 'HQ' ? '总部节点' : '地市站点',
+        model: n.type === 'HQ' ? 'QSR-HQ-8600' : siteSeq % 2 === 0 ? 'WTSDK-4200' : 'WTSDK-4100',
+        tunnels: n.type === 'HQ' ? 32 : 6 + siteSeq * 2,
+        quantum: n.type === 'HQ' ? '核心量子汇聚' : matchedLink?.quantum ? '已启用' : '未启用',
       });
     });
     return map;
@@ -1169,6 +1304,8 @@ export const QuantumSDWANOverview: React.FC = () => {
                     </i>
                     量子站点(Q)
                   </span>
+                  <span className="inline-flex items-center gap-1"><i className="h-[2px] w-4 bg-[#3b82f6]" />普通隧道</span>
+                  <span className="inline-flex items-center gap-1"><i className="h-[2px] w-4 bg-[#8b5cf6]" />量子隧道</span>
                   </div>
                   {/*<span className="text-[#8eb9e3]">地市下钻已暂时关闭</span>*/}
                 </div>
@@ -1187,19 +1324,114 @@ export const QuantumSDWANOverview: React.FC = () => {
                   viewBox={`${(currentViewBox || originViewBox).x} ${(currentViewBox || originViewBox).y} ${(currentViewBox || originViewBox).width} ${(currentViewBox || originViewBox).height}`}
                   preserveAspectRatio={mapPreserveAspectRatio}
                 >
+                  {(() => {
+                    const hefei = mapOverlayItems.find((c) => c.name === '合肥' && c.showBubble);
+                    if (!hefei) return null;
+                    const span = Math.max(1, mapOverlayCountRange.max - mapOverlayCountRange.min);
+                    return (
+                      <>
+                        <defs>
+                          <filter id="mapLinkGlow" x="-30%" y="-30%" width="160%" height="160%">
+                            <feGaussianBlur stdDeviation="2.2" />
+                          </filter>
+                        </defs>
+                        {mapOverlayItems
+                          .filter((city) => city.showBubble && city.name !== '合肥')
+                          .map((city, idx) => {
+                            const weightRaw = (city.siteCount - mapOverlayCountRange.min) / span;
+                            const weight = Math.max(0, Math.min(1, weightRaw));
+                            const dx = hefei.cx - city.cx;
+                            const dy = hefei.cy - city.cy;
+                            const len = Math.max(0.001, Math.sqrt(dx * dx + dy * dy));
+                            const nx = -dy / len;
+                            const ny = dx / len;
+                            const bend = (16 + weight * 30) * (idx % 2 === 0 ? 1 : -1);
+                            const cx = (city.cx + hefei.cx) / 2 + nx * bend;
+                            const cy = (city.cy + hefei.cy) / 2 + ny * bend;
+                            const d = `M ${city.cx} ${city.cy - 6} Q ${cx} ${cy} ${hefei.cx} ${hefei.cy - 8}`;
+                            const baseWidth = 0.9 + Math.pow(weight, 0.92) * 10.6;
+                            const glowWidth = baseWidth + 2.9;
+                            const flowWidth = 0.7 + weight * 3.3;
+                            const shadowWidth = baseWidth + 0.9;
+                            const color = city.hasQuantum ? '#8b5cf6' : '#3b82f6';
+                            const dashLen = 5 + weight * 8;
+                            const gapLen = Math.max(2.2, 10 - weight * 4.6);
+                            const duration = Math.max(1.1, 2.7 - weight * 1.25);
+                            const orbDur = Math.max(0.9, 2.35 - weight * 1.1);
+                            return (
+                              <g key={`link-${city.name}`}>
+                                <path
+                                  d={d}
+                                  transform="translate(0 1.15)"
+                                  fill="none"
+                                  stroke="#03122d"
+                                  strokeOpacity={0.55}
+                                  strokeWidth={shadowWidth}
+                                  strokeLinecap="round"
+                                />
+                                <path
+                                  d={d}
+                                  fill="none"
+                                  stroke={color}
+                                  strokeOpacity={0.3}
+                                  strokeWidth={glowWidth}
+                                  filter="url(#mapLinkGlow)"
+                                  strokeLinecap="round"
+                                />
+                                <path
+                                  d={d}
+                                  fill="none"
+                                  stroke={color}
+                                  strokeOpacity={0.72}
+                                  strokeWidth={baseWidth}
+                                  strokeLinecap="round"
+                                />
+                                <path
+                                  d={d}
+                                  fill="none"
+                                  stroke="#e2f2ff"
+                                  strokeOpacity={0.95}
+                                  strokeWidth={flowWidth}
+                                  strokeDasharray={`${dashLen} ${gapLen}`}
+                                  strokeLinecap="round"
+                                >
+                                  <animate
+                                    attributeName="stroke-dashoffset"
+                                    from="0"
+                                    to={city.hasQuantum ? '-48' : '-40'}
+                                    dur={`${duration}s`}
+                                    repeatCount="indefinite"
+                                  />
+                                </path>
+                                <circle r={0.7 + weight * 1.25} fill="#eef8ff" fillOpacity={0.95}>
+                                  <animateMotion
+                                    path={d}
+                                    dur={`${orbDur}s`}
+                                    repeatCount="indefinite"
+                                  />
+                                </circle>
+                              </g>
+                            );
+                          })}
+                      </>
+                    );
+                  })()}
                   {mapOverlayItems.map((city) => {
                     const isDrillMode = !!drillCity;
+                    const span = Math.max(1, mapOverlayCountRange.max - mapOverlayCountRange.min);
+                    const weight = (city.siteCount - mapOverlayCountRange.min) / span;
+                    const scale = city.showBubble ? 0.84 + weight * 0.66 : 0.84;
                     const nameFont = isDrillMode ? 7.2 : 8.8;
                     const nameHeight = isDrillMode ? 11.8 : 13.8;
                     const nameY = isDrillMode ? 3.2 : 3.9;
                     const nameWidth = Math.max(isDrillMode ? 24 : 30, city.name.length * (isDrillMode ? 8.2 : 9.4) + (isDrillMode ? 10 : 14));
                     const bubbleY = isDrillMode ? -13.2 : -16.5;
-                    const outerR = isDrillMode ? 10.2 : 12.1;
-                    const hoverOuterR = isDrillMode ? 10.8 : 12.8;
-                    const innerR = isDrillMode ? 7.6 : 8.5;
-                    const hoverInnerR = isDrillMode ? 8.2 : 9.2;
-                    const bubbleNumFont = isDrillMode ? 6.6 : 7.8;
-                    const qFont = isDrillMode ? 4.8 : 5.6;
+                    const outerR = (isDrillMode ? 10.2 : 12.1) * scale;
+                    const hoverOuterR = (isDrillMode ? 10.8 : 12.8) * scale;
+                    const innerR = (isDrillMode ? 7.6 : 8.5) * scale;
+                    const hoverInnerR = (isDrillMode ? 8.2 : 9.2) * scale;
+                    const bubbleNumFont = (isDrillMode ? 6.6 : 7.8) * (0.88 + weight * 0.5);
+                    const qFont = (isDrillMode ? 4.8 : 5.6) * (0.9 + weight * 0.35);
                     return (
                       <g key={`overlay-${city.name}`} transform={`translate(${city.cx},${city.cy})`} pointerEvents="none">
                         {city.isHovered && city.showBubble && (
@@ -1303,10 +1535,6 @@ export const QuantumSDWANOverview: React.FC = () => {
                     <stop offset="100%" stopColor="#59b5ff" />
                   </linearGradient>
                 </defs>
-                <g opacity="0.4">
-                  <circle cx={46} cy={45} r={24} fill="none" stroke="#2f78d4" strokeWidth="0.25" />
-                  <circle cx={46} cy={45} r={32} fill="none" stroke="#2f78d4" strokeWidth="0.2" strokeDasharray="1.5 1.5" />
-                </g>
                 {topologyLinks.map((link, idx) => {
                   const from = topologyNodeMap.get(link.from);
                   const to = topologyNodeMap.get(link.to);
@@ -1355,11 +1583,11 @@ export const QuantumSDWANOverview: React.FC = () => {
                 {topologyNodes.map((node) => {
                   const active = topologyActiveNode === node.id;
                   const hovered = topologyHoverNode === node.id;
-                  const isPop = node.type === 'POP';
-                  const outerR = isPop ? (active ? 2.6 : 2.35) : active ? 1.86 : 1.62;
-                  const innerR = isPop ? (active ? 1.45 : 1.32) : active ? 1.06 : 0.92;
-                  const fill = isPop ? '#1ccdf0' : node.status === 'offline' ? '#ff4d4f' : node.status === 'warning' ? '#ff9d2e' : '#1ce688';
-                  const stroke = isPop ? '#81ecff' : node.status === 'offline' ? '#ff9ea3' : node.status === 'warning' ? '#ffd08a' : '#a5f5cb';
+                  const isHq = node.type === 'HQ';
+                  const outerR = isHq ? (active ? 2.6 : 2.35) : active ? 1.86 : 1.62;
+                  const innerR = isHq ? (active ? 1.45 : 1.32) : active ? 1.06 : 0.92;
+                  const fill = isHq ? '#1ccdf0' : node.status === 'offline' ? '#ff4d4f' : node.status === 'warning' ? '#ff9d2e' : '#1ce688';
+                  const stroke = isHq ? '#81ecff' : node.status === 'offline' ? '#ff9ea3' : node.status === 'warning' ? '#ffd08a' : '#a5f5cb';
                   const labelWidth = Math.max(10, node.id.length * 0.82);
                   return (
                     <g
@@ -1371,20 +1599,20 @@ export const QuantumSDWANOverview: React.FC = () => {
                       onClick={() => setTopologyActiveNode((cur) => (cur === node.id ? null : node.id))}
                     >
                       {(hovered || active) && (
-                        <circle cx={0} cy={0} r={isPop ? 4.3 : 3.2} fill="none" stroke={stroke} strokeOpacity={0.62} strokeWidth={0.5} filter="url(#topoSoftGlow)">
-                          <animate attributeName="r" values={isPop ? '3.2;4.5;3.2' : '2.4;3.4;2.4'} dur="1.3s" repeatCount="indefinite" />
+                        <circle cx={0} cy={0} r={isHq ? 4.3 : 3.2} fill="none" stroke={stroke} strokeOpacity={0.62} strokeWidth={0.5} filter="url(#topoSoftGlow)">
+                          <animate attributeName="r" values={isHq ? '3.2;4.5;3.2' : '2.4;3.4;2.4'} dur="1.3s" repeatCount="indefinite" />
                           <animate attributeName="stroke-opacity" values="0.68;0.18;0.68" dur="1.3s" repeatCount="indefinite" />
                         </circle>
                       )}
-                      <circle cx={0} cy={0} r={outerR} fill={isPop ? 'rgba(20,157,196,0.22)' : 'rgba(12,58,112,0.28)'} stroke={stroke} strokeWidth={0.52} />
-                      <circle cx={0} cy={0} r={innerR} fill={fill} stroke={isPop ? '#ddf9ff' : stroke} strokeWidth={0.42} filter={active ? 'url(#topoGlow)' : undefined} />
-                      <circle cx={isPop ? -0.35 : -0.24} cy={isPop ? -0.35 : -0.24} r={isPop ? 0.28 : 0.18} fill="#f8fdff" fillOpacity={0.8} />
-                      <circle cx={0} cy={0} r={isPop ? 0.35 : 0.24} fill="#e9f7ff" fillOpacity={isPop ? 0.62 : 0.52} />
+                      <circle cx={0} cy={0} r={outerR} fill={isHq ? 'rgba(20,157,196,0.22)' : 'rgba(12,58,112,0.28)'} stroke={stroke} strokeWidth={0.52} />
+                      <circle cx={0} cy={0} r={innerR} fill={fill} stroke={isHq ? '#ddf9ff' : stroke} strokeWidth={0.42} filter={active ? 'url(#topoGlow)' : undefined} />
+                      <circle cx={isHq ? -0.35 : -0.24} cy={isHq ? -0.35 : -0.24} r={isHq ? 0.28 : 0.18} fill="#f8fdff" fillOpacity={0.8} />
+                      <circle cx={0} cy={0} r={isHq ? 0.35 : 0.24} fill="#e9f7ff" fillOpacity={isHq ? 0.62 : 0.52} />
                       <rect
                         x={-labelWidth / 2}
-                        y={isPop ? 3.5 : 2.9}
+                        y={isHq ? 3.5 : 2.9}
                         width={labelWidth}
-                        height={isPop ? 2.5 : 2.3}
+                        height={isHq ? 2.5 : 2.3}
                         rx={1.1}
                         fill={active ? 'rgba(27,86,152,0.95)' : 'rgba(17,66,122,0.86)'}
                         stroke={active ? '#8dd6ff' : '#5a9ad9'}
@@ -1392,9 +1620,9 @@ export const QuantumSDWANOverview: React.FC = () => {
                       />
                       <text
                         x={0}
-                        y={isPop ? 5.2 : 4.45}
+                        y={isHq ? 5.2 : 4.45}
                         textAnchor="middle"
-                        fontSize={isPop ? 1.42 : 1.26}
+                        fontSize={isHq ? 1.42 : 1.26}
                         fontWeight={650}
                         fill={active ? '#eef9ff' : '#c8e7ff'}
                       >
@@ -1408,9 +1636,9 @@ export const QuantumSDWANOverview: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1"><i className="h-[2px] w-4 bg-[#8b5cf6]" />量子隧道</span>
                   <span className="inline-flex items-center gap-1"><i className="h-[2px] w-4 border-t border-dashed border-[#2b74d1]" />普通隧道</span>
-                  <span className="inline-flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-[#18c7e8]" />POP节点</span>
-                  <span className="inline-flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-[#24e889]" />CPE在线</span>
-                  <span className="inline-flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-[#ff4d4f]" />CPE离线</span>
+                  <span className="inline-flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-[#18c7e8]" />总部节点</span>
+                  <span className="inline-flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-[#24e889]" />地市在线</span>
+                  <span className="inline-flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-[#ff4d4f]" />地市离线</span>
                 </div>
               </div>
               {topologyHoverNode && (() => {
