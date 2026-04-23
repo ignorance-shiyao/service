@@ -32,7 +32,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 1. General Title
     if (comp.name === '通用标题') {
         return (
-            <div className="w-full h-full flex items-center justify-center p-2 bg-[#020617]">
+            <div className="w-full h-full flex items-center justify-center p-2 bg-[var(--sys-bg-page)]">
                 <div className="relative w-full h-10 flex items-center justify-center">
                     <div className="absolute inset-0 bg-blue-900/20 border-y border-blue-500/30"></div>
                     <span className="text-white text-base font-bold tracking-wider z-10">我是标题</span>
@@ -44,7 +44,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 2. Single Image
     if (comp.name === '单张图片') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617]">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)]">
                 <div className="w-full h-full border border-blue-500/30 rounded flex flex-col relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-blue-500 rounded-tl"></div>
                     <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-blue-500 rounded-tr"></div>
@@ -63,7 +63,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 3. Bandwidth Utilization Portrait (Wave)
     if (comp.name === '带宽利用率画像') {
         return (
-            <div className="w-full h-full relative p-2 bg-[#020617] flex flex-col">
+            <div className="w-full h-full relative p-2 bg-[var(--sys-bg-page)] flex flex-col">
                 <div className="text-[8px] text-cyan-400 mb-1 flex justify-between">
                     <span>专线计量号: 4563254987</span>
                 </div>
@@ -98,7 +98,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 4. Clock
     if (comp.name === '时间器') {
         return (
-            <div className="w-full h-full flex items-center justify-center bg-[#020617]">
+            <div className="w-full h-full flex items-center justify-center bg-[var(--sys-bg-page)]">
                 <div className="text-lg font-mono text-white tracking-widest drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">
                     2023-03-31 17:30:21
                 </div>
@@ -109,7 +109,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 5. SLA Stats (Donut)
     if (comp.name === '业务保障等级统计') {
         return (
-            <div className="w-full h-full relative p-2 bg-[#020617] flex items-center justify-center">
+            <div className="w-full h-full relative p-2 bg-[var(--sys-bg-page)] flex items-center justify-center">
                 <div className="relative w-32 h-32">
                     <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
                         <circle cx="50" cy="50" r="40" fill="none" stroke="#1e293b" strokeWidth="10" />
@@ -137,7 +137,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 6. Time Filter
     if (comp.name === '时间组件') {
         return (
-            <div className="w-full h-full p-2 flex items-center justify-center bg-[#020617]">
+            <div className="w-full h-full p-2 flex items-center justify-center bg-[var(--sys-bg-page)]">
                 <div className="flex gap-2 items-center bg-blue-900/10 p-2 rounded border border-blue-500/20">
                     <div className="bg-slate-900 border border-slate-700 px-2 py-1 rounded text-[8px] text-slate-300 w-16 flex justify-between items-center">
                         全部 <span>▼</span>
@@ -160,7 +160,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 7. Inspection Conclusion
     if (comp.name === '巡检结论') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617] flex flex-col">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)] flex flex-col">
                 <div className="flex justify-between items-center mb-1">
                     <div className="flex items-center gap-2">
                         <Radio size={10} className="text-blue-400" />
@@ -196,7 +196,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 8. Business Overview
     if (comp.name === '业务概览') {
         return (
-            <div className="w-full h-full relative bg-[#020617] flex items-center justify-center">
+            <div className="w-full h-full relative bg-[var(--sys-bg-page)] flex items-center justify-center">
                 {/* Center Core */}
                 <div className="relative w-20 h-20 bg-blue-600/20 rounded-full flex items-center justify-center border border-blue-500/50 shadow-[0_0_20px_rgba(37,99,235,0.4)]">
                     <User size={32} className="text-blue-200" />
@@ -224,7 +224,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 9. Business Count (Pedestals)
     if (comp.name === '业务数量统计') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617] flex flex-col">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)] flex flex-col">
                 <div className="text-[8px] text-slate-400 pl-2 border-l-2 border-blue-500 mb-2">业务数量统计 (按区域县)</div>
                 <div className="flex-1 flex items-end justify-around pb-2">
                     {['沈河区', '沈北新区', '大东区', '于洪区', '皇姑区', '辽中区'].map((name, i) => (
@@ -244,7 +244,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 10. Custom Window
     if (comp.name === '自定义标题窗口') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617]">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)]">
                 <div className="w-full h-full border border-blue-900 bg-slate-900/30 rounded flex flex-col">
                     <div className="h-6 border-b border-blue-900/50 flex items-center px-2">
                         <div className="w-1 h-3 bg-blue-500 mr-2"></div>
@@ -259,7 +259,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 11. IT/CE Overview
     if (comp.name === 'IT/CE设备概览') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617] flex flex-col">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)] flex flex-col">
                 <div className="text-[8px] text-slate-400 pl-2 border-l-2 border-blue-500 mb-2">设备概览</div>
                 <div className="flex-1 grid grid-cols-3 gap-2 items-center">
                     <div className="flex flex-col items-center gap-1">
@@ -285,7 +285,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 12. Business Type Stats (Concentric Rings)
     if (comp.name === '业务类型统计') {
         return (
-            <div className="w-full h-full relative p-2 bg-[#020617] flex items-center justify-center">
+            <div className="w-full h-full relative p-2 bg-[var(--sys-bg-page)] flex items-center justify-center">
                 <div className="absolute top-2 left-2 text-[8px] text-slate-400 border-l-2 border-blue-500 pl-2">业务类型统计</div>
                 <div className="relative w-36 h-36">
                     <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
@@ -320,7 +320,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 13. Total Traffic (Line)
     if (comp.name === '所有专线上下行流量') {
         return (
-            <div className="w-full h-full relative p-2 bg-[#020617] flex flex-col">
+            <div className="w-full h-full relative p-2 bg-[var(--sys-bg-page)] flex flex-col">
                 <div className="flex justify-between items-center mb-1">
                     <div className="text-[8px] text-slate-400 pl-2 border-l-2 border-blue-500">专线上下行流量</div>
                     <div className="flex gap-2 text-[6px] text-slate-500">
@@ -352,7 +352,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
         if (mapError) {
             // Static Fallback
             return (
-                <div className="w-full h-full relative bg-[#0b1121] overflow-hidden">
+                <div className="w-full h-full relative bg-[var(--sys-bg-page)] overflow-hidden">
                     <div className="absolute top-2 left-2 text-[8px] text-slate-400 pl-2 border-l-2 border-blue-500 z-20 bg-slate-900/50 rounded pr-2 backdrop-blur-sm">业务分布地图 (静态)</div>
                     <div className="relative w-full h-full flex items-center justify-center opacity-60">
                          {/* Abstract Map Shape */}
@@ -374,7 +374,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
         }
 
         if (!mapLoaded) {
-            return <div className="w-full h-full flex items-center justify-center text-xs text-slate-500 bg-[#0b1121]">地图加载中...</div>;
+            return <div className="w-full h-full flex items-center justify-center text-xs text-slate-500 bg-[var(--sys-bg-page)]">地图加载中...</div>;
         }
 
         const option = {
@@ -426,7 +426,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
         };
 
         return (
-            <div className="w-full h-full relative bg-[#0b1121] overflow-hidden">
+            <div className="w-full h-full relative bg-[var(--sys-bg-page)] overflow-hidden">
                 <div className="absolute top-2 left-2 text-[8px] text-slate-400 pl-2 border-l-2 border-blue-500 z-20 bg-slate-900/50 rounded pr-2 backdrop-blur-sm">业务分布地图</div>
                 <BaseChart option={option} />
             </div>
@@ -436,7 +436,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 15. Optical Power (Wave)
     if (comp.name === '接收光功率画像') {
         return (
-            <div className="w-full h-full relative p-2 bg-[#020617] flex flex-col">
+            <div className="w-full h-full relative p-2 bg-[var(--sys-bg-page)] flex flex-col">
                 <div className="text-[8px] text-cyan-400 mb-1">专线计量号: 4563254987</div>
                 <div className="flex justify-between text-[6px] text-slate-400 mb-1 px-4 bg-slate-900/50 rounded py-0.5 border border-slate-800">
                     <span>接收光功率: <span className="text-cyan-400">-9.3 dBm</span></span>
@@ -469,7 +469,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 16. Custom Background
     if (comp.name === '自定义背景框') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617]">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)]">
                 <div className="w-full h-full border border-slate-700 bg-slate-900/20">
                     <div className="h-full w-full flex items-center justify-center text-[8px] text-slate-600">
                         内容区域
@@ -482,7 +482,7 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 17. Date Picker
     if (comp.name === '日期选择器 (天)') {
         return (
-            <div className="w-full h-full flex items-center justify-center bg-[#020617]">
+            <div className="w-full h-full flex items-center justify-center bg-[var(--sys-bg-page)]">
                 <div className="flex items-center gap-2 border border-slate-600 rounded px-2 py-1 bg-slate-900 text-slate-300">
                     <Calendar size={12} />
                     <span className="text-[10px]">2023-04-17</span>
@@ -520,14 +520,14 @@ export const BizOtherPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 19. Report
     if (comp.name === '运行报告') {
         return (
-            <div className="w-full h-full flex flex-col p-2 bg-[#020617]">
+            <div className="w-full h-full flex flex-col p-2 bg-[var(--sys-bg-page)]">
                 <div className="text-[8px] text-slate-400 pl-2 border-l-2 border-blue-500 mb-2">运行报告</div>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="relative group cursor-pointer">
                         <div className="w-12 h-16 bg-gradient-to-br from-slate-700 to-slate-900 border border-slate-600 rounded-lg flex items-center justify-center shadow-lg group-hover:-translate-y-1 transition-transform">
                             <FileText size={24} className="text-blue-400" />
                         </div>
-                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-[6px] text-white border-2 border-[#020617]">
+                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-[6px] text-white border-2 border-[var(--sys-bg-page)]">
                             PDF
                         </div>
                     </div>

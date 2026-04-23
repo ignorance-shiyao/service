@@ -290,7 +290,7 @@ export const Private5GOverview: React.FC = () => {
 
         <div className={`col-span-12 xl:col-span-3 ${panelClass}`}>
           {sectionTitle('网络性能分析')}
-          <div className="flex flex-1 items-center justify-between gap-2 rounded border border-[#2a67aa] bg-[radial-gradient(circle_at_50%_40%,#13417f_0%,#0b2f63_64%,#08254b_100%)] px-3">
+          <div className="flex flex-1 items-center justify-between gap-2 rounded border border-[var(--comp-panel-border)] bg-[radial-gradient(circle_at_50%_40%,#13417f_0%,#0b2f63_64%,#08254b_100%)] px-3">
             <div className="space-y-2 text-right text-[#9fd0ff] text-xs">
               <div><div>信号接收平均质量</div><div className="text-[22px] font-bold text-[#39b1ff]">-9.56dB</div></div>
               <div><div>接收信号平均强度</div><div className="text-[22px] font-bold text-[#35a7ff]">-98.89dBm</div></div>
@@ -372,7 +372,7 @@ export const Private5GOverview: React.FC = () => {
           <div className="grid flex-1 grid-cols-3 gap-1.5 text-xs">
             {bizMetricRows.map(([label, value, icon]) => (
               <div key={label as string} className="rounded bg-[#0d3a73]/60 p-2">
-                <div className="mb-1 text-[10px] text-[#9fc8f2]">{label}</div>
+                <div className="mb-1 text-[10px] text-[var(--sys-text-secondary)]">{label}</div>
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[19px] font-black leading-none text-[#dcf2ff]">{value}</span>
                   <span className="rounded-full bg-[#2f78d4]/40 p-1 text-[#8fd3ff]">{icon as React.ReactNode}</span>

@@ -133,9 +133,9 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
   };
 
   return (
-    <div className="flex h-full bg-[#020617] text-slate-200 overflow-hidden flex-col font-sans">
+    <div className="flex h-full bg-[var(--sys-bg-page)] text-slate-200 overflow-hidden flex-col font-sans">
       {/* Header */}
-      <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f172a] shrink-0 z-10 shadow-lg">
+      <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[var(--sys-bg-header)] shrink-0 z-10 shadow-lg">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-amber-600/20 rounded-lg">
             <ShieldAlert className="text-amber-500" size={20} />
@@ -152,7 +152,7 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar bg-gradient-to-b from-[#0f172a]/20 to-[#020617]">
+      <div className="flex-1 overflow-y-auto custom-scrollbar bg-gradient-to-b from-[var(--sys-bg-header)]/20 to-[var(--sys-bg-page)]">
         {step === 'idle' && (
           <div className="h-full flex flex-col items-center justify-center p-10 text-center space-y-10 animate-in fade-in zoom-in duration-500">
             <div className="relative">
@@ -333,7 +333,7 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
                                     <div className="space-y-1.5">
                                         <label className="text-xs text-slate-500">故障现象描述</label>
                                         <textarea 
-                                            className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-4 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 outline-none resize-none flex-1 min-h-[120px] transition-all"
+                                            className="w-full bg-[var(--sys-bg-page)] border border-slate-800 rounded-2xl p-4 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 outline-none resize-none flex-1 min-h-[120px] transition-all"
                                             value={ticketMemo}
                                             onChange={e => setTicketMemo(e.target.value)}
                                         />

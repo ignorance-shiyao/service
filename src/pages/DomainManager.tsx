@@ -346,7 +346,7 @@ export const DomainManager: React.FC = () => {
            </div>
 
            {/* Row 2: Actions */}
-           <div className="flex justify-between items-center border-t border-slate-700/50 pt-3">
+           <div className="flex justify-between items-center border-t border-[var(--sys-border-primary)] pt-3">
                 <div className="flex gap-3">
                     <Button variant="primary" icon={<Search size={16} />}>查询</Button>
                     <Button 
@@ -381,7 +381,7 @@ export const DomainManager: React.FC = () => {
          <div className="flex-1 overflow-auto">
             <Table columns={activeColumns} data={tableData} />
          </div>
-         <div className="py-2 border-t border-slate-700 flex justify-between items-center">
+         <div className="py-2 border-t border-[var(--sys-border-primary)] flex justify-between items-center">
             <div className="text-sm text-slate-400">共 {filteredData.length} 条</div>
          </div>
       </Card>
@@ -438,7 +438,7 @@ export const DomainManager: React.FC = () => {
                     <div className="col-span-2">
                         <label className="text-sm text-slate-400 block mb-1.5">描述信息</label>
                         <textarea 
-                            className="w-full bg-[#1e293b] border border-slate-700 rounded p-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-600"
+                            className="w-full bg-[#1e293b] border border-[var(--sys-border-primary)] rounded p-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-600"
                             rows={3}
                             placeholder="请输入域描述..."
                             value={currentEditDomain?.description || ''}
@@ -446,11 +446,11 @@ export const DomainManager: React.FC = () => {
                         />
                     </div>
 
-                    <div className="col-span-2 bg-[#1e293b]/50 p-5 rounded-lg border border-slate-700/50">
+                    <div className="col-span-2 bg-[#1e293b]/50 p-5 rounded-lg border border-[var(--sys-border-primary)]">
                             <label className="text-sm font-medium text-slate-300 block mb-4">管理模式 (Management Mode)</label>
                             <div className="grid grid-cols-2 gap-6">
                                 <div 
-                                    className={`border rounded p-4 cursor-pointer transition-all flex items-start gap-4 ${currentEditDomain?.managementMode === 'fusion' ? 'bg-blue-600/10 border-blue-500' : 'bg-[#0f172a] border-slate-700 hover:border-slate-500'}`}
+                                    className={`border rounded p-4 cursor-pointer transition-all flex items-start gap-4 ${currentEditDomain?.managementMode === 'fusion' ? 'bg-blue-600/10 border-blue-500' : 'bg-[var(--sys-bg-header)] border-[var(--sys-border-primary)] hover:border-[var(--sys-border-secondary)]'}`}
                                     onClick={() => !currentEditDomain?.isSuper && setCurrentEditDomain(prev => ({ ...prev!, managementMode: 'fusion' }))}
                                 >
                                     <div className={`mt-0.5 rounded-full p-1.5 ${currentEditDomain?.managementMode === 'fusion' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-700 text-slate-400'}`}>
@@ -465,7 +465,7 @@ export const DomainManager: React.FC = () => {
                                 </div>
 
                                 <div 
-                                    className={`border rounded p-4 cursor-pointer transition-all flex items-start gap-4 ${currentEditDomain?.managementMode === 'switching' ? 'bg-blue-600/10 border-blue-500' : 'bg-[#0f172a] border-slate-700 hover:border-slate-500'}`}
+                                    className={`border rounded p-4 cursor-pointer transition-all flex items-start gap-4 ${currentEditDomain?.managementMode === 'switching' ? 'bg-blue-600/10 border-blue-500' : 'bg-[var(--sys-bg-header)] border-[var(--sys-border-primary)] hover:border-[var(--sys-border-secondary)]'}`}
                                     onClick={() => !currentEditDomain?.isSuper && setCurrentEditDomain(prev => ({ ...prev!, managementMode: 'switching' }))}
                                 >
                                     <div className={`mt-0.5 rounded-full p-1.5 ${currentEditDomain?.managementMode === 'switching' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-700 text-slate-400'}`}>
@@ -489,7 +489,7 @@ export const DomainManager: React.FC = () => {
                <SectionTitle title="关联客户配置" />
                
                {currentEditDomain?.isSuper ? (
-                   <div className="bg-slate-800/30 rounded-lg p-8 text-center border border-slate-700 border-dashed">
+                   <div className="bg-slate-800/30 rounded-lg p-8 text-center border border-[var(--sys-border-primary)] border-dashed">
                        <Crown size={32} className="mx-auto text-yellow-500 mb-3 opacity-50"/>
                        <p className="text-slate-300 font-medium">总控中心默认拥有所有客户权限</p>
                        <p className="text-slate-500 text-sm mt-1">无需手动配置关联客户</p>
@@ -497,8 +497,8 @@ export const DomainManager: React.FC = () => {
                ) : (
                 <div className="flex h-[320px] gap-4">
                   {/* Left: Source */}
-                  <div className="flex-1 border border-slate-700 rounded-lg flex flex-col bg-[#0f172a]">
-                      <div className="p-2 border-b border-slate-700 bg-slate-800/50 rounded-t-lg space-y-2">
+                  <div className="flex-1 border border-[var(--sys-border-primary)] rounded-lg flex flex-col bg-[var(--sys-bg-header)]">
+                      <div className="p-2 border-b border-[var(--sys-border-primary)] bg-slate-800/50 rounded-t-lg space-y-2">
                          <div className="flex gap-2">
                              <Input 
                                 placeholder="搜索客户..." 
@@ -511,7 +511,7 @@ export const DomainManager: React.FC = () => {
                              <label className="flex items-center space-x-2 cursor-pointer text-xs text-slate-300 select-none">
                                 <input 
                                     type="checkbox" 
-                                    className="rounded bg-slate-900 border-slate-600 text-blue-500" 
+                                    className="rounded bg-slate-900 border-[var(--sys-border-secondary)] text-blue-500" 
                                     onChange={(e) => handleSelectAllSource(e.target.checked)}
                                     checked={filteredSource.length > 0 && filteredSource.every(c => selectedSource.includes(c.id))}
                                 />
@@ -532,7 +532,7 @@ export const DomainManager: React.FC = () => {
                                       : setSelectedSource([...selectedSource, item.id])
                                 }}
                             >
-                                <input type="checkbox" checked={selectedSource.includes(item.id)} readOnly className="mr-2 rounded bg-slate-900 border-slate-600 pointer-events-none" />
+                                <input type="checkbox" checked={selectedSource.includes(item.id)} readOnly className="mr-2 rounded bg-slate-900 border-[var(--sys-border-secondary)] pointer-events-none" />
                                 <div className="flex flex-col overflow-hidden">
                                     <span className="text-sm truncate text-slate-300">{item.name}</span>
                                     <span className="text-[10px] text-slate-500">{item.code}</span>
@@ -544,7 +544,7 @@ export const DomainManager: React.FC = () => {
                       
                       {/* Pagination Controls for Transfer */}
                       {totalTransferPages > 1 && (
-                          <div className="p-2 border-t border-slate-700 flex justify-between items-center bg-slate-800/30">
+                          <div className="p-2 border-t border-[var(--sys-border-primary)] flex justify-between items-center bg-slate-800/30">
                               <button disabled={transferPage === 1} onClick={() => setTransferPage(p => p - 1)} className="p-1 hover:text-white text-slate-400 disabled:opacity-30"><ChevronLeft size={16}/></button>
                               <span className="text-xs text-slate-400">{transferPage} / {totalTransferPages}</span>
                               <button disabled={transferPage === totalTransferPages} onClick={() => setTransferPage(p => p + 1)} className="p-1 hover:text-white text-slate-400 disabled:opacity-30"><ChevronRight size={16}/></button>
@@ -563,8 +563,8 @@ export const DomainManager: React.FC = () => {
                   </div>
 
                   {/* Right: Target */}
-                  <div className="flex-1 border border-slate-700 rounded-lg flex flex-col bg-[#0f172a]">
-                      <div className="p-2 border-b border-slate-700 bg-slate-800/50 rounded-t-lg flex justify-between items-center h-[76px]">
+                  <div className="flex-1 border border-[var(--sys-border-primary)] rounded-lg flex flex-col bg-[var(--sys-bg-header)]">
+                      <div className="p-2 border-b border-[var(--sys-border-primary)] bg-slate-800/50 rounded-t-lg flex justify-between items-center h-[76px]">
                           <span className="text-xs font-semibold text-slate-300 pl-1">已关联客户 ({currentCustomerIds.length})</span>
                           <Button size="sm" variant="ghost" className="text-red-400 text-xs px-2 h-6" onClick={() => setCurrentEditDomain(prev => ({...prev!, customerIds: []}))}>清空</Button>
                       </div>
@@ -579,7 +579,7 @@ export const DomainManager: React.FC = () => {
                                       : setSelectedTarget([...selectedTarget, item.id])
                                 }}
                             >
-                                <input type="checkbox" checked={selectedTarget.includes(item.id)} readOnly className="mr-2 rounded bg-slate-900 border-slate-600 pointer-events-none" />
+                                <input type="checkbox" checked={selectedTarget.includes(item.id)} readOnly className="mr-2 rounded bg-slate-900 border-[var(--sys-border-secondary)] pointer-events-none" />
                                 <div className="flex flex-col overflow-hidden">
                                     <span className="text-sm truncate text-slate-300">{item.name}</span>
                                     <span className="text-[10px] text-slate-500">{item.code}</span>

@@ -10,7 +10,7 @@ export const BizSDWANPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 1. Core KPI Dashboard
     if (comp.name === '全网运行态势') {
         return (
-            <div className="w-full h-full p-4 flex flex-col justify-between bg-[#020617] relative overflow-hidden">
+            <div className="w-full h-full p-4 flex flex-col justify-between bg-[var(--sys-bg-page)] relative overflow-hidden">
                 <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col items-center p-2 bg-slate-800/50 rounded border border-slate-700">
                         <span className="text-[9px] text-slate-400 mb-1">CPE 在线率</span>
@@ -138,7 +138,7 @@ export const BizSDWANPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 5. Alarm Stream (Scrolling List)
     if (comp.name === '实时告警流') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617] flex flex-col overflow-hidden">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)] flex flex-col overflow-hidden">
                 <div className="flex items-center justify-between px-2 py-1.5 bg-slate-800 rounded-t border border-slate-700">
                     <span className="text-[10px] text-slate-300 font-bold">最新 SocketAlarm 事件</span>
                     <Badge color="red" className="animate-pulse">实时接入</Badge>

@@ -8,7 +8,7 @@ export const BizAICPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 1. Resource Kanban (Capsule Bars)
     if (comp.name === '算力池资源概览') {
         return (
-            <div className="w-full h-full p-3 bg-[#020617] flex flex-col gap-3 justify-center">
+            <div className="w-full h-full p-3 bg-[var(--sys-bg-page)] flex flex-col gap-3 justify-center">
                 {[
                     { label: 'GPU 核心利用率', val: 78.5, color: '#3b82f6', icon: Zap },
                     { label: '显存占用率', val: 62.4, color: '#8b5cf6', icon: Cpu },

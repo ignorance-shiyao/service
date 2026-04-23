@@ -57,7 +57,7 @@ const CodeAreaRow: React.FC<{ label: string; value: string; onChange: (val: stri
     <div className="py-2 border-b border-slate-700/50 last:border-0">
         <label className="text-sm text-slate-400 block mb-2">{label}:</label>
         <textarea 
-            className={`w-full bg-[#0b1121] border border-blue-900/30 rounded p-2 text-xs font-mono text-blue-300 focus:border-blue-500 outline-none resize-none ${height}`}
+            className={`w-full bg-[var(--sys-bg-page)] border border-blue-900/30 rounded p-2 text-xs font-mono text-blue-300 focus:border-blue-500 outline-none resize-none ${height}`}
             value={value}
             onChange={e => onChange(e.target.value)}
             placeholder={placeholder}
@@ -145,10 +145,10 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className={`flex flex-col bg-[#020617] border border-slate-700 shadow-2xl transition-all duration-300 overflow-hidden ${isFullscreen ? 'w-full h-full rounded-none' : 'w-[80vw] h-[85vh] rounded-lg'}`}>
+      <div className={`flex flex-col bg-[var(--sys-bg-page)] border border-slate-700 shadow-2xl transition-all duration-300 overflow-hidden ${isFullscreen ? 'w-full h-full rounded-none' : 'w-[80vw] h-[85vh] rounded-lg'}`}>
       
       {/* Header */}
-      <div className="h-14 bg-[#0f172a] border-b border-slate-800 flex items-center justify-between px-6 shrink-0 shadow-md">
+      <div className="h-14 bg-[var(--sys-bg-header)] border-b border-slate-800 flex items-center justify-between px-6 shrink-0 shadow-md">
           <h2 className="text-lg font-bold text-blue-400 tracking-wide flex items-center gap-2">
               {component.id ? '编辑组件' : '新建组件'}
           </h2>
@@ -265,7 +265,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
                                     <select 
                                         value={config.defaultDim}
                                         onChange={e => setConfig({...config, defaultDim: e.target.value})}
-                                        className="w-full bg-[#0f172a] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none appearance-none"
+                                        className="w-full bg-[var(--sys-bg-header)] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none appearance-none"
                                     >
                                         <option value="日">日</option>
                                         <option value="周">周</option>
@@ -276,7 +276,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
                                     <select 
                                         value={config.recentDays}
                                         onChange={e => setConfig({...config, recentDays: e.target.value})}
-                                        className="w-full bg-[#0f172a] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none appearance-none"
+                                        className="w-full bg-[var(--sys-bg-header)] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none appearance-none"
                                     >
                                         <option value="7">7</option>
                                         <option value="15">15</option>
@@ -287,7 +287,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
                                     <select 
                                         value={config.recentMonths}
                                         onChange={e => setConfig({...config, recentMonths: e.target.value})}
-                                        className="w-full bg-[#0f172a] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none appearance-none"
+                                        className="w-full bg-[var(--sys-bg-header)] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none appearance-none"
                                     >
                                         <option value="3">3</option>
                                         <option value="6">6</option>
@@ -300,7 +300,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
                                             type="text" 
                                             value={config.color} 
                                             onChange={e => setConfig({...config, color: e.target.value})}
-                                            className="flex-1 bg-[#0f172a] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:border-blue-500 outline-none"
+                                            className="flex-1 bg-[var(--sys-bg-header)] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:border-blue-500 outline-none"
                                         />
                                         <div className="w-5 h-5 rounded border border-white/20 shrink-0" style={{ backgroundColor: 'rgba(255, 208, 0, 0.7)' }}></div>
                                     </div>
@@ -312,7 +312,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
                                     <select 
                                         value={config.chartType}
                                         onChange={e => setConfig({...config, chartType: e.target.value})}
-                                        className="w-full bg-[#0f172a] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none appearance-none"
+                                        className="w-full bg-[var(--sys-bg-header)] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none appearance-none"
                                     >
                                         <option value="散点图">散点图</option>
                                         <option value="折线图">折线图</option>
@@ -327,9 +327,9 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
           </div>
 
           {/* Right Content: Preview & Info */}
-          <div className="flex-1 bg-[#0b1121] flex flex-col p-6 overflow-hidden">
+          <div className="flex-1 bg-[var(--sys-bg-page)] flex flex-col p-6 overflow-hidden">
               {/* Editable Info Grid */}
-              <div className="mb-6 bg-[#0f172a] border border-slate-800 rounded p-4">
+              <div className="mb-6 bg-[var(--sys-bg-header)] border border-slate-800 rounded p-4">
                   <div className="grid grid-cols-2 gap-x-12 gap-y-4">
                       <div className="flex items-center">
                           <span className="text-sm text-slate-400 w-24 shrink-0">组件名称:</span>
@@ -381,9 +381,9 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
               </div>
 
               {/* Preview Box */}
-              <div className="flex-1 border border-slate-700 rounded-lg flex flex-col bg-[#020617] relative shadow-2xl overflow-hidden">
+              <div className="flex-1 border border-slate-700 rounded-lg flex flex-col bg-[var(--sys-bg-page)] relative shadow-2xl overflow-hidden">
                   {/* Preview Header */}
-                  <div className="h-10 border-b border-slate-800 flex items-center justify-between px-4 bg-[#0f172a]/50">
+                  <div className="h-10 border-b border-slate-800 flex items-center justify-between px-4 bg-[var(--sys-bg-header)]/50">
                       <div className="flex items-center gap-2">
                           <div className="w-1 h-3 bg-blue-500 rounded-full"></div>
                           <span className="text-sm font-bold text-slate-200">{compMeta.name}</span>

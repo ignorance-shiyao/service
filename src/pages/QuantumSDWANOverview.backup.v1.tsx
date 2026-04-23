@@ -345,7 +345,7 @@ export const QuantumSDWANOverview: React.FC = () => {
           <div className="grid flex-1 grid-cols-2 gap-1.5">
             {keyHealth.map((m) => (
               <div key={m.label} className="rounded bg-[#0e3e7e]/65 p-2">
-                <div className="text-[11px] text-[#9fc8f2]">{m.label}</div>
+                <div className="text-[11px] text-[var(--sys-text-secondary)]">{m.label}</div>
                 <div className="mt-1 text-[18px] font-semibold text-[#d8f1ff]">{m.value}</div>
               </div>
             ))}
@@ -357,7 +357,7 @@ export const QuantumSDWANOverview: React.FC = () => {
           <div className="grid flex-1 grid-cols-2 gap-1.5">
             {netPerf.map((m) => (
               <div key={m.label} className="rounded bg-[#0e3e7e]/65 p-2">
-                <div className="text-[11px] text-[#9fc8f2]">{m.label}</div>
+                <div className="text-[11px] text-[var(--sys-text-secondary)]">{m.label}</div>
                 <div className="mt-1 text-[19px] font-semibold text-[#d8f1ff]">{m.value}</div>
               </div>
             ))}
@@ -369,7 +369,7 @@ export const QuantumSDWANOverview: React.FC = () => {
           <div className="grid flex-1 grid-cols-2 gap-1.5">
             {alarmOverview.map((m) => (
               <div key={m.label} className="rounded bg-[#0e3e7e]/65 p-2">
-                <div className="text-[11px] text-[#9fc8f2]">{m.label}</div>
+                <div className="text-[11px] text-[var(--sys-text-secondary)]">{m.label}</div>
                 <div className="mt-1 text-[20px] font-semibold text-[#d8f1ff]">{m.value}</div>
               </div>
             ))}
@@ -378,7 +378,7 @@ export const QuantumSDWANOverview: React.FC = () => {
 
         <div className={`col-span-12 md:col-span-6 xl:col-span-3 xl:row-span-2 ${panelClass}`}>
           {sectionTitle('站点地理分布')}
-          <div className="relative flex-1 min-h-[360px] xl:min-h-0 overflow-hidden rounded border border-[#2a67aa] bg-[radial-gradient(circle_at_50%_50%,#123f7f_0%,#0d3369_46%,#08284f_72%,#061e40_100%)]">
+          <div className="relative flex-1 min-h-[360px] xl:min-h-0 overflow-hidden rounded border border-[var(--comp-panel-border)] bg-[radial-gradient(circle_at_50%_50%,#123f7f_0%,#0d3369_46%,#08284f_72%,#061e40_100%)]">
             <div className="absolute inset-0 p-2">
               <div
                 ref={mapSvgRef}
@@ -419,12 +419,12 @@ export const QuantumSDWANOverview: React.FC = () => {
           {sectionTitle('量子服务器连接状态')}
           <div className="flex-1 min-h-[150px] space-y-1.5 overflow-auto pr-0.5 text-xs">
             {qssNodes.map((s) => (
-              <div key={s.id} className="rounded border border-[#2a67aa] bg-[#0c3468]/65 p-2">
+              <div key={s.id} className="rounded border border-[var(--comp-panel-border)] bg-[#0c3468]/65 p-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[#cfe8ff]">{s.id}</span>
                   <span className={`font-semibold ${s.status === '在线' ? 'text-[#3ad0a5]' : 'text-[#f5b963]'}`}>{s.status}</span>
                 </div>
-                <div className="mt-1 flex items-center justify-between text-[#9fc8f2]">
+                <div className="mt-1 flex items-center justify-between text-[var(--sys-text-secondary)]">
                   <span>keepAlive: {s.delay}</span>
                   <span>deviceID: {s.device}</span>
                 </div>
@@ -435,8 +435,8 @@ export const QuantumSDWANOverview: React.FC = () => {
 
         <div className={`col-span-12 md:col-span-6 xl:col-span-6 ${panelClass}`}>
           {sectionTitle('实时告警列表')}
-          <div className="flex-1 min-h-[150px] overflow-auto rounded border border-[#2a67aa] bg-[#0c3468]/65">
-            <div className="grid grid-cols-[40px_50px_1fr_1fr_72px] border-b border-[#2a67aa] px-2 py-1 text-[11px] text-[#9fc8f2]">
+          <div className="flex-1 min-h-[150px] overflow-auto rounded border border-[var(--comp-panel-border)] bg-[#0c3468]/65">
+            <div className="grid grid-cols-[40px_50px_1fr_1fr_72px] border-b border-[var(--comp-panel-border)] px-2 py-1 text-[11px] text-[var(--sys-text-secondary)]">
               <span>#</span><span>级别</span><span>网元</span><span>原因</span><span>时间</span>
             </div>
             {realtimeAlarms.map((a, i) => (
@@ -476,7 +476,7 @@ export const QuantumSDWANOverview: React.FC = () => {
                 { k: 'EVPN over IPsec', v: '68%' },
               ].map((item) => (
                 <div key={item.k} className="rounded bg-[#0e3e7e]/65 p-2">
-                  <div className="text-[#9fc8f2]">{item.k}</div>
+                  <div className="text-[var(--sys-text-secondary)]">{item.k}</div>
                   <div className="mt-1 text-[18px] font-semibold text-[#d8f1ff]">{item.v}</div>
                 </div>
               ))}

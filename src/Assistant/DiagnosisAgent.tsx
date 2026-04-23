@@ -138,7 +138,7 @@ export const DiagnosisAgent: React.FC<DiagnosisAgentProps> = ({ onTransfer, embe
   };
 
   return (
-    <div className={`flex-1 flex flex-col overflow-hidden ${embedded ? 'min-h-[450px] bg-[#020617]' : 'bg-[#020617]'}`}>
+    <div className={`flex-1 flex flex-col overflow-hidden ${embedded ? 'min-h-[450px] bg-[var(--sys-bg-page)]' : 'bg-[var(--sys-bg-page)]'}`}>
       {stage === 'input' && (
         <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-6 animate-in fade-in zoom-in duration-500 relative">
             {embedded && (
@@ -152,7 +152,7 @@ export const DiagnosisAgent: React.FC<DiagnosisAgentProps> = ({ onTransfer, embe
                 <p className="text-slate-500 text-xs mt-1">智能编排多源拨测，即刻定位业务根因</p>
             </div>
             
-            <div className="w-full max-w-lg bg-[#0f172a] border border-slate-800 rounded-2xl p-1.5 flex gap-2 shadow-2xl focus-within:border-indigo-500/50 transition-all">
+            <div className="w-full max-w-lg bg-[var(--sys-bg-header)] border border-slate-800 rounded-2xl p-1.5 flex gap-2 shadow-2xl focus-within:border-indigo-500/50 transition-all">
                 <input 
                     className="flex-1 bg-transparent px-4 py-2 text-sm text-white placeholder-slate-600 outline-none"
                     placeholder="输入业务标识或客户名称..."
@@ -197,7 +197,7 @@ export const DiagnosisAgent: React.FC<DiagnosisAgentProps> = ({ onTransfer, embe
       {(stage === 'processing' || stage === 'jump' || stage === 'conclusion') && (
         <div className="flex-1 flex overflow-hidden animate-in slide-in-from-right-10 duration-500">
             {/* Left Control Column */}
-            <div className={`w-64 border-r border-slate-800 p-6 flex flex-col bg-[#0f172a]/20 ${embedded ? 'hidden md:flex' : ''}`}>
+            <div className={`w-64 border-r border-slate-800 p-6 flex flex-col bg-[var(--sys-bg-header)]/20 ${embedded ? 'hidden md:flex' : ''}`}>
                 <div className="flex items-center justify-between mb-6">
                     <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">任务编排流水线</span>
                     <button onClick={resetAll} className="p-1.5 hover:bg-slate-800 rounded text-slate-500 hover:text-white" title="重置诊断">

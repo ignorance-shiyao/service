@@ -120,7 +120,7 @@ export const GenericPreview: React.FC<{ comp: any }> = ({ comp }) => {
     case 'map':
         if (mapError) {
             return (
-                <div className="w-full h-full relative bg-[#0f172a] overflow-hidden flex items-center justify-center">
+                <div className="w-full h-full relative bg-[var(--sys-bg-header)] overflow-hidden flex items-center justify-center">
                     <div className="absolute top-2 left-2 text-[8px] text-slate-400 border-l-2 border-blue-500 pl-2 z-20">地图概览 (静态)</div>
                     <div className="w-3/4 h-3/4 opacity-30 border-2 border-dashed border-slate-600 rounded-xl flex items-center justify-center">
                         <Globe2 size={48} className="text-slate-500"/>
@@ -129,7 +129,7 @@ export const GenericPreview: React.FC<{ comp: any }> = ({ comp }) => {
             );
         }
         if (!mapLoaded) {
-            return <div className="w-full h-full flex items-center justify-center text-xs text-slate-500 bg-[#0f172a]">地图加载中...</div>;
+            return <div className="w-full h-full flex items-center justify-center text-xs text-slate-500 bg-[var(--sys-bg-header)]">地图加载中...</div>;
         }
         
         const mapOption = {
@@ -155,7 +155,7 @@ export const GenericPreview: React.FC<{ comp: any }> = ({ comp }) => {
         };
 
         return (
-            <div className="w-full h-full relative bg-[#0f172a] overflow-hidden">
+            <div className="w-full h-full relative bg-[var(--sys-bg-header)] overflow-hidden">
                 <BaseChart option={mapOption} />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 border border-blue-500/20 rounded-full animate-[ping_3s_ease-in-out_infinite] z-10 pointer-events-none"></div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-blue-400 rounded-full shadow-[0_0_8px_#60a5fa] z-20 pointer-events-none"></div>

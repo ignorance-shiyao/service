@@ -162,7 +162,7 @@ export const CloudNetworkOverview: React.FC = () => {
               <Database size={20} className="text-[#9cd3ff]" />
             </div>
           </div>
-          <div className="mt-1.5 rounded border border-[#2a67aa] bg-[#0c3468]/65 p-2">
+          <div className="mt-1.5 rounded border border-[var(--comp-panel-border)] bg-[#0c3468]/65 p-2">
             <div className="grid grid-cols-2 text-[11px] text-[#a6cefa]">
               <div>业务名称</div>
               <div className="text-right">云主机实例数</div>
@@ -209,7 +209,7 @@ export const CloudNetworkOverview: React.FC = () => {
         <div className={`col-span-12 xl:col-span-3 ${panelClass}`}>
           {sectionTitle('实时视频')}
           <div className="relative flex-1 min-h-[170px] overflow-hidden rounded border border-[#2f78d4] bg-[#0a2f5e]">
-            <div className="flex items-center justify-between border-b border-[#2a67aa] bg-[#0d3f79]/60 px-2 py-1 text-[11px] text-[#c8e6ff]">
+            <div className="flex items-center justify-between border-b border-[var(--comp-panel-border)] bg-[#0d3f79]/60 px-2 py-1 text-[11px] text-[#c8e6ff]">
               <span>纬4楼201机房D-E列冷通道南</span>
               <div className="flex items-center gap-1.5 text-[#7dc5ff]">
                 <Camera size={11} />

@@ -146,7 +146,7 @@ export const BizIdcPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 6. Real-time Video (Grid - Keep Custom or use generic placeholder)
     if (comp.name === '实时视频') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617] flex flex-col">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)] flex flex-col">
                 <div className="flex justify-between items-center mb-2">
                     <div className="text-[10px] text-slate-400 border-l-2 border-blue-500 pl-2">实时视频</div>
                     <div className="text-[10px] text-blue-500 cursor-pointer">...</div>
@@ -158,7 +158,7 @@ export const BizIdcPreview: React.FC<{ comp: any }> = ({ comp }) => {
                                  <span className="text-[8px] text-slate-300 truncate w-20">{title}</span>
                                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]"></div>
                              </div>
-                             <div className="flex-1 relative bg-[#0f172a] flex items-center justify-center">
+                             <div className="flex-1 relative bg-[var(--sys-bg-header)] flex items-center justify-center">
                                  <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-black opacity-50"></div>
                                  <Video size={20} className="text-slate-600 opacity-50 group-hover:text-blue-500 group-hover:opacity-100 transition-all" />
                                  <div className="absolute bottom-1 right-1 text-[8px] text-slate-500 bg-black/50 px-1 rounded font-mono">
@@ -197,7 +197,7 @@ export const BizIdcPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 8. Device Online Status (List - Keep custom for better layout)
     if (comp.name === 'IDC设备在线情况') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617] flex flex-col gap-2">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)] flex flex-col gap-2">
                 <div className="text-[10px] text-slate-400 border-l-2 border-blue-500 pl-2 mb-1">IDC设备在线情况</div>
                 <div className="grid grid-cols-2 gap-2 h-14 shrink-0">
                      <div className="bg-gradient-to-r from-blue-900/40 to-slate-900 border border-slate-700/50 rounded p-2 flex items-center justify-between relative overflow-hidden">
@@ -215,7 +215,7 @@ export const BizIdcPreview: React.FC<{ comp: any }> = ({ comp }) => {
                          <Server size={20} className="text-blue-500 opacity-30 absolute right-2 bottom-1" />
                      </div>
                 </div>
-                <div className="flex-1 overflow-hidden border border-slate-800 rounded flex flex-col bg-[#0f172a]/30">
+                <div className="flex-1 overflow-hidden border border-slate-800 rounded flex flex-col bg-[var(--sys-bg-header)]/30">
                     <div className="flex bg-slate-800/80 px-3 py-1.5 border-b border-slate-700">
                         <div className="flex-1 text-[8px] text-slate-300 font-medium">设备类型</div>
                         <div className="w-12 text-[8px] text-green-400 text-center font-medium">在线</div>

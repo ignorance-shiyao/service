@@ -112,8 +112,8 @@ export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initial
     return (
         <div className="flex-1 flex overflow-hidden">
             {/* Left Sidebar - Increased width to w-96 (384px) to ensure time visibility */}
-            <div className={`bg-[#0f172a]/50 border-r border-slate-800 transition-all duration-300 flex flex-col overflow-hidden ${showHistory ? 'w-96' : 'w-0'}`}>
-                <div className="p-4 h-14 border-b border-slate-800 flex justify-between items-center whitespace-nowrap bg-[#0f172a]/40 shrink-0">
+            <div className={`bg-[var(--sys-bg-header)]/50 border-r border-slate-800 transition-all duration-300 flex flex-col overflow-hidden ${showHistory ? 'w-96' : 'w-0'}`}>
+                <div className="p-4 h-14 border-b border-slate-800 flex justify-between items-center whitespace-nowrap bg-[var(--sys-bg-header)]/40 shrink-0">
                     <span className="text-xs font-black text-slate-500 uppercase tracking-widest">历史会话</span>
                     <button onClick={() => setShowHistory(false)} className="p-1 hover:bg-slate-800 rounded text-slate-500 hover:text-white transition-colors">
                         <ChevronLeft size={16}/>
@@ -149,9 +149,9 @@ export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initial
             </div>
 
             {/* Right: Conversation Area */}
-            <div className="flex-1 flex flex-col min-w-0 bg-[#020617] relative">
+            <div className="flex-1 flex flex-col min-w-0 bg-[var(--sys-bg-page)] relative">
                 {/* Control Bar */}
-                <div className="h-12 px-6 border-b border-slate-800 flex items-center justify-between bg-[#0f172a]/60 backdrop-blur-xl z-20 sticky top-0">
+                <div className="h-12 px-6 border-b border-slate-800 flex items-center justify-between bg-[var(--sys-bg-header)]/60 backdrop-blur-xl z-20 sticky top-0">
                     <div className="flex items-center gap-4">
                          {!showHistory && (
                              <button onClick={() => setShowHistory(true)} className="flex items-center gap-1.5 text-slate-500 hover:text-indigo-400 transition-colors">
@@ -195,7 +195,7 @@ export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initial
                     ))}
 
                     {activeDiagnosis && (
-                        <div className="animate-in zoom-in duration-500 bg-[#0f172a] border border-indigo-500/20 rounded-[32px] overflow-hidden shadow-2xl relative mt-4">
+                        <div className="animate-in zoom-in duration-500 bg-[var(--sys-bg-header)] border border-indigo-500/20 rounded-[32px] overflow-hidden shadow-2xl relative mt-4">
                             <DiagnosisAgent embedded={true} onTransfer={() => { handleAction('human'); setActiveDiagnosis(false); }} onClose={() => setActiveDiagnosis(false)} />
                         </div>
                     )}
@@ -211,7 +211,7 @@ export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initial
                 </div>
 
                 {/* Input Hub & Bottom Action Matrix */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 pt-2 border-t border-slate-800 bg-[#0f172a]/80 backdrop-blur-2xl z-30">
+                <div className="absolute bottom-0 left-0 right-0 p-4 pt-2 border-t border-slate-800 bg-[var(--sys-bg-header)]/80 backdrop-blur-2xl z-30">
                     
                     {/* Small Quick Service Matrix */}
                     <div className="max-w-5xl mx-auto mb-4">

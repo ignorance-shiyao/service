@@ -18,9 +18,9 @@ export const AssistantView: React.FC<AssistantProps> = ({ mode, onToggleMode, on
   const [activeTab] = useState<AssistantTab>('ai-chat');
 
   return (
-    <div className="flex h-full bg-[#020617] text-slate-200 overflow-hidden flex-col font-sans">
+    <div className="flex h-full bg-[var(--sys-bg-page)] text-slate-200 overflow-hidden flex-col font-sans">
       {/* Header */}
-      <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f172a] shrink-0 z-20 shadow-xl">
+      <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[var(--sys-bg-header)] shrink-0 z-20 shadow-xl">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-indigo-600/20 rounded-lg">
             <Bot className="text-indigo-500" size={20} />
@@ -40,7 +40,7 @@ export const AssistantView: React.FC<AssistantProps> = ({ mode, onToggleMode, on
 
       <div className="flex-1 flex overflow-hidden">
         {/* 原有的侧边功能列已移除，直接渲染主体内容 */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[#020617] relative">
+        <div className="flex-1 flex flex-col min-w-0 bg-[var(--sys-bg-page)] relative">
           <ChatInterface isHuman={false} />
         </div>
       </div>

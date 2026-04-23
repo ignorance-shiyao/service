@@ -52,7 +52,7 @@ export const NotificationMatrix: React.FC = () => {
                 </div>
 
                 <SectionTitle title="告警下发策略" />
-                <div className="bg-[#0f172a]/50 border border-slate-800 rounded-3xl p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-[var(--sys-bg-header)]/50 border border-slate-800 rounded-3xl p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
                      <div className="space-y-3">
                          <div className="flex items-center gap-2 text-red-500 font-bold text-sm">
                              <AlertTriangle size={16}/> 核心级告警

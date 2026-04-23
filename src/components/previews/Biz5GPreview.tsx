@@ -9,7 +9,7 @@ export const Biz5GPreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 1. Customer Business Overview (Cards - Keep as Custom)
     if (comp.name === '客户业务概况') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617] flex flex-col gap-2">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)] flex flex-col gap-2">
                 <div className="grid grid-cols-2 gap-2 flex-1">
                     {[
                         { l: '开卡数', v: 0, i: User },

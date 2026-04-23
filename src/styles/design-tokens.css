@@ -1,0 +1,118 @@
+:root {
+  --ref-color-brand-500: #3080ff;
+  --ref-color-bg-950: #082a59;
+  --ref-color-bg-900: #0b3368;
+  --ref-color-bg-850: #0c376f;
+  --ref-color-bg-800: #12447f;
+  --ref-color-bg-780: #144a87;
+  --ref-color-bg-760: #155092;
+  --ref-color-bg-740: #1d5ca3;
+
+  --ref-color-border-700: #1f5b9b;
+  --ref-color-border-650: #2b6aa8;
+  --ref-color-border-brand-soft: rgba(48, 128, 255, 0.25);
+
+  --ref-color-text-100: #bccce8;
+  --ref-color-text-200: #afbed8;
+  --ref-color-text-300: rgba(210, 218, 231, 0.85);
+  --ref-color-text-500: #4e648a;
+  --ref-color-text-inverse: #ffffff;
+
+  --sys-text-primary: var(--ref-color-text-100);
+  --sys-text-secondary: var(--ref-color-text-200);
+  --sys-text-tertiary: var(--ref-color-text-300);
+  --sys-text-disabled: var(--ref-color-text-500);
+
+  --sys-bg-page: var(--ref-color-bg-950);
+  --sys-bg-header: var(--ref-color-bg-900);
+  --sys-bg-sider: var(--ref-color-bg-850);
+  --sys-bg-card: var(--ref-color-bg-850);
+  --sys-bg-card-hover: var(--ref-color-bg-800);
+
+  --sys-border-primary: var(--ref-color-border-700);
+  --sys-border-secondary: var(--ref-color-border-650);
+  --sys-border-focus: var(--ref-color-brand-500);
+
+  --sys-link-default: var(--ref-color-brand-500);
+  --sys-link-hover: #67b7ff;
+  --sys-link-active: #2f81d9;
+
+  --sys-state-success: #00ff88;
+  --sys-state-warning: #f59e0b;
+  --sys-state-danger: #ef4444;
+  --sys-state-info: #00d4ff;
+  --sys-state-quantum: #a855f7;
+
+  --comp-panel-background: #0c3974;
+  --comp-panel-border: #2a67aa;
+  --comp-panel-title: #d4eeff;
+  --comp-panel-title-accent: #00d4ff;
+  --comp-panel-tab-text: #90c4e8;
+  --comp-panel-tab-active-bg: rgba(0, 212, 255, 0.12);
+
+  --comp-control-height: 32px;
+  --comp-radius-sm: 3px;
+  --comp-radius-md: 8px;
+  --comp-table-row-height: 40px;
+
+  --biz-map-flyline-normal: #3b82f6;
+  --biz-map-flyline-quantum: #8b5cf6;
+  --biz-map-city-fill-default: #2756b5;
+  --biz-map-city-fill-hover: #4f83ea;
+  --biz-map-city-stroke-default: #a9d7ff;
+  --biz-map-city-stroke-hover: #ecf8ff;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(102, 192, 255, 0.62) rgba(9, 35, 72, 0.18);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(102, 192, 255, 0.62) rgba(9, 35, 72, 0.18);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  border-radius: 9999px;
+  background: rgba(12, 43, 84, 0.2);
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  border: 1px solid rgba(145, 219, 255, 0.4);
+  background: rgba(84, 164, 236, 0.92);
+  box-shadow: inset 0 1px 0 rgba(230, 248, 255, 0.5), 0 0 10px rgba(61, 166, 245, 0.35);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  border-color: rgba(188, 236, 255, 0.7);
+  background: rgba(110, 190, 249, 0.96);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  border-radius: 9999px;
+  background: rgba(12, 43, 84, 0.2);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  border: 1px solid rgba(145, 219, 255, 0.4);
+  background: rgba(84, 164, 236, 0.92);
+  box-shadow: inset 0 1px 0 rgba(230, 248, 255, 0.5), 0 0 10px rgba(61, 166, 245, 0.35);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  border-color: rgba(188, 236, 255, 0.7);
+  background: rgba(110, 190, 249, 0.96);
+}

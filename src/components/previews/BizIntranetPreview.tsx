@@ -106,7 +106,7 @@ export const BizIntranetPreview: React.FC<{ comp: any }> = ({ comp }) => {
         if (mapError) {
              // Static Fallback
              return (
-                <div className="w-full h-full relative bg-[#0b1121] overflow-hidden flex items-center justify-center">
+                <div className="w-full h-full relative bg-[var(--sys-bg-page)] overflow-hidden flex items-center justify-center">
                     <div className="absolute top-2 left-2 text-[8px] text-slate-400 border-l-2 border-blue-500 pl-2 z-20 bg-slate-900/50 rounded pr-2 backdrop-blur-sm">拨测节点分布 (静态)</div>
                     <div className="relative w-full h-full opacity-50">
                         {/* Abstract Map Shape */}
@@ -126,7 +126,7 @@ export const BizIntranetPreview: React.FC<{ comp: any }> = ({ comp }) => {
         }
 
         if (!mapLoaded) {
-            return <div className="w-full h-full flex items-center justify-center text-xs text-slate-500 bg-[#0b1121]">地图加载中...</div>;
+            return <div className="w-full h-full flex items-center justify-center text-xs text-slate-500 bg-[var(--sys-bg-page)]">地图加载中...</div>;
         }
 
         const option = {
@@ -179,7 +179,7 @@ export const BizIntranetPreview: React.FC<{ comp: any }> = ({ comp }) => {
         };
 
         return (
-            <div className="w-full h-full relative bg-[#0b1121] overflow-hidden">
+            <div className="w-full h-full relative bg-[var(--sys-bg-page)] overflow-hidden">
                 <div className="absolute top-2 left-2 text-[8px] text-slate-400 border-l-2 border-blue-500 pl-2 z-20 bg-slate-900/50 rounded pr-2 backdrop-blur-sm">拨测节点分布</div>
                 <BaseChart option={option} />
                 <div className="absolute bottom-2 right-2 text-[8px] flex flex-col gap-1 bg-slate-900/80 p-1 rounded border border-slate-700 z-20 backdrop-blur-sm pointer-events-none">

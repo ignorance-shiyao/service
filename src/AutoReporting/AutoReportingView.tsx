@@ -205,7 +205,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
   };
 
   return (
-    <div className="flex h-full bg-[#020617] text-slate-200 overflow-hidden flex-col font-sans relative">
+    <div className="flex h-full bg-[var(--sys-bg-page)] text-slate-200 overflow-hidden flex-col font-sans relative">
       
       {/* Configuration Modal */}
       <Modal
@@ -280,7 +280,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
       </Modal>
 
       {/* Main View Code (Header, List, Fusion, Detail) */}
-      <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f172a] shrink-0 z-10 shadow-lg">
+      <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[var(--sys-bg-header)] shrink-0 z-10 shadow-lg">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-indigo-600/20 rounded-lg">
             <FilePieChart className="text-indigo-500" size={20} />
@@ -297,7 +297,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden flex flex-col bg-[#020617]">
+      <div className="flex-1 overflow-hidden flex flex-col bg-[var(--sys-bg-page)]">
         {view === 'list' && (
           <div className="flex-1 flex flex-col p-8 animate-in fade-in duration-500">
             <div className="flex justify-between items-end mb-8">
@@ -383,7 +383,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
         {view === 'detail' && selectedReport && (
           <div className="flex-1 flex flex-col overflow-hidden animate-in slide-in-from-right-10 duration-500">
              {/* Detail Header */}
-             <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-[#0f172a]/40 shrink-0">
+             <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-[var(--sys-bg-header)]/40 shrink-0">
                 <button onClick={() => { setView('list'); setDrillDownMetric(null); }} className="flex items-center gap-2 text-indigo-500 text-sm font-bold hover:text-indigo-400">
                     <ArrowLeft size={16} /> 返回报告列表
                 </button>
@@ -395,7 +395,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
                 </div>
              </div>
 
-             <div className="flex-1 overflow-y-auto custom-scrollbar p-10 bg-[#020617]">
+             <div className="flex-1 overflow-y-auto custom-scrollbar p-10 bg-[var(--sys-bg-page)]">
                 <div className="max-w-6xl mx-auto space-y-12 pb-20">
                    {/* Title Area & Score */}
                    <div className="flex justify-between items-start">
@@ -558,7 +558,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
                    {/* Drill Down Analysis Overlay */}
                    {drillDownMetric && (
                      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-4xl px-6 z-50 animate-in slide-in-from-bottom-10 duration-500">
-                        <div className="bg-[#0f172a] border border-indigo-500/50 rounded-3xl p-8 shadow-[0_0_80px_rgba(0,0,0,0.8)] relative">
+                        <div className="bg-[var(--sys-bg-header)] border border-indigo-500/50 rounded-3xl p-8 shadow-[0_0_80px_rgba(0,0,0,0.8)] relative">
                             <div className="flex justify-between items-center mb-8">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400"><TrendingUp size={20}/></div>

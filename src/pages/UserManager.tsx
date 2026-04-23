@@ -124,7 +124,7 @@ export const UserManager: React.FC = () => {
         key: 'user', header: '用户', 
         accessor: (row: User) => (
             <div className="flex items-center gap-3 text-left">
-                 <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center border border-slate-600 text-slate-300 shrink-0">
+                 <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center border border-[var(--sys-border-secondary)] text-slate-300 shrink-0">
                       <UserIcon size={14} />
                  </div>
                  <div className="text-sm font-medium text-slate-200">{row.username}</div>
@@ -306,7 +306,7 @@ export const UserManager: React.FC = () => {
           return (
               <div key={node.id}>
                   <div 
-                      className={`flex items-center py-2 px-2 cursor-pointer transition-all rounded-md mb-1 border border-transparent ${isSelected ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-300 hover:bg-slate-800 hover:border-slate-700'}`}
+                      className={`flex items-center py-2 px-2 cursor-pointer transition-all rounded-md mb-1 border border-transparent ${isSelected ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-300 hover:bg-slate-800 hover:border-[var(--sys-border-primary)]'}`}
                       style={{ paddingLeft: `${depth * 16 + 8}px` }}
                       onClick={() => setSelectedNode({ id: node.id, type: node.type })}
                   >
@@ -515,7 +515,7 @@ export const UserManager: React.FC = () => {
                 </Card>
             ) : (
                 <div 
-                    className="h-full bg-[#1e293b] border border-slate-800 rounded-lg flex flex-col items-center py-4 cursor-pointer hover:bg-slate-800 hover:border-blue-500/50 transition-colors"
+                    className="h-full bg-[#1e293b] border border-[var(--sys-border-primary)] rounded-lg flex flex-col items-center py-4 cursor-pointer hover:bg-slate-800 hover:border-blue-500/50 transition-colors"
                     onClick={() => setIsTreeOpen(true)}
                     title="展开组织机构"
                 >
@@ -569,7 +569,7 @@ export const UserManager: React.FC = () => {
                     </div>
 
                     {/* Row 2: Actions */}
-                    <div className="flex justify-between items-center border-t border-slate-700/50 pt-3">
+                    <div className="flex justify-between items-center border-t border-[var(--sys-border-primary)] pt-3">
                         <div className="flex gap-3">
                             <Button variant="primary" icon={<Search size={16} />}>查询</Button>
                             <Button variant="secondary" icon={<RotateCcw size={16} />} onClick={() => { setSearchUsername(''); setSearchRoleId(''); setSearchDomainId(''); setSearchStatus(''); }}>重置</Button>
@@ -593,7 +593,7 @@ export const UserManager: React.FC = () => {
 
             {/* 2. Table Area */}
             <Card className="flex-1 overflow-hidden flex flex-col">
-                <div className="flex justify-between items-center px-4 py-2 border-b border-slate-800/50 bg-slate-900/20">
+                <div className="flex justify-between items-center px-4 py-2 border-b border-[var(--sys-border-primary)] bg-slate-900/20">
                      <span className="text-xs text-slate-500">
                          当前过滤: <span className="text-blue-400 font-medium">{selectedNode ? (selectedNode.type === 'domain' ? '域' : '部门') + ' - ' + (mixedTree.find(n => n.id === selectedNode.id)?.name || MOCK_DEPTS.find(d => d.id === selectedNode.id)?.name) : '全部'}</span>
                      </span>
@@ -602,7 +602,7 @@ export const UserManager: React.FC = () => {
                 <div className="flex-1 overflow-auto">
                     <Table columns={activeColumns} data={tableData} keyField="id" />
                 </div>
-                <div className="py-2 border-t border-slate-700 flex justify-between items-center">
+                <div className="py-2 border-t border-[var(--sys-border-primary)] flex justify-between items-center">
                     <div className="text-sm text-slate-400">共 {filteredUsers.length} 条记录</div>
                 </div>
             </Card>
@@ -676,20 +676,18 @@ export const UserManager: React.FC = () => {
 
                         {/* Department Select (Dynamic) */}
                         <div className="relative">
-                            <label className="text-sm text-slate-400 block mb-1.5">所属部门</label>
-                            <select 
-                                className="w-full px-3 py-2 bg-[#1e293b] border border-slate-700 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-white appearance-none hover:border-slate-600 text-sm"
+                            <Select
+                                label="所属部门"
                                 value={currentUser.deptId || ''}
                                 onChange={e => setCurrentUser({...currentUser, deptId: e.target.value})}
-                            >
-                                <option value="">-- 请选择部门 --</option>
-                                {deptOptions.map(d => (
-                                    <option key={d.id} value={d.id}>
-                                        {'\u00A0\u00A0'.repeat(d.depth)} {d.depth > 0 ? '└ ' : ''}{d.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown size={14} className="absolute right-3 top-[38px] pointer-events-none text-slate-500" />
+                                options={[
+                                    { label: '-- 请选择部门 --', value: '' },
+                                    ...deptOptions.map(d => ({
+                                        label: `${'\u00A0\u00A0'.repeat(d.depth)}${d.depth > 0 ? '└ ' : ''}${d.name}`,
+                                        value: d.id,
+                                    })),
+                                ]}
+                            />
                         </div>
 
                          <div className="col-span-2">
@@ -716,14 +714,14 @@ export const UserManager: React.FC = () => {
                         </span>
                     </div>
                     
-                    <div className="bg-[#1e293b]/50 rounded border border-slate-700 p-5 min-h-[100px]">
+                    <div className="bg-[#1e293b]/50 rounded border border-[var(--sys-border-primary)] p-5 min-h-[100px]">
                         {availableRoles.length > 0 ? (
                             <div className="grid grid-cols-2 gap-4">
                                 {availableRoles.map(role => (
-                                    <label key={role.id} className={`flex items-start p-3 rounded cursor-pointer border transition-all ${selectedRoleIds.has(role.id) ? 'bg-blue-600/10 border-blue-500/50' : 'bg-slate-800/50 border-transparent hover:border-slate-600'}`}>
+                                    <label key={role.id} className={`flex items-start p-3 rounded cursor-pointer border transition-all ${selectedRoleIds.has(role.id) ? 'bg-blue-600/10 border-blue-500/50' : 'bg-slate-800/50 border-transparent hover:border-[var(--sys-border-secondary)]'}`}>
                                         <input 
                                             type="checkbox" 
-                                            className="mt-1 rounded bg-slate-900 border-slate-600 text-blue-500 focus:ring-offset-slate-900 mr-3 h-4 w-4"
+                                            className="mt-1 rounded bg-slate-900 border-[var(--sys-border-secondary)] text-blue-500 focus:ring-offset-slate-900 mr-3 h-4 w-4"
                                             checked={selectedRoleIds.has(role.id)}
                                             onChange={() => toggleRoleSelection(role.id)}
                                         />
@@ -758,7 +756,7 @@ export const UserManager: React.FC = () => {
                     {/* Role Summary */}
                     <div>
                         <SectionTitle title="生效角色" />
-                        <div className="bg-slate-800/40 border border-slate-700 rounded-lg p-5">
+                        <div className="bg-slate-800/40 border border-[var(--sys-border-primary)] rounded-lg p-5">
                             <div className="flex flex-wrap gap-3">
                                 {calculateEffectivePermissions(auditUser).roles.map((r, idx) => (
                                     <div key={idx} className="flex items-center gap-2 bg-blue-900/30 border border-blue-500/30 text-blue-200 px-3 py-1.5 rounded text-sm">
@@ -780,8 +778,8 @@ export const UserManager: React.FC = () => {
                         {/* Functional Permissions */}
                         <div className="flex flex-col">
                             <SectionTitle title="功能权限" />
-                            <div className="flex-1 border border-slate-700 rounded-lg bg-[#1e293b]/30 overflow-hidden flex flex-col">
-                                <div className="px-4 py-3 border-b border-slate-700 bg-slate-800/50 flex items-center justify-between">
+                            <div className="flex-1 border border-[var(--sys-border-primary)] rounded-lg bg-[#1e293b]/30 overflow-hidden flex flex-col">
+                                <div className="px-4 py-3 border-b border-[var(--sys-border-primary)] bg-slate-800/50 flex items-center justify-between">
                                     <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">菜单资源</span>
                                     <span className="text-xs text-green-500 flex items-center gap-1"><CheckSquare size={12}/> 已授权</span>
                                 </div>
@@ -794,8 +792,8 @@ export const UserManager: React.FC = () => {
                         {/* Data Permissions */}
                         <div className="flex flex-col">
                              <SectionTitle title="数据范围" />
-                             <div className="flex-1 border border-slate-700 rounded-lg bg-[#1e293b]/30 overflow-hidden flex flex-col">
-                                <div className="px-4 py-3 border-b border-slate-700 bg-slate-800/50">
+                             <div className="flex-1 border border-[var(--sys-border-primary)] rounded-lg bg-[#1e293b]/30 overflow-hidden flex flex-col">
+                                <div className="px-4 py-3 border-b border-[var(--sys-border-primary)] bg-slate-800/50">
                                     <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">数据维度</span>
                                 </div>
                                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4">

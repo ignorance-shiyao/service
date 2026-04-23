@@ -437,7 +437,7 @@ export const HomeOverview: React.FC = () => {
         group.style.transform = active ? 'scale(1.01)' : 'scale(1)';
         shapesInGroup.forEach((shape) => {
           shape.style.fill = active ? '#5b8ff0' : '#2756B5';
-          shape.style.stroke = active ? '#ffffff' : '#A9D7FF';
+          shape.style.stroke = active ? '#74BEFF' : '#8EBEE8';
           shape.style.strokeWidth = active ? '2.35' : '1.2';
           shape.style.animation = active ? 'homeCityGlow 1.25s ease-in-out infinite' : 'none';
           shape.style.filter = active
@@ -580,7 +580,7 @@ export const HomeOverview: React.FC = () => {
 
         <div className={`col-span-12 xl:col-span-3 xl:row-span-2 ${panelClass}`}>
           {sectionTitle('设备分布')}
-          <div className="relative flex-1 min-h-[320px] xl:min-h-0 overflow-hidden rounded border border-[#2a67aa] bg-[radial-gradient(circle_at_50%_50%,#123f7f_0%,#0d3369_46%,#08284f_72%,#061e40_100%)]">
+          <div className="relative flex-1 min-h-[320px] xl:min-h-0 overflow-hidden rounded border border-[var(--comp-panel-border)] bg-[radial-gradient(circle_at_50%_50%,#123f7f_0%,#0d3369_46%,#08284f_72%,#061e40_100%)]">
             <div className="absolute inset-0 p-2">
               <div
                 ref={mapSvgRef}
@@ -604,8 +604,8 @@ export const HomeOverview: React.FC = () => {
                     <div
                       className={`mx-auto mb-1 flex h-10 w-10 items-center justify-center rounded-full border font-mono text-base font-bold text-white backdrop-blur-[1px] transition ${
                         isHovered
-                          ? 'border-[#dff4ff] bg-[#3b79df]/92 shadow-[0_0_14px_rgba(120,190,255,0.95)]'
-                          : 'border-[#97cdff] bg-[#2e66ca]/78 shadow-[0_0_10px_rgba(90,168,255,0.46)]'
+                          ? 'border-[#76BFFF] bg-[#3b79df]/92 shadow-[0_0_14px_rgba(120,190,255,0.95)]'
+                          : 'border-[#5FA8E8] bg-[#2e66ca]/78 shadow-[0_0_10px_rgba(90,168,255,0.46)]'
                       }`}
                     >
                       {site.n}
@@ -614,7 +614,7 @@ export const HomeOverview: React.FC = () => {
                   <div
                     className={`rounded-full border px-2 py-[2px] text-center text-[12px] font-semibold leading-none transition ${
                       isHovered
-                        ? 'border-[#b7e1ff] bg-[#1b579f]/95 text-[#f2f9ff] shadow-[0_0_14px_rgba(120,190,255,0.55)]'
+                        ? 'border-[#6FB8F6] bg-[#1b579f]/95 text-[#d9ecff] shadow-[0_0_14px_rgba(120,190,255,0.55)]'
                         : hasSite
                           ? 'border-[#4b9ce0] bg-[#1a4d91]/76 text-[#d3ebff]'
                           : 'border-[#3a83c8] bg-[#15457f]/65 text-[#bddfff]'

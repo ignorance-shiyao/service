@@ -215,7 +215,7 @@ export const DeptManager: React.FC = () => {
           return (
               <div key={node.id}>
                   <div 
-                      className={`flex items-center py-2 px-2 cursor-pointer transition-all rounded-md mb-1 border border-transparent ${isSelected ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-300 hover:bg-slate-800 hover:border-slate-700'}`}
+                      className={`flex items-center py-2 px-2 cursor-pointer transition-all rounded-md mb-1 border border-transparent ${isSelected ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-300 hover:bg-slate-800 hover:border-[var(--sys-border-primary)]'}`}
                       style={{ paddingLeft: `${depth * 16 + 8}px` }}
                       onClick={() => handleSidebarClick(node)}
                   >
@@ -400,7 +400,7 @@ export const DeptManager: React.FC = () => {
                   </Card>
               ) : (
                   <div 
-                      className="h-full bg-[#1e293b] border border-slate-800 rounded-lg flex flex-col items-center py-4 cursor-pointer hover:bg-slate-800 hover:border-blue-500/50 transition-colors"
+                      className="h-full bg-[#1e293b] border border-[var(--sys-border-primary)] rounded-lg flex flex-col items-center py-4 cursor-pointer hover:bg-slate-800 hover:border-blue-500/50 transition-colors"
                       onClick={() => setIsTreeOpen(true)}
                       title="展开组织机构"
                   >
@@ -433,7 +433,7 @@ export const DeptManager: React.FC = () => {
                       </div>
 
                       {/* Row 2: Actions */}
-                      <div className="flex justify-between items-center border-t border-slate-700/50 pt-3">
+                      <div className="flex justify-between items-center border-t border-[var(--sys-border-primary)] pt-3">
                           <div className="flex gap-3">
                               <Button variant="primary" icon={<Search size={16}/>}>查询</Button>
                               <Button variant="secondary" icon={<RotateCcw size={16}/>} onClick={() => { setSearchName(''); setSearchStatus(''); }}>重置</Button>
@@ -457,7 +457,7 @@ export const DeptManager: React.FC = () => {
 
               <Card className="flex-1 overflow-hidden flex flex-col">
                   {/* Info Bar */}
-                  <div className="flex justify-between items-center px-4 py-2 border-b border-slate-800/50 bg-slate-900/20">
+                  <div className="flex justify-between items-center px-4 py-2 border-b border-[var(--sys-border-primary)] bg-slate-900/20">
                        <span className="text-xs text-slate-500">当前归属域: <span className="text-blue-400 font-medium">{selectedDomainName}</span></span>
                   </div>
 
@@ -507,18 +507,17 @@ export const DeptManager: React.FC = () => {
                       </div>
 
                       <div className="relative">
-                          <label className="text-sm text-slate-400 block mb-1.5">上级部门</label>
-                          <select 
-                              className="w-full px-3 py-2 bg-[#1e293b] border border-slate-700 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-white appearance-none hover:border-slate-600"
+                          <Select
+                              label="上级部门"
                               value={currentDept.parentId || ''}
                               onChange={e => setCurrentDept({...currentDept, parentId: e.target.value || null})}
-                          >
-                              <option value="">顶级部门</option>
-                              {getAllNodes(domainDepartments).map(d => (
-                                  <option key={d.id} value={d.id} disabled={d.id === currentDept.id}>{d.name}</option>
-                              ))}
-                          </select>
-                          <ChevronDown size={14} className="absolute right-3 top-[38px] pointer-events-none text-slate-500" />
+                              options={[
+                                  { label: '顶级部门', value: '' },
+                                  ...getAllNodes(domainDepartments)
+                                    .filter(d => d.id !== currentDept.id)
+                                    .map(d => ({ label: d.name, value: d.id })),
+                              ]}
+                          />
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">

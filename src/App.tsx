@@ -8,14 +8,13 @@ import { Domain } from './types';
 import { KnowledgeBaseView } from './KnowledgeBase/KnowledgeBaseView';
 import { FaultReportingView } from './FaultReporting/FaultReportingView';
 import { AutoReportingView } from './AutoReporting/AutoReportingView';
-import { AssistantView } from './Assistant/AssistantView';
 import { HomeOverview } from './pages/HomeOverview';
 import { Private5GOverview } from './pages/Private5GOverview';
 import { IDCOverview } from './pages/IDCOverview';
 import { CloudNetworkOverview } from './pages/CloudNetworkOverview';
 import { QuantumSDWANOverview } from './pages/QuantumSDWANOverview';
 import { NotificationMatrix } from './Assistant/NotificationMatrix';
-import { FloatingEntries } from './components/FloatingEntries';
+import { AiDock } from './pages/agent/ai-dock';
 
 // --- Lazy Load Pages ---
 const DomainManager = lazy(() => import('./pages/DomainManager').then(module => ({ default: module.DomainManager })));
@@ -30,10 +29,10 @@ const ComponentManager = lazy(() => import('./pages/ComponentManager').then(modu
 const TemplateManager = lazy(() => import('./pages/TemplateManager').then(module => ({ default: module.TemplateManager })));
 
 const PlaceholderPage: React.FC<{ title: string; subtitle: string }> = ({ title, subtitle }) => (
-  <div className="h-full rounded-lg border border-slate-800 bg-[#0b1f3d] p-8">
-    <div className="mb-4 text-2xl font-black text-slate-100">{title}</div>
-    <div className="mb-6 max-w-2xl text-sm text-slate-400">{subtitle}</div>
-    <div className="rounded border border-blue-700/40 bg-[#0f2d57] p-4 text-sm text-blue-200">
+  <div className="h-full rounded-lg border border-[var(--sys-border-primary)] bg-[var(--sys-bg-card)] p-8">
+    <div className="mb-4 text-2xl font-black text-[var(--sys-text-primary)]">{title}</div>
+    <div className="mb-6 max-w-2xl text-sm text-[var(--sys-text-secondary)]">{subtitle}</div>
+    <div className="rounded border border-[var(--ref-color-brand-500)]/40 bg-[var(--sys-bg-card-hover)] p-4 text-sm text-[var(--sys-link-hover)]">
       该模块入口与导航已补齐。后续你指定具体功能后，我会按同风格继续补完整交互与数据流。
     </div>
   </div>
@@ -101,7 +100,12 @@ const NAV_ITEMS = [
     id: 'service-desk',
     title: '服务台',
     icon: Headset,
-    path: '/service/desk',
+    path: '/service/desk/knowledge',
+    children: [
+      { id: 'service-knowledge', title: '知识库', icon: Book, path: '/service/desk/knowledge' },
+      { id: 'service-fault', title: '自助报障', icon: Siren, path: '/service/desk/fault' },
+      { id: 'service-report', title: '运行报告', icon: FileText, path: '/service/desk/report' },
+    ],
   },
   {
     id: 'message-notify',
@@ -191,18 +195,10 @@ const App: React.FC = () => {
   const switcherRef = useRef<HTMLDivElement>(null);
   const [switcherTab, setSwitcherTab] = useState<'fusion' | 'switching'>('fusion');
 
-  // --- Overlay Views State ---
-  const [isKBOpen, setIsKBOpen] = useState(false);
+  // --- Service Desk Views State ---
   const [kbMode, setKbMode] = useState<'full' | 'half'>('half');
-
-  const [isFaultOpen, setIsFaultOpen] = useState(false);
   const [faultMode, setFaultMode] = useState<'full' | 'half'>('half');
-
-  const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportMode, setReportMode] = useState<'full' | 'half'>('half');
-
-  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
-  const [assistantMode, setAssistantMode] = useState<'full' | 'half'>('half');
   const [menuPageSize, setMenuPageSize] = useState<number>(NAV_ITEMS.length);
   const [menuPage, setMenuPage] = useState(0);
   const [isBigScreenOpen, setIsBigScreenOpen] = useState(false);
@@ -334,11 +330,11 @@ const App: React.FC = () => {
 
   return (
     <GlobalContext.Provider value={{ mode, currentDomain, setMode, setCurrentDomain }}>
-    <div className="flex flex-col h-screen bg-[#020617] text-slate-200 font-sans overflow-hidden">
+    <div className="flex flex-col h-screen bg-[var(--sys-bg-page)] text-[var(--sys-text-secondary)] font-sans overflow-hidden">
       
       {/* Top Header Navigation */}
       {!isFocusMode && (
-      <header className="bg-[#0f172a] border-b border-slate-800 shrink-0 z-50 shadow-md">
+      <header className="bg-[var(--sys-bg-header)] border-b border-[var(--sys-border-primary)] shrink-0 z-50 shadow-md">
         <div className="h-12 flex items-center justify-between px-3.5">
          <div className="flex items-center">
             <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
@@ -377,7 +373,7 @@ const App: React.FC = () => {
                             </button>
                         </div>
 
-                        <div className="p-4 max-h-[400px] overflow-y-auto custom-scrollbar bg-[#0f172a]">
+                        <div className="p-4 max-h-[400px] overflow-y-auto custom-scrollbar bg-[var(--sys-bg-header)]">
                             {switcherTab === 'fusion' ? (
                                 <div className="space-y-4">
                                     <div className="p-3 bg-blue-900/20 border border-blue-800 rounded text-blue-200 text-xs leading-relaxed">
@@ -434,13 +430,13 @@ const App: React.FC = () => {
 	         </div>
 	        </div>
 
-	        <div className="h-10 border-t border-slate-800/70 px-3 flex items-center gap-1.5 bg-[#0b1830]">
+	        <div className="h-10 border-t border-[#1b4f89] px-3 flex items-center gap-1.5 bg-[#0b2f61]">
           {totalMenuPages > 1 && (
             <button
               type="button"
               onClick={() => setMenuPage(p => Math.max(0, p - 1))}
               disabled={menuPage === 0}
-	              className="h-6 w-6 rounded border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800"
+	              className="h-6 w-6 rounded border border-[#2b6aa8] bg-[#0c3a72] text-[#b7d7ff] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#134b8f]"
               title="上一组菜单"
             >
 	              <ChevronLeft size={12} className="mx-auto" />
@@ -455,10 +451,10 @@ const App: React.FC = () => {
                             onClick={() => {
                               if (item.path) navigate(item.path);
                             }}
-	                            className={`h-7 flex items-center px-2.5 rounded-md text-xs font-medium transition-colors ${
+	                            className={`h-7 flex items-center px-2.5 rounded-md border text-xs font-medium transition-colors ${
                               ((item.path && location.pathname.startsWith(item.path)) || breadcrumbs.parent === item.title)
-                                ? 'text-white bg-slate-700/70'
-                                : 'text-slate-300 hover:text-white hover:bg-slate-700/40'
+                                ? 'border-[#58b7ff] bg-[#0f3f7a] text-[#4fc1ff]'
+                                : 'border-transparent text-[#c3ddff] hover:border-[#2f74b9] hover:bg-[#12467f] hover:text-[#eaf6ff]'
                             }`}
                         >
 	                            <item.icon size={13} className="mr-1.5" />
@@ -467,12 +463,12 @@ const App: React.FC = () => {
                         </button>
 
                         {item.children && (
-	                          <div className="absolute left-0 top-7 mt-1 w-44 bg-[#0f172a] border border-slate-700 rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+	                          <div className="absolute left-0 top-7 mt-1 w-44 bg-[#0b2f61] border border-[#2b6aa8] rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             {item.children.map(child => (
                                 <button
                                     key={child.id}
                                     onClick={() => navigate(child.path)}
-	                                    className={`w-full flex items-center px-3 py-1.5 text-xs text-left hover:bg-slate-800 ${location.pathname.startsWith(child.path) ? 'text-blue-400 bg-slate-800/50' : 'text-slate-300'}`}
+	                                    className={`w-full flex items-center px-3 py-1.5 text-xs text-left hover:bg-[#14457d] ${location.pathname.startsWith(child.path) ? 'text-[#4fc1ff] bg-[#103e74]' : 'text-[#c3ddff]'}`}
                                 >
 	                                    <child.icon size={12} className="mr-1.5" />
                                     {child.title}
@@ -490,7 +486,7 @@ const App: React.FC = () => {
               type="button"
               onClick={() => setMenuPage(p => Math.min(totalMenuPages - 1, p + 1))}
               disabled={menuPage >= totalMenuPages - 1}
-	              className="h-6 w-6 rounded border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800"
+	              className="h-6 w-6 rounded border border-[#2b6aa8] bg-[#0c3a72] text-[#b7d7ff] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#134b8f]"
               title="下一组菜单"
             >
 	              <ChevronRight size={12} className="mx-auto" />
@@ -500,7 +496,7 @@ const App: React.FC = () => {
       </header>
       )}
 
-	      <main className={`flex-1 overflow-hidden bg-[#020617] flex flex-col relative ${isFocusMode ? 'p-0' : 'p-2'}`}>
+	      <main className={`flex-1 overflow-hidden bg-[var(--sys-bg-page)] flex flex-col relative ${isFocusMode ? 'p-0' : 'p-2'}`}>
 	        {!isFocusMode && (
           <div className="mb-1 flex items-center justify-between">
 	             <div className="flex items-center text-[11px] text-slate-400">
@@ -582,6 +578,36 @@ const App: React.FC = () => {
                       path="/service/desk"
                       element={<PlaceholderPage title="服务台" subtitle="服务目录、工单、SLA 与客户服务协同入口。" />}
                     />
+                    <Route
+                      path="/service/desk/knowledge"
+                      element={
+                        <KnowledgeBaseView
+                          mode={kbMode}
+                          onToggleMode={() => setKbMode(m => m === 'full' ? 'half' : 'full')}
+                          onClose={() => navigate('/service/desk')}
+                        />
+                      }
+                    />
+                    <Route
+                      path="/service/desk/fault"
+                      element={
+                        <FaultReportingView
+                          mode={faultMode}
+                          onToggleMode={() => setFaultMode(m => m === 'full' ? 'half' : 'full')}
+                          onClose={() => navigate('/service/desk')}
+                        />
+                      }
+                    />
+                    <Route
+                      path="/service/desk/report"
+                      element={
+                        <AutoReportingView
+                          mode={reportMode}
+                          onToggleMode={() => setReportMode(m => m === 'full' ? 'half' : 'full')}
+                          onClose={() => navigate('/service/desk')}
+                        />
+                      }
+                    />
                     <Route path="/message/notify" element={<NotificationMatrix />} />
 
                     <Route path="/system/domain/*" element={<DomainManager />} />
@@ -600,7 +626,7 @@ const App: React.FC = () => {
         </div>
 
         {isBigScreenOpen && (
-          <div className="fixed inset-0 z-[140] flex items-center justify-center bg-[#020617]/72 px-4 py-6 backdrop-blur-[1px]">
+          <div className="fixed inset-0 z-[140] flex items-center justify-center bg-[var(--sys-bg-page)]/72 px-4 py-6 backdrop-blur-[1px]">
             <div className={`flex h-[82vh] w-full max-w-[1560px] flex-col overflow-hidden shadow-[0_0_40px_rgba(2,18,44,0.75)] ${modalPanelClass}`}>
               <div className="flex h-11 shrink-0 items-center justify-between border-b border-[#24578f] bg-[#12457f] px-4">
                 <span className="text-[20px] font-bold tracking-wide text-[#e6f3ff]">选择视图</span>
@@ -718,85 +744,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* --- OVERLAY VIEWS (MODALS/DRAWERS) --- */}
-
-        {/* Knowledge Base */}
-        {isKBOpen && (
-            <div className={`fixed inset-0 z-[150] flex justify-end transition-all duration-500 ${isKBOpen ? 'bg-black/40' : 'bg-transparent pointer-events-none'}`}>
-                 <div 
-                    className={`bg-[#020617] shadow-2xl border-l border-slate-800 transition-all duration-500 ease-in-out transform ${
-                        kbMode === 'full' ? 'w-full' : 'w-full md:w-[45vw]'
-                    } ${isKBOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                 >
-                    <KnowledgeBaseView 
-                        mode={kbMode} 
-                        onToggleMode={() => setKbMode(m => m === 'full' ? 'half' : 'full')} 
-                        onClose={() => setIsKBOpen(false)}
-                    />
-                 </div>
-            </div>
-        )}
-
-        {/* Fault Reporting */}
-        {isFaultOpen && (
-            <div className={`fixed inset-0 z-[150] flex justify-end transition-all duration-500 ${isFaultOpen ? 'bg-black/40' : 'bg-transparent pointer-events-none'}`}>
-                 <div 
-                    className={`bg-[#020617] shadow-2xl border-l border-slate-800 transition-all duration-500 ease-in-out transform ${
-                        faultMode === 'full' ? 'w-full' : 'w-full md:w-[45vw]'
-                    } ${isFaultOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                 >
-                    <FaultReportingView 
-                        mode={faultMode} 
-                        onToggleMode={() => setFaultMode(m => m === 'full' ? 'half' : 'full')} 
-                        onClose={() => setIsFaultOpen(false)}
-                    />
-                 </div>
-            </div>
-        )}
-
-        {/* Auto Reporting / Briefing */}
-        {isReportOpen && (
-            <div className={`fixed inset-0 z-[150] flex justify-end transition-all duration-500 ${isReportOpen ? 'bg-black/40' : 'bg-transparent pointer-events-none'}`}>
-                 <div 
-                    className={`bg-[#020617] shadow-2xl border-l border-slate-800 transition-all duration-500 ease-in-out transform ${
-                        reportMode === 'full' ? 'w-full' : 'w-full md:w-[55vw]'
-                    } ${isReportOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                 >
-                    <AutoReportingView 
-                        mode={reportMode} 
-                        onToggleMode={() => setReportMode(m => m === 'full' ? 'half' : 'full')} 
-                        onClose={() => setIsReportOpen(false)}
-                    />
-                 </div>
-            </div>
-        )}
-
-        {/* Customer O&M Assistant (NEW) */}
-        {isAssistantOpen && (
-            <div className={`fixed inset-0 z-[150] flex justify-end transition-all duration-500 ${isAssistantOpen ? 'bg-black/40' : 'bg-transparent pointer-events-none'}`}>
-                 <div 
-                    className={`bg-[#020617] shadow-2xl border-l border-slate-800 transition-all duration-500 ease-in-out transform ${
-                        assistantMode === 'full' ? 'w-full' : 'w-full md:w-[45vw]'
-                    } ${isAssistantOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                 >
-                    <AssistantView 
-                        mode={assistantMode} 
-                        onToggleMode={() => setAssistantMode(m => m === 'full' ? 'half' : 'full')} 
-                        onClose={() => setIsAssistantOpen(false)}
-                    />
-                 </div>
-            </div>
-        )}
-
-        {/* Global Floating Entries - Draggable & Always Visible */}
-        {!isFocusMode && (
-        <FloatingEntries 
-            onOpenKB={() => setIsKBOpen(true)} 
-            onOpenFault={() => setIsFaultOpen(true)}
-            onOpenReport={() => setIsReportOpen(true)}
-            onOpenAssistant={() => setIsAssistantOpen(true)}
-        />
-        )}
+        {!isFocusMode && <AiDock />}
 
         {isFocusMode && (
           <button

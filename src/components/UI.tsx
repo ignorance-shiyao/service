@@ -1,5 +1,6 @@
 
 import React, { ReactNode, useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Check, AlertCircle, ChevronDown, Search, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, Plus, Trash2, ArrowUpDown } from 'lucide-react';
 
 // --- Colors ---
@@ -15,18 +16,18 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button: React.FC<ButtonProps> = ({ variant = 'primary', size = 'md', icon, children, className, ...props }) => {
-  const baseStyle = "inline-flex items-center justify-center rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseStyle = "inline-flex items-center justify-center rounded-[var(--comp-radius-sm)] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--sys-bg-page)] disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variants = {
-    primary: "bg-blue-600 hover:bg-blue-500 text-white focus:ring-blue-500 shadow-sm",
-    secondary: "bg-slate-800 hover:bg-slate-700 text-slate-200 focus:ring-slate-500 border border-slate-600",
-    danger: "bg-red-600 hover:bg-red-500 text-white focus:ring-red-500",
-    ghost: "bg-transparent hover:bg-slate-800 text-slate-300 hover:text-white"
+    primary: "bg-[var(--ref-color-brand-500)] hover:bg-[var(--sys-link-hover)] text-[var(--ref-color-text-inverse)] focus:ring-[var(--sys-border-focus)] shadow-sm",
+    secondary: "bg-[var(--sys-bg-card)] hover:bg-[var(--sys-bg-card-hover)] text-[var(--sys-text-secondary)] focus:ring-[var(--sys-border-primary)] border border-[var(--sys-border-primary)]",
+    danger: "bg-[var(--sys-state-danger)] hover:bg-[#ff6b6d] text-[var(--ref-color-text-inverse)] focus:ring-[var(--sys-state-danger)]",
+    ghost: "bg-transparent hover:bg-[var(--sys-bg-card)] text-[var(--sys-text-tertiary)] hover:text-[var(--ref-color-text-inverse)]"
   };
 
   const sizes = {
     sm: "px-2 py-1 text-xs",
-    md: "px-4 py-1.5 text-sm", // Adjusted height slightly
+    md: "px-4 py-1.5 text-sm",
     lg: "px-6 py-3 text-base"
   };
 
@@ -45,7 +46,7 @@ export const Switch: React.FC<{ checked: boolean; onChange: (checked: boolean) =
       role="switch"
       aria-checked={checked}
       onClick={() => !disabled && onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${checked ? 'bg-emerald-500' : 'bg-red-500'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--sys-border-focus)] focus:ring-offset-2 focus:ring-offset-[var(--sys-bg-page)] ${checked ? 'bg-[var(--sys-state-success)]' : 'bg-[var(--sys-state-danger)]'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <span className="sr-only">Use setting</span>
       <span
@@ -58,11 +59,11 @@ export const Switch: React.FC<{ checked: boolean; onChange: (checked: boolean) =
 
 // Enhanced Card to support flex-1 children for scrolling
 export const Card: React.FC<{ children: ReactNode; title?: string; className?: string; action?: ReactNode; bodyClassName?: string }> = ({ children, title, className, action, bodyClassName }) => (
-  <div className={`bg-slate-800/40 border border-slate-700/50 rounded-lg shadow-sm backdrop-blur-sm flex flex-col ${className || ''}`}>
+  <div className={`bg-[var(--sys-bg-card)]/40 border border-[#1f5b9b] rounded-[var(--comp-radius-md)] shadow-sm backdrop-blur-sm flex flex-col ${className || ''}`}>
     {title && (
-      <div className="px-5 py-3 border-b border-slate-700/50 flex justify-between items-center bg-slate-900/30 rounded-t-lg shrink-0">
-        <h3 className="font-semibold text-slate-100 flex items-center gap-2">
-           <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
+      <div className="px-5 py-3 border-b border-[#1f5b9b] flex justify-between items-center bg-[var(--sys-bg-page)]/30 rounded-t-[var(--comp-radius-md)] shrink-0">
+        <h3 className="font-semibold text-[var(--sys-text-primary)] flex items-center gap-2">
+           <div className="w-1 h-4 bg-[var(--sys-state-info)] rounded-full"></div>
            {title}
         </h3>
         {action && <div>{action}</div>}
@@ -93,24 +94,24 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity animate-in fade-in duration-200">
-      <div className={`bg-[#0b1121] border border-slate-700 w-full ${sizes[size]} rounded-lg shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200`}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[var(--sys-bg-page)]/80 backdrop-blur-sm transition-opacity animate-in fade-in duration-200">
+      <div className={`bg-[var(--sys-bg-page)] border border-[var(--sys-border-primary)] w-full ${sizes[size]} rounded-[var(--comp-radius-md)] shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-[#0f172a] rounded-t-lg shrink-0">
-          <h2 className="text-lg font-bold text-white tracking-wide">{title}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-1 hover:bg-slate-800 rounded">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--sys-border-primary)] bg-[var(--sys-bg-card)] rounded-t-[var(--comp-radius-md)] shrink-0">
+          <h2 className="text-lg font-bold text-[var(--sys-text-primary)] tracking-wide">{title}</h2>
+          <button onClick={onClose} className="text-[var(--sys-text-secondary)] hover:text-[var(--ref-color-text-inverse)] transition-colors p-1 hover:bg-[var(--sys-bg-card-hover)] rounded">
             <X size={20} />
           </button>
         </div>
         
         {/* Body */}
-        <div className="p-8 overflow-y-auto custom-scrollbar flex-1 text-slate-200 bg-[#0b1121]">
+        <div className="p-8 overflow-y-auto custom-scrollbar flex-1 text-[var(--sys-text-secondary)] bg-[var(--sys-bg-page)]">
           {children}
         </div>
         
         {/* Footer */}
         {footer && (
-          <div className="px-6 py-4 border-t border-slate-800 bg-[#0f172a] flex justify-end space-x-3 rounded-b-lg shrink-0">
+          <div className="px-6 py-4 border-t border-[var(--sys-border-primary)] bg-[var(--sys-bg-card)] flex justify-end space-x-3 rounded-b-[var(--comp-radius-md)] shrink-0">
             {footer}
           </div>
         )}
@@ -121,8 +122,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
 
 export const SectionTitle: React.FC<{ title: string; className?: string }> = ({ title, className }) => (
   <div className={`flex items-center mb-5 mt-1 ${className || ''}`}>
-    <div className="w-1 h-4 bg-blue-500 mr-3"></div>
-    <h4 className="text-base font-medium text-white">{title}</h4>
+    <div className="w-1 h-4 bg-[var(--sys-state-info)] mr-3"></div>
+    <h4 className="text-base font-medium text-[var(--sys-text-primary)]">{title}</h4>
   </div>
 );
 
@@ -145,12 +146,12 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({ isOpen, title = '�
       }
     >
       <div className="flex items-start space-x-4 py-2">
-        <div className="p-2 bg-yellow-500/10 rounded-full shrink-0">
-            <AlertCircle className="text-yellow-500" size={24} />
+        <div className="p-2 bg-[var(--sys-state-warning)]/10 rounded-full shrink-0">
+            <AlertCircle className="text-[var(--sys-state-warning)]" size={24} />
         </div>
         <div>
-            <h5 className="text-white font-medium mb-1">请确认</h5>
-            <p className="text-slate-400 text-sm leading-relaxed">{message}</p>
+            <h5 className="text-[var(--sys-text-primary)] font-medium mb-1">请确认</h5>
+            <p className="text-[var(--sys-text-secondary)] text-sm leading-relaxed">{message}</p>
         </div>
       </div>
     </Modal>
@@ -164,51 +165,153 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, '
 
 export const Input: React.FC<InputProps> = ({ label, prefix, className, ...props }) => (
   <div className="space-y-1.5">
-    {label && <label className="text-sm text-slate-400 font-normal">{label}</label>}
+    {label && <label className="text-sm text-[var(--sys-text-secondary)] font-normal">{label}</label>}
     <div className="relative group">
       {prefix && (
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 pointer-events-none group-focus-within:text-blue-400 transition-colors">
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--sys-text-disabled)] pointer-events-none group-focus-within:text-[var(--sys-state-info)] transition-colors">
           {prefix}
         </div>
       )}
       <input 
-        className={`w-full ${prefix ? 'pl-10' : 'px-3'} py-2 bg-[#1e293b] border border-slate-700 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-slate-600 transition-all text-sm hover:border-slate-600 ${className || ''}`} 
+        className={`w-full ${prefix ? 'pl-10' : 'px-3'} py-2 bg-[var(--sys-bg-card)] border border-[var(--sys-border-secondary)] rounded-[var(--comp-radius-sm)] focus:ring-1 focus:ring-[var(--sys-border-focus)] focus:border-[var(--sys-border-focus)] text-[var(--sys-text-primary)] placeholder-[var(--sys-text-disabled)] transition-all text-sm hover:border-[var(--sys-border-primary)] ${className || ''}`} 
         {...props} 
       />
     </div>
   </div>
 );
 
-export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { label?: string, options: { label: string, value: string }[] }> = ({ label, options, className, ...props }) => (
-  <div className="space-y-1.5">
-    {label && <label className="text-sm text-slate-400 font-normal">{label}</label>}
-    <div className="relative">
-        <select 
-        className={`w-full px-3 py-2 bg-[#1e293b] border border-slate-700 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-white transition-all text-sm appearance-none hover:border-slate-600 ${className || ''}`} 
-        {...props}
+type SelectOption = { label: string; value: string };
+type SelectProps = Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> & {
+  label?: string;
+  options: SelectOption[];
+  placeholder?: string;
+  onChange?: (event: { target: { value: string; name?: string } }) => void;
+};
+
+export const Select: React.FC<SelectProps> = ({ label, options, className, value, defaultValue, onChange, disabled, name, placeholder, ...props }) => {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+  const [innerValue, setInnerValue] = useState<string>(() => {
+    if (typeof value === 'string') return value;
+    if (typeof defaultValue === 'string') return defaultValue;
+    return options[0]?.value ?? '';
+  });
+
+  useEffect(() => {
+    if (typeof value === 'string') setInnerValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const inBox = !!boxRef.current?.contains(target);
+      const inMenu = !!menuRef.current?.contains(target);
+      if (!inBox && !inMenu) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const updateMenuPosition = () => {
+      const trigger = boxRef.current?.querySelector('button');
+      if (!trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      const estimatedHeight = Math.min(224, Math.max(48, options.length * 34 + 8));
+      const gap = 6;
+      const canOpenDown = rect.bottom + gap + estimatedHeight <= window.innerHeight - 8;
+      const top = canOpenDown ? rect.bottom + gap : Math.max(8, rect.top - gap - estimatedHeight);
+      setMenuStyle({
+        position: 'fixed',
+        top,
+        left: rect.left,
+        width: rect.width,
+      });
+    };
+    updateMenuPosition();
+    window.addEventListener('resize', updateMenuPosition);
+    window.addEventListener('scroll', updateMenuPosition, true);
+    return () => {
+      window.removeEventListener('resize', updateMenuPosition);
+      window.removeEventListener('scroll', updateMenuPosition, true);
+    };
+  }, [open, options.length]);
+
+  const currentValue = typeof value === 'string' ? value : innerValue;
+  const currentOption = options.find((opt) => opt.value === currentValue);
+  const displayLabel = currentOption?.label || placeholder || '请选择';
+
+  const commitValue = (nextValue: string) => {
+    if (typeof value !== 'string') setInnerValue(nextValue);
+    onChange?.({ target: { value: nextValue, name } });
+    setOpen(false);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      {label && <label className="text-sm text-[var(--sys-text-secondary)] font-normal">{label}</label>}
+      <div ref={boxRef} className="relative">
+        {name && <input type="hidden" name={name} value={currentValue} />}
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => !disabled && setOpen((v) => !v)}
+          className={`w-full px-3 py-2 bg-[var(--sys-bg-card)] border border-[var(--sys-border-secondary)] rounded-[var(--comp-radius-sm)] text-left text-[var(--sys-text-primary)] transition-all text-sm hover:border-[var(--sys-border-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--sys-border-focus)] focus:border-[var(--sys-border-focus)] ${disabled ? 'opacity-60 cursor-not-allowed' : ''} ${className || ''}`}
+          {...props}
         >
-        {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-        </select>
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-slate-500">
+          <span className={currentOption ? 'text-[var(--sys-text-primary)]' : 'text-[var(--sys-text-disabled)]'}>{displayLabel}</span>
+          <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[var(--sys-text-disabled)] transition-transform ${open ? 'rotate-180' : ''}`}>
             <ChevronDown size={14} />
-        </div>
+          </span>
+        </button>
+
+        {open && createPortal(
+          <div
+            ref={menuRef}
+            style={menuStyle}
+            className="z-[4000] max-h-56 overflow-auto rounded-[6px] border border-[var(--sys-border-primary)] bg-[var(--sys-bg-header)] p-1 shadow-[0_10px_28px_rgba(3,17,48,0.55)]"
+          >
+            {options.map((opt) => {
+              const selected = opt.value === currentValue;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => commitValue(opt.value)}
+                  className={`flex w-full items-center rounded px-2.5 py-1.5 text-left text-sm transition-colors ${
+                    selected
+                      ? 'bg-[#0f4d8f] text-[#dff1ff]'
+                      : 'text-[var(--sys-text-secondary)] hover:bg-[#113e73] hover:text-[#e9f5ff]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>,
+          document.body
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Fix: Added onClick support to the Badge component to handle interaction in lists
 export const Badge: React.FC<{ children: ReactNode; color?: 'blue' | 'green' | 'red' | 'gray' | 'yellow'; className?: string; onClick?: () => void }> = ({ children, color = 'blue', className, onClick }) => {
   const colors = {
-    blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    green: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    red: 'bg-red-500/10 text-red-400 border-red-500/20',
-    yellow: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    gray: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
+    blue: 'bg-[#0f3f79] text-[#39c8ff] border-[#2a7fbe]/55',
+    green: 'bg-[#0f4e49] text-[#36d8a0] border-[#2aa17e]/55',
+    red: 'bg-[#5a2230] text-[#ff8f9a] border-[#b64d67]/55',
+    yellow: 'bg-[#5c4018] text-[#ffc76b] border-[#b88636]/55',
+    gray: 'bg-[#143a6f] text-[#86c5ff] border-[#2d6fb0]/50',
   };
   return (
     <span 
       onClick={onClick}
-      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${colors[color]} ${className || ''}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-[6px] text-xs font-semibold border ${colors[color]} ${className || ''}`}
     >
       {children}
     </span>
@@ -225,23 +328,23 @@ export const Table: React.FC<TableProps> = ({ columns, data, keyField = 'id' }) 
   return (
     // REMOVED 'overflow-hidden' from here. 
     // This allows sticky headers to work relative to the parent scroll container (div.flex-1.overflow-auto in pages).
-    <div className="border border-slate-700/50 rounded-lg shadow-sm">
-      <table className="min-w-full divide-y divide-slate-800 bg-[#0f172a] rounded-lg">
-        <thead className="bg-slate-900">
+    <div className="border border-[#1f5b9b] rounded-[var(--comp-radius-md)] shadow-sm">
+      <table className="min-w-full divide-y divide-[#1a4f87] bg-[var(--sys-bg-card)] rounded-[var(--comp-radius-md)]">
+        <thead className="bg-[var(--ref-color-bg-780)]">
           <tr>
             {columns.map((col, idx) => (
               // sticky top-0 works if no ancestor between this and the scroll container has overflow: hidden
               // Added text-center for centered headers
-              <th key={idx} className="px-6 py-3.5 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider sticky top-0 z-20 bg-slate-900 shadow-sm" style={{ width: col.width }}>
+              <th key={idx} className="px-6 py-3.5 text-center text-xs font-semibold text-[var(--sys-text-secondary)] uppercase tracking-wider sticky top-0 z-20 bg-[var(--ref-color-bg-780)] shadow-sm" style={{ width: col.width }}>
                 {col.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="bg-[#1e293b]/30 divide-y divide-slate-800">
+        <tbody className="bg-[var(--sys-bg-card)]/40 divide-y divide-[#1a4f87]">
           {data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-500">
+              <td colSpan={columns.length} className="px-6 py-12 text-center text-[var(--sys-text-disabled)]">
                 <div className="flex flex-col items-center">
                     <Search className="w-8 h-8 mb-2 opacity-20" />
                     <span>暂无数据</span>
@@ -251,9 +354,9 @@ export const Table: React.FC<TableProps> = ({ columns, data, keyField = 'id' }) 
           ) : (
             data.map((row) => (
               // Added zebra striping even:bg-[#1e293b]/20
-              <tr key={row[keyField]} className="hover:bg-slate-800/50 transition-colors even:bg-[#1e293b]/20">
+              <tr key={row[keyField]} className="hover:bg-[var(--sys-bg-card-hover)]/50 transition-colors even:bg-[var(--sys-bg-card)]/20">
                 {columns.map((col, idx) => (
-                  <td key={idx} className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+                  <td key={idx} className="px-6 py-4 whitespace-nowrap text-sm text-[var(--sys-text-primary)]">
                     {typeof col.accessor === 'function' ? col.accessor(row) : row[col.accessor]}
                   </td>
                 ))}
@@ -271,7 +374,7 @@ export const Pagination: React.FC<{ currentPage: number; totalPages: number; onP
     return (
         <div className="flex items-center space-x-2">
             <Button variant="secondary" size="sm" disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)} icon={<ChevronLeft size={14} />}>上一页</Button>
-            <span className="text-xs text-slate-400 px-2 min-w-[60px] text-center">{currentPage} / {totalPages}</span>
+            <span className="text-xs text-[var(--sys-text-secondary)] px-2 min-w-[60px] text-center">{currentPage} / {totalPages}</span>
             <Button variant="secondary" size="sm" disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)} icon={<ChevronRight size={14} />}>下一页</Button>
         </div>
     );
@@ -353,7 +456,7 @@ export const ColumnConfigDialog: React.FC<ColumnConfigProps> = ({ isOpen, onClos
               <input 
                   type="text" 
                   placeholder="请输入内容" 
-                  className="w-full bg-[#0f172a] border border-slate-700 rounded-md py-2 pl-4 pr-10 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-[var(--sys-bg-header)] border border-[var(--sys-border-primary)] rounded-md py-2 pl-4 pr-10 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
               />
@@ -367,7 +470,7 @@ export const ColumnConfigDialog: React.FC<ColumnConfigProps> = ({ isOpen, onClos
                       <span className="text-slate-400">可配置列: {allColumns.length}</span>
                       <button onClick={handleSelectAll} className="text-blue-400 hover:text-blue-300 font-medium">全选</button>
                   </div>
-                  <div className="flex-1 border border-slate-700/50 rounded-lg overflow-y-auto custom-scrollbar p-2 bg-[#0f172a]/50">
+                  <div className="flex-1 border border-[var(--sys-border-primary)] rounded-lg overflow-y-auto custom-scrollbar p-2 bg-[var(--sys-bg-header)]/50">
                       {filteredAllColumns.map(col => {
                           const isChecked = orderedKeys.includes(col.key);
                           return (
@@ -376,7 +479,7 @@ export const ColumnConfigDialog: React.FC<ColumnConfigProps> = ({ isOpen, onClos
                                   className={`flex items-center p-2.5 rounded cursor-pointer hover:bg-slate-800 transition-colors mb-1 ${isChecked ? 'bg-blue-900/10' : ''}`}
                                   onClick={() => handleToggle(col.key)}
                               >
-                                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center mr-3 transition-colors shrink-0 ${isChecked ? 'bg-blue-600 border-blue-600' : 'border-slate-600 bg-slate-900'}`}>
+                                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center mr-3 transition-colors shrink-0 ${isChecked ? 'bg-blue-600 border-blue-600' : 'border-[var(--sys-border-secondary)] bg-slate-900'}`}>
                                       {isChecked && <Check size={10} className="text-white" />}
                                   </div>
                                   <span className={isChecked ? 'text-blue-100 font-medium' : 'text-slate-400'}>{col.header}</span>
@@ -392,7 +495,7 @@ export const ColumnConfigDialog: React.FC<ColumnConfigProps> = ({ isOpen, onClos
                       <span className="text-slate-400">已选列数: {orderedKeys.length}</span>
                       <button onClick={handleClear} className="text-blue-400 hover:text-blue-300 font-medium">清空</button>
                   </div>
-                  <div className="flex-1 border border-slate-700/50 rounded-lg overflow-y-auto custom-scrollbar p-2 bg-[#0f172a]/50">
+                  <div className="flex-1 border border-[var(--sys-border-primary)] rounded-lg overflow-y-auto custom-scrollbar p-2 bg-[var(--sys-bg-header)]/50">
                       {visibleColumns.map((col, idx) => (
                           <div key={col.key} className="flex items-center justify-between p-2.5 mb-1.5 rounded bg-slate-800/80 border border-transparent hover:border-blue-500/50 group transition-all">
                               <div className="flex items-center gap-3">

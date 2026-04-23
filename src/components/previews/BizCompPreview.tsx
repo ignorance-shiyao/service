@@ -29,7 +29,7 @@ export const BizCompPreview: React.FC<{ comp: any }> = ({ comp }) => {
 
     if (comp.name === '算网客户业务概况') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617] flex flex-col gap-2">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)] flex flex-col gap-2">
                 <div className="grid grid-cols-2 gap-2 h-20 shrink-0">
                     <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded p-3 relative overflow-hidden">
                         <div className="text-xs text-slate-400 mb-1">客户总数</div>

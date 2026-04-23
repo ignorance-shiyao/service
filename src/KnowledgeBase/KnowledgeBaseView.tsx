@@ -146,9 +146,9 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
   };
 
   return (
-    <div className="flex h-full bg-[#020617] text-slate-200 overflow-hidden flex-col font-sans">
+    <div className="flex h-full bg-[var(--sys-bg-page)] text-slate-200 overflow-hidden flex-col font-sans">
       {/* Header */}
-      <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f172a] shrink-0 z-10 shadow-lg">
+      <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[var(--sys-bg-header)] shrink-0 z-10 shadow-lg">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-600/20 rounded-lg">
             <BookOpen className="text-blue-500" size={20} />
@@ -179,7 +179,7 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
         {!selectedItemId && (
-           <div className={`w-16 md:w-48 border-r border-slate-800 bg-[#0f172a]/50 flex flex-col p-4 gap-2 shrink-0 ${mode === 'half' ? 'hidden md:flex' : 'flex'}`}>
+           <div className={`w-16 md:w-48 border-r border-slate-800 bg-[var(--sys-bg-header)]/50 flex flex-col p-4 gap-2 shrink-0 ${mode === 'half' ? 'hidden md:flex' : 'flex'}`}>
               <SectionTitle title="业务领域" className="mb-2 hidden md:flex" />
               {(Object.keys(BIZ_MAP) as (keyof typeof BIZ_MAP)[]).map(key => (
                 <button
@@ -195,12 +195,12 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
         )}
 
         {/* Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[#020617] relative">
+        <div className="flex-1 flex flex-col min-w-0 bg-[var(--sys-bg-page)] relative">
           
           {!selectedItem ? (
             /* List Mode */
             <>
-              <div className="p-8 border-b border-slate-800 bg-gradient-to-b from-[#0f172a]/40 to-transparent">
+              <div className="p-8 border-b border-slate-800 bg-gradient-to-b from-[var(--sys-bg-header)]/40 to-transparent">
                 <div className="max-w-3xl mx-auto relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-blue-500">
                     <Sparkles size={20} className={isSearching ? 'animate-spin' : ''} />
@@ -249,9 +249,9 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
             </>
           ) : (
             /* Detail / Edit Mode */
-            <div className="flex-1 flex overflow-hidden bg-[#020617]">
+            <div className="flex-1 flex overflow-hidden bg-[var(--sys-bg-page)]">
               <div className="flex-1 flex flex-col overflow-hidden border-r border-slate-800/50">
-                <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-[#0f172a]/30 shrink-0">
+                <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-[var(--sys-bg-header)]/30 shrink-0">
                   <button onClick={() => { setSelectedItemId(null); setIsEditing(false); }} className="flex items-center gap-2 text-blue-500 text-sm font-medium hover:text-blue-400">
                     <ArrowLeft size={16} /> 返回列表
                   </button>
@@ -344,13 +344,13 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
               </div>
 
               {/* Versions Sidebar */}
-              <div className="w-72 bg-[#0f172a]/30 p-6 flex flex-col shrink-0">
+              <div className="w-72 bg-[var(--sys-bg-header)]/30 p-6 flex flex-col shrink-0">
                  <SectionTitle title="版本演进" className="mb-6" />
                  <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6 relative pl-4">
                     <div className="absolute left-[19px] top-0 bottom-0 w-px bg-slate-800"></div>
                     {selectedItem.versions?.map((v, idx) => (
                        <div key={v.versionId} className="relative pl-8 group">
-                          <div className={`absolute left-[-4px] top-1.5 w-3 h-3 rounded-full border-2 border-[#020617] ${idx === 0 ? 'bg-blue-500 shadow-[0_0_8px_#3b82f6]' : 'bg-slate-700'} z-10 transition-all group-hover:scale-125`}></div>
+                          <div className={`absolute left-[-4px] top-1.5 w-3 h-3 rounded-full border-2 border-[var(--sys-bg-page)] ${idx === 0 ? 'bg-blue-500 shadow-[0_0_8px_#3b82f6]' : 'bg-slate-700'} z-10 transition-all group-hover:scale-125`}></div>
                           <div className={`p-4 rounded-xl border border-slate-800 transition-all ${idx === 0 ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-900/50 hover:border-slate-600'}`}>
                              <div className="flex justify-between items-center mb-1">
                                 <span className={`text-xs font-bold ${idx === 0 ? 'text-blue-400' : 'text-slate-400'}`}>{v.versionNum}</span>

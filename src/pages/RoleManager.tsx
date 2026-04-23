@@ -120,7 +120,7 @@ export const RoleManager: React.FC = () => {
           return (
               <div key={node.id}>
                   <div 
-                      className={`flex items-center py-2 px-2 cursor-pointer transition-all rounded-md mb-1 border border-transparent ${isSelected ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-300 hover:bg-slate-800 hover:border-slate-700'}`}
+                      className={`flex items-center py-2 px-2 cursor-pointer transition-all rounded-md mb-1 border border-transparent ${isSelected ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-300 hover:bg-slate-800 hover:border-[var(--sys-border-primary)]'}`}
                       style={{ paddingLeft: `${depth * 16 + 8}px` }}
                       onClick={() => setSelectedDomainId(node.id)}
                   >
@@ -336,7 +336,7 @@ export const RoleManager: React.FC = () => {
                 </Card>
             ) : (
                 <div 
-                    className="h-full bg-[#1e293b] border border-slate-800 rounded-lg flex flex-col items-center py-4 cursor-pointer hover:bg-slate-800 hover:border-blue-500/50 transition-colors"
+                    className="h-full bg-[#1e293b] border border-[var(--sys-border-primary)] rounded-lg flex flex-col items-center py-4 cursor-pointer hover:bg-slate-800 hover:border-blue-500/50 transition-colors"
                     onClick={() => setIsTreeOpen(true)}
                     title="展开组织机构"
                 >
@@ -354,7 +354,7 @@ export const RoleManager: React.FC = () => {
                         <Input label="角色名称" placeholder="搜索角色名称" className="w-48" value={searchName} onChange={e => setSearchName(e.target.value)} />
                         <Input label="角色编码" placeholder="搜索角色编码" className="w-48" value={searchCode} onChange={e => setSearchCode(e.target.value)} />
                     </div>
-                    <div className="flex justify-between items-center border-t border-slate-700/50 pt-3">
+                    <div className="flex justify-between items-center border-t border-[var(--sys-border-primary)] pt-3">
                         <div className="flex gap-3">
                             <Button variant="primary" icon={<Search size={16} />}>查询</Button>
                             <Button variant="secondary" icon={<RotateCcw size={16} />} onClick={() => { setSearchName(''); setSearchCode(''); }}>重置</Button>
@@ -371,7 +371,7 @@ export const RoleManager: React.FC = () => {
             </Card>
 
             <Card className="flex-1 overflow-hidden flex flex-col">
-                <div className="flex justify-between items-center px-4 py-2 border-b border-slate-800/50 bg-slate-900/20">
+                <div className="flex justify-between items-center px-4 py-2 border-b border-[var(--sys-border-primary)] bg-slate-900/20">
                      <span className="text-xs text-slate-500">当前归属域: <span className="text-blue-400 font-medium">{selectedDomainName}</span></span>
                 </div>
                 <div className="flex-1 overflow-auto">
@@ -399,7 +399,7 @@ export const RoleManager: React.FC = () => {
         >
             <div className="h-[550px] flex flex-col">
                 {/* Tabs */}
-                <div className="flex border-b border-slate-700 mb-4 shrink-0 bg-[#0f172a] -mx-8 px-8 sticky top-0 z-10">
+                <div className="flex border-b border-[var(--sys-border-primary)] mb-4 shrink-0 bg-[var(--sys-bg-header)] -mx-8 px-8 sticky top-0 z-10">
                     {(['info', 'menu', 'data'] as const).map(tab => (
                         <button 
                             key={tab}
@@ -443,7 +443,7 @@ export const RoleManager: React.FC = () => {
                             <div className="bg-blue-900/10 border border-blue-900/30 rounded p-3 text-xs text-blue-300 mb-2 flex items-center gap-2">
                                  <CheckSquare size={14} /> 提示：勾选该角色可访问的菜单资源。系统支持父子菜单联动选择。
                             </div>
-                            <div className="border border-slate-700 rounded-lg p-5 bg-[#1e293b]/30 min-h-[350px]">
+                            <div className="border border-[var(--sys-border-primary)] rounded-lg p-5 bg-[#1e293b]/30 min-h-[350px]">
                                 {renderMenuTree(MOCK_MENUS)}
                             </div>
                         </div>
@@ -452,38 +452,38 @@ export const RoleManager: React.FC = () => {
                     {activeTab === 'data' && (
                         <div className="space-y-6">
                             {/* Region Scope */}
-                            <div className="bg-slate-800/30 p-5 rounded-lg border border-slate-700">
+                            <div className="bg-slate-800/30 p-5 rounded-lg border border-[var(--sys-border-primary)]">
                                 <div className="flex justify-between items-center mb-4">
                                     <SectionTitle title="区域范围 (Region Scope)" className="mb-0" />
                                     <label className="flex items-center space-x-2 cursor-pointer text-xs text-blue-400 hover:text-blue-300 select-none bg-blue-900/20 px-2 py-1 rounded">
-                                        <input type="checkbox" className="rounded bg-slate-900 border-slate-600 text-blue-500" checked={isAllRegionsSelected} onChange={toggleAllRegions} />
+                                        <input type="checkbox" className="rounded bg-slate-900 border-[var(--sys-border-secondary)] text-blue-500" checked={isAllRegionsSelected} onChange={toggleAllRegions} />
                                         <span>全选所有区域</span>
                                     </label>
                                 </div>
                                 <div className="grid grid-cols-4 gap-4">
                                     {REGIONS.slice(0, 16).map(reg => (
                                         <label key={reg.code} className="flex items-center space-x-2 cursor-pointer hover:text-blue-400 group">
-                                            <input type="checkbox" className="rounded bg-slate-900 border-slate-600 text-blue-500" checked={currentRole.regionScope?.includes(reg.code) || false} onChange={() => toggleRegion(reg.code)} />
+                                            <input type="checkbox" className="rounded bg-slate-900 border-[var(--sys-border-secondary)] text-blue-500" checked={currentRole.regionScope?.includes(reg.code) || false} onChange={() => toggleRegion(reg.code)} />
                                             <span className="text-sm text-slate-400 group-hover:text-slate-200">{reg.name}</span>
                                         </label>
                                     ))}
                                 </div>
                             </div>
                              {/* Business Scope (Transfer) */}
-                             <div className="bg-slate-800/30 p-5 rounded-lg border border-slate-700">
+                             <div className="bg-slate-800/30 p-5 rounded-lg border border-[var(--sys-border-primary)]">
                                 <SectionTitle title="业务范围 (Business Scope)" />
                                 <div className="flex h-[320px] gap-4">
                                     {/* Source Panel */}
-                                    <div className="flex-1 border border-slate-700 rounded-lg flex flex-col bg-[#0f172a]">
-                                        <div className="p-2 border-b border-slate-700 bg-slate-800/50 rounded-t-lg flex flex-col gap-2">
+                                    <div className="flex-1 border border-[var(--sys-border-primary)] rounded-lg flex flex-col bg-[var(--sys-bg-header)]">
+                                        <div className="p-2 border-b border-[var(--sys-border-primary)] bg-slate-800/50 rounded-t-lg flex flex-col gap-2">
                                             <div className="flex justify-between items-center px-1 pt-1">
                                                 <span className="text-xs font-semibold text-slate-300">待选业务</span>
                                                 <span className="text-xs text-slate-500">{sourceSelected.length} 选中</span>
                                             </div>
                                             <div className="flex flex-wrap gap-1 pb-1">
-                                                <button onClick={() => setBizCategoryFilter('all')} className={`px-2 py-1 text-[10px] rounded whitespace-nowrap transition-colors border ${bizCategoryFilter === 'all' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-slate-800 border-slate-600 text-slate-400 hover:border-slate-500'}`}>全部</button>
+                                                <button onClick={() => setBizCategoryFilter('all')} className={`px-2 py-1 text-[10px] rounded whitespace-nowrap transition-colors border ${bizCategoryFilter === 'all' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-slate-800 border-[var(--sys-border-secondary)] text-slate-400 hover:border-[var(--sys-border-secondary)]'}`}>全部</button>
                                                 {BUSINESS_TYPES.map(bt => (
-                                                    <button key={bt.code} onClick={() => setBizCategoryFilter(bt.code)} className={`px-2 py-1 text-[10px] rounded whitespace-nowrap transition-colors border ${bizCategoryFilter === bt.code ? 'bg-blue-600 border-blue-600 text-white' : 'bg-slate-800 border-slate-600 text-slate-400 hover:border-slate-500'}`}>{bt.name}</button>
+                                                    <button key={bt.code} onClick={() => setBizCategoryFilter(bt.code)} className={`px-2 py-1 text-[10px] rounded whitespace-nowrap transition-colors border ${bizCategoryFilter === bt.code ? 'bg-blue-600 border-blue-600 text-white' : 'bg-slate-800 border-[var(--sys-border-secondary)] text-slate-400 hover:border-[var(--sys-border-secondary)]'}`}>{bt.name}</button>
                                                 ))}
                                             </div>
                                             <Input placeholder="搜索业务实例..." className="text-xs py-1.5 h-8" />
@@ -491,7 +491,7 @@ export const RoleManager: React.FC = () => {
                                         <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
                                             {filteredSourceData.map(item => (
                                                 <div key={item.id} className={`flex items-center p-2 rounded hover:bg-slate-800 cursor-pointer ${sourceSelected.includes(item.id) ? 'bg-blue-600/20' : ''}`} onClick={() => { sourceSelected.includes(item.id) ? setSourceSelected(sourceSelected.filter(id => id !== item.id)) : setSourceSelected([...sourceSelected, item.id]) }}>
-                                                    <input type="checkbox" checked={sourceSelected.includes(item.id)} readOnly className="mr-2 rounded bg-slate-900 border-slate-600 pointer-events-none" />
+                                                    <input type="checkbox" checked={sourceSelected.includes(item.id)} readOnly className="mr-2 rounded bg-slate-900 border-[var(--sys-border-secondary)] pointer-events-none" />
                                                     <div className="flex flex-col overflow-hidden">
                                                         <span className="text-sm truncate text-slate-300">{item.name}</span>
                                                         <span className="text-[10px] text-slate-500">{BUSINESS_TYPES.find(b => b.code === item.category)?.name}</span>
@@ -506,15 +506,15 @@ export const RoleManager: React.FC = () => {
                                         <Button size="sm" variant="secondary" onClick={moveToLeft} disabled={targetSelected.length === 0} className="rotate-180"><ChevronRight size={16} /></Button>
                                     </div>
                                     {/* Target Panel */}
-                                    <div className="flex-1 border border-slate-700 rounded-lg flex flex-col bg-[#0f172a]">
-                                        <div className="p-2 border-b border-slate-700 bg-slate-800/50 rounded-t-lg flex justify-between items-center h-[90px]">
+                                    <div className="flex-1 border border-[var(--sys-border-primary)] rounded-lg flex flex-col bg-[var(--sys-bg-header)]">
+                                        <div className="p-2 border-b border-[var(--sys-border-primary)] bg-slate-800/50 rounded-t-lg flex justify-between items-center h-[90px]">
                                             <span className="text-xs font-semibold text-slate-300 pl-1">已授权业务 ({targetKeys.length})</span>
                                             <Button size="sm" variant="ghost" className="text-red-400 text-xs px-2 h-6" onClick={() => setTargetKeys([])}>清空</Button>
                                         </div>
                                         <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
                                             {sourceData.filter(d => targetKeys.includes(d.id)).map(item => (
                                                 <div key={item.id} className={`flex items-center p-2 rounded hover:bg-slate-800 cursor-pointer ${targetSelected.includes(item.id) ? 'bg-blue-600/20' : ''}`} onClick={() => { targetSelected.includes(item.id) ? setTargetSelected(targetSelected.filter(id => id !== item.id)) : setTargetSelected([...targetSelected, item.id]) }}>
-                                                    <input type="checkbox" checked={targetSelected.includes(item.id)} readOnly className="mr-2 rounded bg-slate-900 border-slate-600 pointer-events-none" />
+                                                    <input type="checkbox" checked={targetSelected.includes(item.id)} readOnly className="mr-2 rounded bg-slate-900 border-[var(--sys-border-secondary)] pointer-events-none" />
                                                     <div className="flex flex-col overflow-hidden">
                                                         <span className="text-sm truncate text-slate-300">{item.name}</span>
                                                         <span className="text-[10px] text-slate-500">{BUSINESS_TYPES.find(b => b.code === item.category)?.name}</span>

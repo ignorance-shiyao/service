@@ -124,7 +124,7 @@ export const DictManager: React.FC = () => {
                   <Input placeholder="字典名称/类型" value={searchType} onChange={e => setSearchType(e.target.value)} className="flex-1 text-xs h-8" />
                   <Button size="sm" icon={<Plus size={14}/>} onClick={handleAddType}></Button>
               </div>
-              <div className="flex-1 overflow-auto border border-slate-700/50 rounded">
+              <div className="flex-1 overflow-auto border border-[var(--sys-border-primary)] rounded">
                   <table className="w-full text-sm text-left text-slate-300">
                       <thead className="bg-slate-800 text-xs text-slate-400">
                           <tr>

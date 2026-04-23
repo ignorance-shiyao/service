@@ -73,7 +73,7 @@ export const LogManager: React.FC = () => {
                   </div>
 
                   {/* Row 2: Actions */}
-                  <div className="flex justify-between items-center border-t border-slate-700/50 pt-3">
+                  <div className="flex justify-between items-center border-t border-[var(--sys-border-primary)] pt-3">
                       <div className="flex gap-3">
                           <Button icon={<Search size={16}/>}>查询</Button>
                           <Button variant="secondary" icon={<RotateCcw size={16}/>} onClick={() => { setSearchModule(''); setSearchUser(''); setSearchStatus(''); }}>重置</Button>
@@ -98,7 +98,7 @@ export const LogManager: React.FC = () => {
               <div className="flex-1 overflow-auto">
                   <Table columns={activeColumns} data={filteredLogs} keyField="id" />
               </div>
-              <div className="py-2 border-t border-slate-700 flex justify-between items-center">
+              <div className="py-2 border-t border-[var(--sys-border-primary)] flex justify-between items-center">
                   <div className="text-sm text-slate-400">共 {filteredLogs.length} 条</div>
               </div>
           </Card>

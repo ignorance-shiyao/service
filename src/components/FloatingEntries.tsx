@@ -8,6 +8,7 @@ type FloatingEntriesProps = {
   onOpenFault: () => void;
   onOpenReport: () => void;
   onOpenAssistant: () => void;
+  hideAssistantEntry?: boolean;
 };
 
 export const FloatingEntries: React.FC<FloatingEntriesProps> = ({
@@ -15,6 +16,7 @@ export const FloatingEntries: React.FC<FloatingEntriesProps> = ({
   onOpenFault,
   onOpenReport,
   onOpenAssistant,
+  hideAssistantEntry = false,
 }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -166,13 +168,15 @@ export const FloatingEntries: React.FC<FloatingEntriesProps> = ({
           </div>
         </div>
 
-        <div className="group cursor-pointer" onClick={onOpenAssistant}>
-          <div className="relative flex flex-col items-center gap-2 overflow-hidden rounded-bl-xl border-y border-slate-700/50 border-l-4 border-indigo-500/70 bg-[#0f172a]/95 py-4 shadow-[0_0_20px_rgba(79,70,229,0.2)] backdrop-blur-xl transition-all duration-300 group-hover:translate-x-[-4px] group-hover:bg-indigo-600">
-            <div className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-r from-indigo-500/5 to-transparent"></div>
-            <img src={robotEntryIcon} alt="AI图标" className="ai-entry-card-robot" draggable={false} />
-            <span className="z-10 whitespace-nowrap text-[11px] font-black text-indigo-200 group-hover:text-white">AI管家</span>
+        {!hideAssistantEntry && (
+          <div className="group cursor-pointer" onClick={onOpenAssistant}>
+            <div className="relative flex flex-col items-center gap-2 overflow-hidden rounded-bl-xl border-y border-slate-700/50 border-l-4 border-indigo-500/70 bg-[var(--sys-bg-header)]/95 py-4 shadow-[0_0_20px_rgba(79,70,229,0.2)] backdrop-blur-xl transition-all duration-300 group-hover:translate-x-[-4px] group-hover:bg-indigo-600">
+              <div className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-r from-indigo-500/5 to-transparent"></div>
+              <img src={robotEntryIcon} alt="AI图标" className="ai-entry-card-robot" draggable={false} />
+              <span className="z-10 whitespace-nowrap text-[11px] font-black text-indigo-200 group-hover:text-white">AI管家</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

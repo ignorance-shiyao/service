@@ -29,7 +29,7 @@ const TemplateThumbnail: React.FC<{ template: any }> = ({ template }) => {
     }, [template]);
 
     return (
-        <div className="w-full h-full bg-[#0f172a] p-1 grid grid-cols-2 grid-rows-2 gap-1 pointer-events-none select-none overflow-hidden relative">
+        <div className="w-full h-full bg-[var(--sys-bg-header)] p-1 grid grid-cols-2 grid-rows-2 gap-1 pointer-events-none select-none overflow-hidden relative">
              <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-transparent z-0"></div>
              {relevantComps.map((comp, i) => {
                  let PreviewComp: any = GenericPreview;
@@ -39,7 +39,7 @@ const TemplateThumbnail: React.FC<{ template: any }> = ({ template }) => {
                  if (comp.category === 'BIZ_5G') PreviewComp = Biz5GPreview;
 
                  return (
-                     <div key={comp.id} className={`relative overflow-hidden bg-[#1e293b] border border-slate-800 rounded-[2px] ${i === 0 ? 'col-span-2' : ''}`}>
+                     <div key={comp.id} className={`relative overflow-hidden bg-[#1e293b] border border-[var(--sys-border-primary)] rounded-[2px] ${i === 0 ? 'col-span-2' : ''}`}>
                         {/* Scale down content */}
                         <div className="transform scale-[0.4] origin-top-left w-[250%] h-[250%]">
                             <PreviewComp comp={comp} />
@@ -142,7 +142,7 @@ export const TemplateManager: React.FC = () => {
           return (
               <div key={node.id}>
                   <div 
-                      className={`flex items-center py-2 px-2 cursor-pointer transition-all rounded-md mb-1 border border-transparent ${isSelected ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-300 hover:bg-slate-800 hover:border-slate-700'}`}
+                      className={`flex items-center py-2 px-2 cursor-pointer transition-all rounded-md mb-1 border border-transparent ${isSelected ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-300 hover:bg-slate-800 hover:border-[var(--sys-border-primary)]'}`}
                       style={{ paddingLeft: `${depth * 16 + 8}px` }}
                       onClick={() => setSelectedDomainId(node.id)}
                   >
@@ -245,7 +245,7 @@ export const TemplateManager: React.FC = () => {
                   <div className="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2">
                       {mode === 'fusion' && (
                           <div 
-                              className={`flex items-center py-2 px-2 cursor-pointer transition-all rounded-md mb-1 border border-transparent ${selectedDomainId === 'all' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:border-slate-700'}`}
+                              className={`flex items-center py-2 px-2 cursor-pointer transition-all rounded-md mb-1 border border-transparent ${selectedDomainId === 'all' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:border-[var(--sys-border-primary)]'}`}
                               onClick={() => setSelectedDomainId('all')}
                           >
                               <div className="w-4 mr-1"></div>
@@ -258,7 +258,7 @@ export const TemplateManager: React.FC = () => {
               </Card>
           ) : (
               <div 
-                  className="h-full bg-[#1e293b] border border-slate-800 rounded-lg flex flex-col items-center py-4 cursor-pointer hover:bg-slate-800 hover:border-blue-500/50 transition-colors"
+                  className="h-full bg-[#1e293b] border border-[var(--sys-border-primary)] rounded-lg flex flex-col items-center py-4 cursor-pointer hover:bg-slate-800 hover:border-blue-500/50 transition-colors"
                   onClick={() => setIsTreeOpen(true)}
                   title="展开"
               >
@@ -298,7 +298,7 @@ export const TemplateManager: React.FC = () => {
                     <div className="flex items-center gap-4">
                         <Button variant="primary" className="bg-emerald-600 hover:bg-emerald-500" icon={<Plus size={16} />} onClick={() => handleEdit({ businessTypes: [] })}>新建页面</Button>
                         <div className="w-px h-6 bg-slate-700"></div>
-                        <div className="flex bg-slate-800 rounded p-1 border border-slate-700">
+                        <div className="flex bg-slate-800 rounded p-1 border border-[var(--sys-border-primary)]">
                             <button onClick={() => setViewMode('list')} className={`p-1.5 rounded transition-colors ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}><List size={16}/></button>
                             <button onClick={() => setViewMode('grid-sm')} className={`p-1.5 rounded transition-colors ${viewMode === 'grid-sm' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}><Grid size={16}/></button>
                             <button onClick={() => setViewMode('grid-lg')} className={`p-1.5 rounded transition-colors ${viewMode === 'grid-lg' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}><LayoutGrid size={16}/></button>
@@ -307,11 +307,11 @@ export const TemplateManager: React.FC = () => {
                 </div>
 
                 {/* Bottom Row: Business Types Tabs */}
-                <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 border-t border-slate-800 pt-3">
+                <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 border-t border-[var(--sys-border-primary)] pt-3">
                     <span className="text-xs text-slate-500 font-medium shrink-0 mr-2">业务类型:</span>
                     <button 
                         onClick={() => setActiveCategory('all')}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 border ${activeCategory === 'all' ? 'bg-blue-600 text-white border-blue-500 shadow-sm' : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200 hover:bg-slate-700'}`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 border ${activeCategory === 'all' ? 'bg-blue-600 text-white border-blue-500 shadow-sm' : 'bg-slate-800 text-slate-400 border-[var(--sys-border-primary)] hover:text-slate-200 hover:bg-slate-700'}`}
                     >
                         全部
                     </button>
@@ -319,7 +319,7 @@ export const TemplateManager: React.FC = () => {
                         <button 
                             key={bt.code}
                             onClick={() => setActiveCategory(bt.code)}
-                            className={`px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 border ${activeCategory === bt.code ? 'bg-blue-600 text-white border-blue-500 shadow-sm' : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200 hover:bg-slate-700'}`}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 border ${activeCategory === bt.code ? 'bg-blue-600 text-white border-blue-500 shadow-sm' : 'bg-slate-800 text-slate-400 border-[var(--sys-border-primary)] hover:text-slate-200 hover:bg-slate-700'}`}
                         >
                             {bt.name}
                         </button>
@@ -351,13 +351,13 @@ export const TemplateManager: React.FC = () => {
                       <div 
                         key={temp.id} 
                         className={`
-                            bg-[#0b1121] border border-slate-800 rounded-lg overflow-hidden group hover:border-blue-500/50 hover:shadow-lg transition-all relative flex
+                            bg-[var(--sys-bg-page)] border border-[var(--sys-border-primary)] rounded-lg overflow-hidden group hover:border-blue-500/50 hover:shadow-lg transition-all relative flex
                             ${viewMode === 'list' ? 'flex-row h-28' : 'flex-col'}
                         `}
                       >
                          {/* Thumbnail Area */}
                          <div className={`
-                             bg-slate-900 relative overflow-hidden flex items-center justify-center border-slate-800/50 shrink-0
+                             bg-slate-900 relative overflow-hidden flex items-center justify-center border-[var(--sys-border-primary)] shrink-0
                              ${viewMode === 'list' ? 'w-48 h-full border-r' : 'w-full border-b'}
                              ${viewMode === 'grid-sm' ? 'h-32' : ''}
                              ${viewMode === 'grid-lg' ? 'h-48' : ''}
@@ -406,7 +406,7 @@ export const TemplateManager: React.FC = () => {
                                     {/* Tags (Centered in List) */}
                                     <div className="flex-1 flex flex-wrap gap-2 justify-center">
                                         {temp.businessTypes.map((bt: string) => (
-                                            <span key={bt} className="text-xs px-2 py-1 bg-slate-800/50 text-slate-300 rounded border border-slate-700/50 whitespace-nowrap flex items-center gap-1">
+                                            <span key={bt} className="text-xs px-2 py-1 bg-slate-800/50 text-slate-300 rounded border border-[var(--sys-border-primary)] whitespace-nowrap flex items-center gap-1">
                                                 <div className="w-1 h-1 rounded-full bg-blue-500"></div>
                                                 {BUSINESS_TYPES.find(b => b.code === bt)?.name}
                                             </span>
@@ -440,7 +440,7 @@ export const TemplateManager: React.FC = () => {
                                         {/* Tags */}
                                         <div className="flex flex-wrap gap-1 mt-2 mb-2">
                                             {temp.businessTypes.slice(0, viewMode === 'grid-sm' ? 2 : 3).map((bt: string) => (
-                                                <span key={bt} className="text-[10px] px-1.5 py-0.5 bg-slate-800/80 text-slate-400 rounded border border-slate-700/50 whitespace-nowrap">
+                                                <span key={bt} className="text-[10px] px-1.5 py-0.5 bg-slate-800/80 text-slate-400 rounded border border-[var(--sys-border-primary)] whitespace-nowrap">
                                                     {BUSINESS_TYPES.find(b => b.code === bt)?.name}
                                                 </span>
                                             ))}
@@ -449,7 +449,7 @@ export const TemplateManager: React.FC = () => {
                                     </div>
 
                                     {/* Footer */}
-                                    <div className="flex justify-between items-center text-[10px] text-slate-500 pt-2 border-t border-slate-800/50 mt-auto">
+                                    <div className="flex justify-between items-center text-[10px] text-slate-500 pt-2 border-t border-[var(--sys-border-primary)] mt-auto">
                                        <span>更新于 {temp.lastUpdate}</span>
                                        <button className="text-slate-500 hover:text-white transition-colors"><MoreVertical size={14}/></button>
                                     </div>

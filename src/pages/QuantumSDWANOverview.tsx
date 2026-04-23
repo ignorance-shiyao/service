@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, Building2, KeyRound, Link2, PlugZap, Server, ShieldCheck, Timer } from 'lucide-react';
 import { BaseChart } from '../components/BaseChart';
+import { Select } from '../components/UI';
 
 type MapTab = 'map' | 'topology';
 type PerfTab = 'latency' | 'loss' | 'jitter' | 'throughput';
@@ -35,11 +36,23 @@ type HoveredSiteState = {
 };
 
 const panelClass =
-  'bg-[#061428]/96 border border-[#0d2847] rounded-md p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] h-full flex flex-col min-h-0 overflow-hidden';
+  'bg-[var(--comp-panel-background)]/96 border border-[var(--comp-panel-border)] rounded-md p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] h-full flex flex-col min-h-0 overflow-hidden';
+
+const COLOR_STATE_SUCCESS = 'var(--sys-state-success)';
+const COLOR_STATE_WARNING = 'var(--sys-state-warning)';
+const COLOR_STATE_DANGER = 'var(--sys-state-danger)';
+const COLOR_STATE_INFO = 'var(--sys-state-info)';
+const COLOR_STATE_QUANTUM = 'var(--sys-state-quantum)';
+const COLOR_FLYLINE_NORMAL = 'var(--biz-map-flyline-normal)';
+const COLOR_FLYLINE_QUANTUM = 'var(--biz-map-flyline-quantum)';
+const COLOR_CITY_FILL = 'var(--biz-map-city-fill-default)';
+const COLOR_CITY_FILL_HOVER = 'var(--biz-map-city-fill-hover)';
+const COLOR_CITY_STROKE = 'var(--biz-map-city-stroke-default)';
+const COLOR_CITY_STROKE_HOVER = 'var(--biz-map-city-stroke-hover)';
 
 const sectionTitle = (title: string) => (
-  <div className="mb-1 flex items-center border-b border-[#0d3060] pb-1 text-[#d4eeff] shrink-0">
-    <span className="mr-2 text-[#00d4ff]">|</span>
+  <div className="mb-1 flex items-center border-b border-[#0d3060] pb-1 text-[var(--comp-panel-title)] shrink-0">
+    <span className="mr-2 text-[var(--comp-panel-title-accent)]">|</span>
     <span className="whitespace-nowrap text-[clamp(12px,0.92vw,14px)] font-semibold tracking-wide">{title}</span>
   </div>
 );
@@ -49,9 +62,9 @@ const sectionTitleInline = (
   tabs?: React.ReactNode,
   controls?: React.ReactNode
 ) => (
-  <div className="mb-1 flex items-center justify-between gap-2 border-b border-[#0d3060] pb-1 text-[#d4eeff] shrink-0">
+  <div className="mb-1 flex items-center justify-between gap-2 border-b border-[#0d3060] pb-1 text-[var(--comp-panel-title)] shrink-0">
     <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
-      <span className="text-[#00d4ff]">|</span>
+      <span className="text-[var(--comp-panel-title-accent)]">|</span>
       <span className="shrink-0 whitespace-nowrap text-[clamp(12px,0.92vw,14px)] font-semibold tracking-wide">{title}</span>
       {tabs}
     </div>
@@ -61,7 +74,7 @@ const sectionTitleInline = (
 
 const tabClass = (active: boolean) =>
   `relative inline-flex items-center whitespace-nowrap rounded-full px-1.5 py-0.5 text-[clamp(10px,0.72vw,11px)] transition ${
-    active ? 'bg-[rgba(0,212,255,0.12)] text-[#00d4ff]' : 'text-[#90c4e8] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#d4eeff]'
+    active ? 'bg-[var(--comp-panel-tab-active-bg)] text-[var(--sys-state-info)]' : 'text-[var(--comp-panel-tab-text)] hover:bg-[rgba(255,255,255,0.05)] hover:text-[var(--comp-panel-title)]'
   }`;
 
 const buildMapPoints = (): SitePoint[] => {
@@ -255,9 +268,9 @@ const buildTopologyData = (): { nodes: TopologyNode[]; links: TopologyLink[] } =
 const { nodes: topologyNodes, links: topologyLinks } = buildTopologyData();
 
 const metricCards = [
-  { label: '站点总数(个)', value: '18', icon: Building2, iconBg: 'bg-[#06374d]', iconColor: 'text-[#00d4ff]' },
-  { label: 'CPE设备数(个)', value: '54', icon: Activity, iconBg: 'bg-[#053c39]', iconColor: 'text-[#00ff88]' },
-  { label: '隧道总数(条)', value: '167', icon: Link2, iconBg: 'bg-[#2a1d54]', iconColor: 'text-[#a855f7]' },
+  { label: '站点总数(个)', value: '18', icon: Building2, iconBg: 'bg-[#06374d]', iconColor: 'text-[var(--sys-state-info)]' },
+  { label: 'CPE设备数(个)', value: '54', icon: Activity, iconBg: 'bg-[#053c39]', iconColor: 'text-[var(--sys-state-success)]' },
+  { label: '隧道总数(条)', value: '167', icon: Link2, iconBg: 'bg-[#2a1d54]', iconColor: 'text-[var(--sys-state-quantum)]' },
   { label: '量子隧道数(条)', value: '113', icon: KeyRound, iconBg: 'bg-[#3b2438]', iconColor: 'text-[#f97316]' },
 ];
 
@@ -799,8 +812,8 @@ export const QuantumSDWANOverview: React.FC = () => {
       group.style.pointerEvents = isActive ? 'auto' : 'none';
       const shapes = Array.from(group.querySelectorAll('path, polygon, polyline')) as SVGElement[];
       shapes.forEach((shape) => {
-        shape.style.fill = isActive ? (isHovered ? '#4f83ea' : '#2756B5') : '#173159';
-        shape.style.stroke = isActive ? (isHovered ? '#ecf8ff' : '#A9D7FF') : '#355a88';
+        shape.style.fill = isActive ? (isHovered ? COLOR_CITY_FILL_HOVER : COLOR_CITY_FILL) : '#173159';
+        shape.style.stroke = isActive ? (isHovered ? COLOR_CITY_STROKE_HOVER : COLOR_CITY_STROKE) : '#355a88';
         shape.style.strokeWidth = isHovered ? '2.1' : '1.2';
         shape.style.animation = isHovered ? 'ahCityGlow 1.2s ease-in-out infinite' : 'none';
         shape.style.filter = isHovered ? 'drop-shadow(0 0 12px rgba(148,208,255,0.95))' : dimmedByHover ? 'brightness(0.86)' : 'none';
@@ -839,7 +852,7 @@ export const QuantumSDWANOverview: React.FC = () => {
           const siteForTooltip = citySites[0] || null;
           const offline = citySites.some((p) => p.status === 'offline');
           const warning = citySites.some((p) => p.status === 'warning');
-          const bubbleColor = offline ? '#ef4444' : warning ? '#f59e0b' : '#22c55e';
+          const bubbleColor = offline ? COLOR_STATE_DANGER : warning ? COLOR_STATE_WARNING : COLOR_STATE_SUCCESS;
           const bubbleStroke = offline ? '#fecaca' : warning ? '#fed7aa' : '#bbf7d0';
           return {
             ...city,
@@ -1102,34 +1115,28 @@ export const QuantumSDWANOverview: React.FC = () => {
         className={`rounded-full border px-1.5 py-0.5 text-[clamp(10px,0.7vw,11px)] ${
           autoConfig.enabled
             ? 'border-[#4fb6ff] bg-[#144a85] text-[#d9f0ff]'
-            : 'border-[#2a67aa] bg-[#0b325f] text-[#8ebae6]'
+            : 'border-[var(--comp-panel-border)] bg-[#0b325f] text-[#8ebae6]'
         }`}
         onClick={() => onAutoChange({ ...autoConfig, enabled: !autoConfig.enabled })}
       >
         自动
       </button>
-      <select
-        value={autoConfig.intervalSec}
+      <Select
+        value={String(autoConfig.intervalSec)}
         onChange={(e) => onAutoChange({ ...autoConfig, intervalSec: Number(e.target.value) })}
-        className="h-5 rounded-full border border-[#2a67aa] bg-[#0b325f] px-1.5 text-[clamp(10px,0.7vw,11px)] text-[#cfe7ff] outline-none"
-        title="轮播时长"
-      >
-        {[
-          { value: 10, label: '10s' },
-          { value: 30, label: '30s' },
-          { value: 60, label: '1min' },
-          { value: 300, label: '5min' },
-        ].map((item) => (
-          <option key={item.value} value={item.value}>
-            {item.label}
-          </option>
-        ))}
-      </select>
+        className="h-5 w-[78px] rounded-full border-[var(--comp-panel-border)] bg-[#0b325f] px-1.5 py-0 text-[clamp(10px,0.7vw,11px)] text-[#cfe7ff]"
+        options={[
+          { value: '10', label: '10s' },
+          { value: '30', label: '30s' },
+          { value: '60', label: '1min' },
+          { value: '300', label: '5min' },
+        ]}
+      />
     </div>
   );
 
   return (
-    <div className="h-full w-full overflow-auto rounded-lg border border-[#0d3060] bg-[#030d1a] p-2">
+    <div className="h-full w-full overflow-auto rounded-lg border border-[#0d3060] bg-[var(--sys-bg-page)] p-2">
       <div className="grid grid-cols-12 gap-2 xl:h-full xl:grid-rows-[minmax(196px,0.88fr)_minmax(250px,1fr)_minmax(240px,1fr)]">
         <div
           ref={bizPanelRef}
@@ -1144,7 +1151,7 @@ export const QuantumSDWANOverview: React.FC = () => {
               const Icon = m.icon;
               return (
                 <div key={m.label} className={`h-full rounded border border-[#1f5b9b]/70 bg-[#0e3e7e]/70 ${bizCompactLevel === 0 ? 'p-2' : bizCompactLevel === 1 ? 'p-1.5' : 'p-1'}`}>
-                  <div className={`flex items-center justify-between text-[#9fc8f2] ${bizCompactLevel === 0 ? 'text-[11px]' : 'text-[10px]'}`}>
+                  <div className={`flex items-center justify-between text-[var(--sys-text-secondary)] ${bizCompactLevel === 0 ? 'text-[11px]' : 'text-[10px]'}`}>
                     <span>{m.label}</span>
                     <span
                       className={`inline-flex items-center justify-center rounded-full ${m.iconBg} ${m.iconColor} shadow-[inset_0_0_0_1px_rgba(120,193,255,0.2)] ${
@@ -1170,7 +1177,7 @@ export const QuantumSDWANOverview: React.FC = () => {
               const Icon = m.icon;
               return (
                 <div key={m.label} className={`h-full rounded border border-[#1f5b9b]/70 bg-[#0e3e7e]/70 ${bizCompactLevel === 0 ? 'p-2' : bizCompactLevel === 1 ? 'p-1.5' : 'p-1'}`}>
-                  <div className={`flex items-center justify-between text-[#9fc8f2] ${bizCompactLevel === 0 ? 'text-[11px]' : 'text-[10px]'}`}>
+                  <div className={`flex items-center justify-between text-[var(--sys-text-secondary)] ${bizCompactLevel === 0 ? 'text-[11px]' : 'text-[10px]'}`}>
                     <span>{m.label}</span>
                     <span
                       className={`inline-flex items-center justify-center rounded-full ${m.iconBg} ${m.iconColor} shadow-[inset_0_0_0_1px_rgba(120,193,255,0.2)] ${
@@ -1195,11 +1202,11 @@ export const QuantumSDWANOverview: React.FC = () => {
             <div className="grid h-full min-h-[52px] grid-rows-[2fr_1fr]">
               <div className="flex items-center justify-between">
                 <span>业务可用率</span>
-                <span className={`font-bold text-[#00ff88] ${bizCompactLevel === 0 ? 'text-[20px] leading-none' : 'text-[18px] leading-none'}`}>99.36%</span>
+                <span className={`font-bold text-[var(--sys-state-success)] ${bizCompactLevel === 0 ? 'text-[20px] leading-none' : 'text-[18px] leading-none'}`}>99.36%</span>
               </div>
               <div className="flex items-center">
                 <div className={`w-full rounded-full bg-[#123d74] ${bizCompactLevel === 0 ? 'h-2' : 'h-1.5'}`}>
-                  <div className={`w-[99.36%] rounded-full bg-gradient-to-r from-[#00b8ff] via-[#00d4ff] to-[#00ff88] ${bizCompactLevel === 0 ? 'h-2' : 'h-1.5'}`} />
+                  <div className={`w-[99.36%] rounded-full bg-gradient-to-r from-[#00b8ff] via-[var(--sys-state-info)] to-[var(--sys-state-success)] ${bizCompactLevel === 0 ? 'h-2' : 'h-1.5'}`} />
                 </div>
               </div>
             </div>
@@ -1213,14 +1220,14 @@ export const QuantumSDWANOverview: React.FC = () => {
             <div className="absolute inset-0">
               <BaseChart option={keyHealthOption} />
             </div>
-            <div className="absolute left-2 top-2 flex items-center gap-2 text-[10px] text-[#9fc8f2]">
+            <div className="absolute left-2 top-2 flex items-center gap-2 text-[10px] text-[var(--sys-text-secondary)]">
               <span className="inline-flex items-center gap-1"><i className="h-1.5 w-1.5 rounded-full bg-[#2dd4ff]" />剩余</span>
               <span className="inline-flex items-center gap-1"><i className="h-1.5 w-1.5 rounded-full bg-[#1e3a8a]" />已消耗</span>
             </div>
-            <div className="absolute left-1 top-6 text-[11px] text-[#9fc8f2]">总量: 122880B</div>
-            <div className="absolute right-1 top-6 text-right text-[11px] text-[#9fc8f2]">剩余: 92640B</div>
-            <div className="absolute left-1 bottom-2 text-[11px] text-[#9fc8f2]">剩余比例: 75.4%</div>
-            <div className="absolute right-1 bottom-2 text-right text-[11px] text-[#9fc8f2]">更新: 2026-04-17 09:18</div>
+            <div className="absolute left-1 top-6 text-[11px] text-[var(--sys-text-secondary)]">总量: 122880B</div>
+            <div className="absolute right-1 top-6 text-right text-[11px] text-[var(--sys-text-secondary)]">剩余: 92640B</div>
+            <div className="absolute left-1 bottom-2 text-[11px] text-[var(--sys-text-secondary)]">剩余比例: 75.4%</div>
+            <div className="absolute right-1 bottom-2 text-right text-[11px] text-[var(--sys-text-secondary)]">更新: 2026-04-17 09:18</div>
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
               <div className="text-[24px] font-black text-[#c9f5ff]">75.4%</div>
               <div className="text-[11px] text-[#7fdfff]">密钥健康</div>
@@ -1232,7 +1239,7 @@ export const QuantumSDWANOverview: React.FC = () => {
           {sectionTitle('量子隧道覆盖率')}
           <div className="relative flex-1 min-h-[160px] xl:min-h-0">
             <BaseChart option={quantumCoverageOption} />
-            <div className="absolute left-2 top-2 flex items-center gap-2 text-[10px] text-[#9fc8f2]">
+            <div className="absolute left-2 top-2 flex items-center gap-2 text-[10px] text-[var(--sys-text-secondary)]">
               <span className="inline-flex items-center gap-1"><i className="h-1.5 w-1.5 rounded-full bg-[#7c3aed]" />量子</span>
               <span className="inline-flex items-center gap-1"><i className="h-1.5 w-1.5 rounded-full bg-[#667085]" />普通</span>
             </div>
@@ -1270,7 +1277,7 @@ export const QuantumSDWANOverview: React.FC = () => {
               </span>
               <span className="font-semibold text-[#cde2ff]">{internationalRate}%</span>
             </div>
-            <div className="grid grid-cols-2 gap-1.5 text-[10px] text-[#9fc8f2]">
+            <div className="grid grid-cols-2 gap-1.5 text-[10px] text-[var(--sys-text-secondary)]">
               <div className="rounded-md bg-[#0d3b76]/70 px-2 py-1">国密隧道: 120</div>
               <div className="rounded-md bg-[#0d3b76]/70 px-2 py-1">国际隧道: 47</div>
             </div>
@@ -1292,15 +1299,15 @@ export const QuantumSDWANOverview: React.FC = () => {
           )}
           {mapTab === 'map' ? (
             <div className="flex h-full min-h-[420px] flex-col gap-1 xl:min-h-0">
-              <div className="rounded border border-[#2a67aa] bg-[#082450]/80 px-2 py-1 text-[10px] text-[#cbe6ff]">
+              <div className="rounded border border-[var(--comp-panel-border)] bg-[var(--comp-panel-background)]/80 px-2 py-1 text-[10px] text-[#cbe6ff]">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1"><i className="h-1.5 w-1.5 rounded-full bg-[#16a34a]" />正常</span>
-                  <span className="inline-flex items-center gap-1"><i className="h-1.5 w-1.5 rounded-full bg-[#f59e0b]" />告警</span>
-                  <span className="inline-flex items-center gap-1"><i className="h-1.5 w-1.5 rounded-full bg-[#ef4444]" />离线</span>
+                  <span className="inline-flex items-center gap-1"><i className="h-1.5 w-1.5 rounded-full bg-[var(--sys-state-warning)]" />告警</span>
+                  <span className="inline-flex items-center gap-1"><i className="h-1.5 w-1.5 rounded-full bg-[var(--sys-state-danger)]" />离线</span>
                   <span className="inline-flex items-center gap-1">
-                    <i className="relative h-2 w-2 rounded-full border border-[#a855f7] bg-[#2a1652] shadow-[0_0_8px_rgba(168,85,247,0.65)]">
-                      <span className="absolute -inset-1 rounded-full border border-[#a855f7]/70" />
+                    <i className="relative h-2 w-2 rounded-full border border-[var(--sys-state-quantum)] bg-[#2a1652] shadow-[0_0_8px_rgba(168,85,247,0.65)]">
+                      <span className="absolute -inset-1 rounded-full border border-[var(--sys-state-quantum)]/70" />
                     </i>
                     量子站点(Q)
                   </span>
@@ -1310,7 +1317,7 @@ export const QuantumSDWANOverview: React.FC = () => {
                   {/*<span className="text-[#8eb9e3]">地市下钻已暂时关闭</span>*/}
                 </div>
               </div>
-              <div className="relative flex-1 overflow-hidden rounded border border-[#2a67aa] bg-[radial-gradient(circle_at_50%_50%,#123f7f_0%,#0d3369_46%,#08284f_72%,#061e40_100%)]">
+              <div className="relative flex-1 overflow-hidden rounded border border-[var(--comp-panel-border)] bg-[radial-gradient(circle_at_50%_50%,#123f7f_0%,#0d3369_46%,#08284f_72%,#061e40_100%)]">
               <div className="absolute inset-0 p-2">
                 <div
                   ref={mapSvgRef}
@@ -1353,7 +1360,7 @@ export const QuantumSDWANOverview: React.FC = () => {
                             const glowWidth = baseWidth + 2.9;
                             const flowWidth = 0.7 + weight * 3.3;
                             const shadowWidth = baseWidth + 0.9;
-                            const color = city.hasQuantum ? '#8b5cf6' : '#3b82f6';
+                            const color = city.hasQuantum ? COLOR_FLYLINE_QUANTUM : COLOR_FLYLINE_NORMAL;
                             const dashLen = 5 + weight * 8;
                             const gapLen = Math.max(2.2, 10 - weight * 4.6);
                             const duration = Math.max(1.1, 2.7 - weight * 1.25);
@@ -1389,8 +1396,8 @@ export const QuantumSDWANOverview: React.FC = () => {
                                 <path
                                   d={d}
                                   fill="none"
-                                  stroke="#e2f2ff"
-                                  strokeOpacity={0.95}
+                                  stroke={city.hasQuantum ? '#cdb6ff' : '#79c4ff'}
+                                  strokeOpacity={0.92}
                                   strokeWidth={flowWidth}
                                   strokeDasharray={`${dashLen} ${gapLen}`}
                                   strokeLinecap="round"
@@ -1403,7 +1410,7 @@ export const QuantumSDWANOverview: React.FC = () => {
                                     repeatCount="indefinite"
                                   />
                                 </path>
-                                <circle r={0.7 + weight * 1.25} fill="#eef8ff" fillOpacity={0.95}>
+                                <circle r={0.7 + weight * 1.25} fill={city.hasQuantum ? '#dccbff' : '#9ed8ff'} fillOpacity={0.88}>
                                   <animateMotion
                                     path={d}
                                     dur={`${orbDur}s`}
@@ -1486,13 +1493,13 @@ export const QuantumSDWANOverview: React.FC = () => {
                 </svg>
               )}
               {drillCity && !mapPoints.some((p) => p.name === drillCity) && (
-                <div className="absolute right-2 top-2 rounded border border-[#2b6cb3] bg-[#082450]/92 px-2 py-1 text-[10px] text-[#d7ecff]">
+                <div className="absolute right-2 top-2 rounded border border-[#2b6cb3] bg-[var(--comp-panel-background)]/92 px-2 py-1 text-[10px] text-[#d7ecff]">
                   {drillCity}暂无站点，已展示地市级地图。
                 </div>
               )}
               {hoveredSite && (
                 <div
-                  className="pointer-events-none absolute z-[2] w-[180px] -translate-x-1/2 rounded border border-[#2b6cb3] bg-[#082450]/95 p-2 text-[10px] text-[#d7ecff] shadow-[0_0_18px_rgba(34,139,255,0.28)]"
+                  className="pointer-events-none absolute z-[2] w-[180px] -translate-x-1/2 rounded border border-[#2b6cb3] bg-[var(--comp-panel-background)]/95 p-2 text-[10px] text-[#d7ecff] shadow-[0_0_18px_rgba(34,139,255,0.28)]"
                   style={{ left: `${hoveredSite.x}%`, top: `${hoveredSite.y - 9}%` }}
                 >
                   <div className="mb-1 flex items-center justify-between">
@@ -1510,7 +1517,7 @@ export const QuantumSDWANOverview: React.FC = () => {
             </div>
             </div>
           ) : (
-            <div className="relative flex-1 min-h-[420px] xl:min-h-0 overflow-hidden rounded border border-[#2a67aa] bg-[radial-gradient(circle_at_50%_42%,#0d2f62_0%,#072349_58%,#051832_100%)]">
+            <div className="relative flex-1 min-h-[420px] xl:min-h-0 overflow-hidden rounded border border-[var(--comp-panel-border)] bg-[radial-gradient(circle_at_50%_42%,#0d2f62_0%,#072349_58%,#051832_100%)]">
               <div className="absolute inset-0 opacity-25 bg-[radial-gradient(circle_at_center,rgba(86,182,255,0.2)_0%,transparent_64%)]" />
               <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(104,162,230,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(104,162,230,0.16)_1px,transparent_1px)] [background-size:7%_7%]" />
               <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -1605,9 +1612,9 @@ export const QuantumSDWANOverview: React.FC = () => {
                         </circle>
                       )}
                       <circle cx={0} cy={0} r={outerR} fill={isHq ? 'rgba(20,157,196,0.22)' : 'rgba(12,58,112,0.28)'} stroke={stroke} strokeWidth={0.52} />
-                      <circle cx={0} cy={0} r={innerR} fill={fill} stroke={isHq ? '#ddf9ff' : stroke} strokeWidth={0.42} filter={active ? 'url(#topoGlow)' : undefined} />
-                      <circle cx={isHq ? -0.35 : -0.24} cy={isHq ? -0.35 : -0.24} r={isHq ? 0.28 : 0.18} fill="#f8fdff" fillOpacity={0.8} />
-                      <circle cx={0} cy={0} r={isHq ? 0.35 : 0.24} fill="#e9f7ff" fillOpacity={isHq ? 0.62 : 0.52} />
+                      <circle cx={0} cy={0} r={innerR} fill={fill} stroke={isHq ? '#7ED8EE' : stroke} strokeWidth={0.42} filter={active ? 'url(#topoGlow)' : undefined} />
+                      <circle cx={isHq ? -0.35 : -0.24} cy={isHq ? -0.35 : -0.24} r={isHq ? 0.28 : 0.18} fill={isHq ? '#9CEBFF' : '#8ED8FF'} fillOpacity={0.72} />
+                      <circle cx={0} cy={0} r={isHq ? 0.35 : 0.24} fill={isHq ? '#78D5EE' : '#79C9F0'} fillOpacity={isHq ? 0.58 : 0.48} />
                       <rect
                         x={-labelWidth / 2}
                         y={isHq ? 3.5 : 2.9}
@@ -1647,7 +1654,7 @@ export const QuantumSDWANOverview: React.FC = () => {
                 if (!p || !info) return null;
                 return (
                   <div
-                    className="pointer-events-none absolute z-[2] w-[180px] -translate-x-1/2 rounded border border-[#2b6cb3] bg-[#082450]/95 p-2 text-[10px] text-[#d7ecff] shadow-[0_0_18px_rgba(34,139,255,0.28)]"
+                    className="pointer-events-none absolute z-[2] w-[180px] -translate-x-1/2 rounded border border-[#2b6cb3] bg-[var(--comp-panel-background)]/95 p-2 text-[10px] text-[#d7ecff] shadow-[0_0_18px_rgba(34,139,255,0.28)]"
                     style={{ left: `${p.x}%`, top: `${Math.max(6, p.y - 10)}%` }}
                   >
                     <div className="mb-1 text-[11px] font-semibold text-[#e6f3ff]">{topologyHoverNode}</div>
@@ -1666,18 +1673,18 @@ export const QuantumSDWANOverview: React.FC = () => {
           {sectionTitle('量子服务器连接状态')}
           <div ref={qssScrollRef} className="flex-1 min-h-[170px] xl:min-h-0 space-y-1.5 overflow-auto pr-1">
             {qssList.map((qss) => (
-              <div key={qss.name} className="rounded border border-[#2a67aa] bg-[#0c3468]/65 p-2 text-[11px] text-[#d3e9ff]">
+              <div key={qss.name} className="rounded border border-[var(--comp-panel-border)] bg-[#0c3468]/65 p-2 text-[11px] text-[#d3e9ff]">
                 <div className="flex items-center justify-between">
                   <span className="inline-flex items-center gap-1 font-semibold">
                     <Server size={11} className="text-[#8cd2ff]" />
                     {qss.name}
                   </span>
-                  <span className={`flex items-center gap-1 ${qss.status === '已连接' ? 'text-[#31cfb7]' : 'text-[#ef4444]'}`}>
-                    <i className={`h-1.5 w-1.5 rounded-full ${qss.status === '已连接' ? 'bg-[#31cfb7]' : 'animate-pulse bg-[#ef4444]'}`} />
+                  <span className={`flex items-center gap-1 ${qss.status === '已连接' ? 'text-[#31cfb7]' : 'text-[var(--sys-state-danger)]'}`}>
+                    <i className={`h-1.5 w-1.5 rounded-full ${qss.status === '已连接' ? 'bg-[#31cfb7]' : 'animate-pulse bg-[var(--sys-state-danger)]'}`} />
                     {qss.status}
                   </span>
                 </div>
-                <div className="mt-1 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[#9fc8f2]">
+                <div className="mt-1 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[var(--sys-text-secondary)]">
                   <span className="inline-flex items-center gap-1"><PlugZap size={10} className="text-[#67b7ff]" />地址: {qss.endpoint}</span>
                   <span className="inline-flex items-center gap-1"><Timer size={10} className="text-[#67b7ff]" />keepAlive: {qss.keepAlive}</span>
                   <span>版本: {qss.version}</span>
@@ -1746,12 +1753,12 @@ export const QuantumSDWANOverview: React.FC = () => {
               <BaseChart option={alarmOverviewOption} />
               <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
                 <div className="text-[22px] font-black text-[#e5f2ff]">36</div>
-                <div className="text-[11px] text-[#9fc8f2]">告警总数</div>
+                <div className="text-[11px] text-[var(--sys-text-secondary)]">告警总数</div>
               </div>
             </div>
           ) : (
-            <div ref={realtimeAlarmScrollRef} className="relative flex-1 min-h-[160px] xl:min-h-0 overflow-auto rounded border border-[#2a67aa] bg-[#0c3468]/65">
-              <div className="sticky top-0 z-10 grid grid-cols-[38px_48px_1fr_1fr_66px] border-b border-[#2a67aa] bg-[#0d376c] px-2 py-1 text-[11px] text-[#9fc8f2]">
+            <div ref={realtimeAlarmScrollRef} className="relative flex-1 min-h-[160px] xl:min-h-0 overflow-auto rounded border border-[var(--comp-panel-border)] bg-[#0c3468]/65">
+              <div className="sticky top-0 z-10 grid grid-cols-[38px_48px_1fr_1fr_66px] border-b border-[var(--comp-panel-border)] bg-[#0d376c] px-2 py-1 text-[11px] text-[var(--sys-text-secondary)]">
                 <span>#</span><span>级别</span><span>网元</span><span>原因</span><span>时间</span>
               </div>
               {realtimeAlarms.map((a, i) => (
@@ -1761,9 +1768,9 @@ export const QuantumSDWANOverview: React.FC = () => {
                     <i
                       className={`inline-flex min-w-[26px] items-center justify-center rounded px-1 py-[1px] text-[10px] font-semibold ${
                         a.level === '一级'
-                          ? 'bg-[#ef4444]/25 text-[#ff7f7f]'
+                          ? 'bg-[var(--sys-state-danger)]/25 text-[#ff7f7f]'
                           : a.level === '二级'
-                            ? 'bg-[#f59e0b]/25 text-[#ffd28a]'
+                            ? 'bg-[var(--sys-state-warning)]/25 text-[#ffd28a]'
                             : a.level === '三级'
                               ? 'bg-[#60a5fa]/25 text-[#9fc8ff]'
                               : 'bg-[#34d399]/20 text-[#8ce8c8]'

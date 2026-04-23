@@ -267,7 +267,7 @@ export const MenuManager: React.FC = () => {
                 />
             </div>
 
-            <div className="flex justify-between items-center border-t border-slate-700/50 pt-3">
+            <div className="flex justify-between items-center border-t border-[var(--sys-border-primary)] pt-3">
                 <div className="flex gap-3">
                     <Button variant="primary" icon={<Search size={16} />}>查询</Button>
                     <Button variant="secondary" icon={<RotateCcw size={16} />} onClick={() => { setSearchName(''); setSearchDescription(''); setSearchVisible(''); }}>重置</Button>
@@ -293,7 +293,7 @@ export const MenuManager: React.FC = () => {
         <div className="flex-1 overflow-auto">
           <Table columns={activeColumns} data={flatData} />
         </div>
-        <div className="py-2 border-t border-slate-700 flex justify-between items-center">
+        <div className="py-2 border-t border-[var(--sys-border-primary)] flex justify-between items-center">
             <div className="text-sm text-slate-400">共 {flatData.length} 条</div>
         </div>
       </Card>
@@ -329,7 +329,7 @@ export const MenuManager: React.FC = () => {
                                 value="dir"
                                 checked={currentMenu.type === 'dir'}
                                 onChange={() => setCurrentMenu({...currentMenu, type: 'dir'})}
-                                className="text-blue-500 bg-slate-900 border-slate-600" 
+                                className="text-blue-500 bg-slate-900 border-[var(--sys-border-secondary)]" 
                             />
                             <span className={currentMenu.type === 'dir' ? 'text-blue-400' : 'text-slate-400'}>目录</span>
                         </label>
@@ -340,7 +340,7 @@ export const MenuManager: React.FC = () => {
                                 value="menu"
                                 checked={currentMenu.type === 'menu'}
                                 onChange={() => setCurrentMenu({...currentMenu, type: 'menu'})}
-                                className="text-blue-500 bg-slate-900 border-slate-600" 
+                                className="text-blue-500 bg-slate-900 border-[var(--sys-border-secondary)]" 
                             />
                             <span className={currentMenu.type === 'menu' ? 'text-blue-400' : 'text-slate-400'}>菜单</span>
                         </label>
@@ -351,7 +351,7 @@ export const MenuManager: React.FC = () => {
                                 value="button"
                                 checked={currentMenu.type === 'button'}
                                 onChange={() => setCurrentMenu({...currentMenu, type: 'button'})}
-                                className="text-blue-500 bg-slate-900 border-slate-600" 
+                                className="text-blue-500 bg-slate-900 border-[var(--sys-border-secondary)]" 
                             />
                             <span className={currentMenu.type === 'button' ? 'text-blue-400' : 'text-slate-400'}>按钮</span>
                         </label>
@@ -413,7 +413,7 @@ export const MenuManager: React.FC = () => {
                 <div className="col-span-2">
                     <label className="text-sm text-slate-400 block mb-1.5">菜单描述</label>
                     <textarea 
-                        className="w-full bg-[#1e293b] border border-slate-700 rounded p-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-600"
+                        className="w-full bg-[#1e293b] border border-[var(--sys-border-primary)] rounded p-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-600"
                         rows={2}
                         placeholder="请输入菜单描述..."
                         value={currentMenu.description || ''}

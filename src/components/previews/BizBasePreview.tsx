@@ -32,7 +32,7 @@ export const BizBasePreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 1. Smart Agent
     if (comp.name === '智能体') {
         return (
-            <div className="w-full h-full relative flex items-center justify-center bg-[#020617]">
+            <div className="w-full h-full relative flex items-center justify-center bg-[var(--sys-bg-page)]">
                 <div className="flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-400/50 flex items-center justify-center relative shadow-[0_0_15px_rgba(59,130,246,0.3)]">
                         <Bot size={32} className="text-blue-100" />
@@ -117,7 +117,7 @@ export const BizBasePreview: React.FC<{ comp: any }> = ({ comp }) => {
         if (mapError) {
             // Static Fallback
             return (
-                <div className="w-full h-full relative bg-[#0b1121] overflow-hidden">
+                <div className="w-full h-full relative bg-[var(--sys-bg-page)] overflow-hidden">
                     <div className="absolute top-2 left-2 text-[8px] text-slate-400 border-l-2 border-blue-500 pl-2 z-20 bg-slate-900/50 rounded pr-2 backdrop-blur-sm">集客业务分布 (静态)</div>
                     <div className="relative w-full h-full flex items-center justify-center opacity-60">
                          {/* Abstract Map Shape */}
@@ -139,7 +139,7 @@ export const BizBasePreview: React.FC<{ comp: any }> = ({ comp }) => {
         }
 
         if (!mapLoaded) {
-            return <div className="w-full h-full flex items-center justify-center text-xs text-slate-500 bg-[#0b1121]">地图加载中...</div>;
+            return <div className="w-full h-full flex items-center justify-center text-xs text-slate-500 bg-[var(--sys-bg-page)]">地图加载中...</div>;
         }
 
         const option = {
@@ -212,7 +212,7 @@ export const BizBasePreview: React.FC<{ comp: any }> = ({ comp }) => {
         };
 
         return (
-            <div className="w-full h-full relative bg-[#0b1121] overflow-hidden">
+            <div className="w-full h-full relative bg-[var(--sys-bg-page)] overflow-hidden">
                 <div className="absolute top-2 left-2 text-[8px] text-slate-400 border-l-2 border-blue-500 pl-2 z-20 bg-slate-900/50 rounded pr-2 backdrop-blur-sm">集客业务分布</div>
                 <BaseChart option={option} />
             </div>
@@ -222,9 +222,9 @@ export const BizBasePreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 5. Line Overview
     if (comp.name === '集客业务专线概况') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617] flex flex-col">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)] flex flex-col">
                 <div className="text-[8px] text-slate-400 border-l-2 border-blue-500 pl-2 mb-1">业务概况</div>
-                <div className="flex-1 border border-slate-800 rounded bg-[#0f172a]/50">
+                <div className="flex-1 border border-slate-800 rounded bg-[var(--sys-bg-header)]/50">
                     <div className="flex flex-col gap-1 p-2">
                         {['客户编号', '客户名称', '客户经理', '客户经理电话'].map((label, i) => (
                             <div key={i} className="flex border-b border-slate-800/50 pb-1 last:border-0">
@@ -307,12 +307,12 @@ export const BizBasePreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 8. Fault Report Icon
     if (comp.name === '故障申报') {
         return (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-[#020617]">
+            <div className="w-full h-full flex flex-col items-center justify-center bg-[var(--sys-bg-page)]">
                 <div className="text-[8px] text-slate-400 w-full pl-2 border-l-2 border-blue-500 mb-2">故障申报</div>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="relative">
                         <FileText size={64} className="text-blue-500" fill="#1e3a8a" />
-                        <AlertTriangle size={24} className="text-[#020617] absolute bottom-2 right-2" fill="#60a5fa" />
+                        <AlertTriangle size={24} className="text-[var(--sys-bg-page)] absolute bottom-2 right-2" fill="#60a5fa" />
                     </div>
                 </div>
             </div>
@@ -352,7 +352,7 @@ export const BizBasePreview: React.FC<{ comp: any }> = ({ comp }) => {
     // 10. Contact Trial
     if (comp.name === '联系试用') {
         return (
-            <div className="w-full h-full p-2 bg-[#020617] flex flex-col">
+            <div className="w-full h-full p-2 bg-[var(--sys-bg-page)] flex flex-col">
                 <div className="text-[8px] text-slate-400 border-l-2 border-blue-500 pl-2 mb-2">联系试用</div>
                 <div className="flex-1 flex items-center justify-center">
                     <button className="bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full px-4 py-2 flex items-center gap-2 shadow-lg shadow-blue-500/30">

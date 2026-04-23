@@ -68,7 +68,7 @@ export const BizLinePreview: React.FC<{ comp: any }> = ({ comp }) => {
     if (comp.name === 'SPN临时提速') {
         // Keep SVG for specific graphic diagram, hard to do with standard charts
         return (
-            <div className="w-full h-full flex items-center justify-center bg-[#020617]">
+            <div className="w-full h-full flex items-center justify-center bg-[var(--sys-bg-page)]">
                 <div className="w-32 h-20 bg-[#021228] rounded-[20px] flex items-center justify-center relative border border-blue-900/50 shadow-[0_0_20px_rgba(0,0,0,0.5)]">
                     <div className="absolute w-20 h-10 bg-blue-500/10 blur-xl rounded-full"></div>
                     <svg viewBox="0 0 120 80" className="w-full h-full p-2">

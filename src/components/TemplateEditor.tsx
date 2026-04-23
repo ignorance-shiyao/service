@@ -83,7 +83,7 @@ const Ruler: React.FC<{ orientation: 'horizontal' | 'vertical'; scale: number; o
     }
 
     return (
-        <svg width={isHorizontal ? '100%' : RULER_SIZE} height={isHorizontal ? RULER_SIZE : '100%'} className="bg-[#0f172a] border-slate-700 select-none block absolute z-10" style={isHorizontal ? { left: RULER_SIZE, top: 0, borderBottomWidth: 1 } : { left: 0, top: RULER_SIZE, borderRightWidth: 1 }}>
+        <svg width={isHorizontal ? '100%' : RULER_SIZE} height={isHorizontal ? RULER_SIZE : '100%'} className="bg-[var(--sys-bg-header)] border-slate-700 select-none block absolute z-10" style={isHorizontal ? { left: RULER_SIZE, top: 0, borderBottomWidth: 1 } : { left: 0, top: RULER_SIZE, borderRightWidth: 1 }}>
             {ticks}
         </svg>
     );
@@ -318,7 +318,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
         default: PreviewComponent = GenericPreview; break;
       }
       return (
-          <div className="bg-[#020617] relative overflow-hidden pointer-events-none scale-75 origin-top-left" style={{ width: '133.33%', height: '133.33%' }}>
+          <div className="bg-[var(--sys-bg-page)] relative overflow-hidden pointer-events-none scale-75 origin-top-left" style={{ width: '133.33%', height: '133.33%' }}>
               <PreviewComponent {...props} />
           </div>
       );
@@ -340,7 +340,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
         )}
 
         {!isPreviewMode && (
-            <div className="h-12 bg-[#0f172a] border-b border-slate-800 flex items-center justify-between px-4 shrink-0">
+            <div className="h-12 bg-[var(--sys-bg-header)] border-b border-slate-800 flex items-center justify-between px-4 shrink-0">
                 <div className="flex items-center gap-4">
                     <span className="text-slate-400 text-xs">页面设计</span>
                     <span className="text-slate-600">/</span>
@@ -376,7 +376,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
 
         <div className="flex-1 flex overflow-hidden">
             {!isPreviewMode && (
-                <div className="w-64 bg-[#0f172a] border-r border-slate-800 flex flex-col shrink-0">
+                <div className="w-64 bg-[var(--sys-bg-header)] border-r border-slate-800 flex flex-col shrink-0">
                     <div className="flex h-10 border-b border-slate-800">
                         <button 
                             onClick={() => setActiveLeftTab('components')}
@@ -408,7 +408,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
                                     const isExpanded = expandedCategories.includes(cat.code);
 
                                     return (
-                                        <div key={cat.code} className="border border-slate-800 rounded bg-[#0b1121]">
+                                        <div key={cat.code} className="border border-slate-800 rounded bg-[var(--sys-bg-page)]">
                                             <div 
                                                 className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-slate-800/50"
                                                 onClick={() => toggleCategory(cat.code)}
@@ -417,7 +417,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
                                                 {isExpanded ? <ChevronDown size={14} className="text-slate-500"/> : <ChevronRight size={14} className="text-slate-500"/>}
                                             </div>
                                             {isExpanded && (
-                                                <div className="grid grid-cols-2 gap-2 p-2 border-t border-slate-800/50 bg-[#0f172a]">
+                                                <div className="grid grid-cols-2 gap-2 p-2 border-t border-slate-800/50 bg-[var(--sys-bg-header)]">
                                                     {comps.map(c => (
                                                         <div 
                                                             key={c.id} 
@@ -425,7 +425,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
                                                             draggable
                                                             onDragStart={(e) => handleLibraryDragStart(e, c)}
                                                         >
-                                                            <div className="aspect-video bg-[#020617] border border-slate-700 rounded overflow-hidden mb-1 relative group-hover:border-blue-500 transition-colors">
+                                                            <div className="aspect-video bg-[var(--sys-bg-page)] border border-slate-700 rounded overflow-hidden mb-1 relative group-hover:border-blue-500 transition-colors">
                                                                 {renderThumbnail(c)}
                                                                 <div className="absolute inset-0 bg-transparent hover:bg-blue-500/10 transition-colors"></div>
                                                             </div>
@@ -446,7 +446,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
             <div className="flex-1 flex flex-col relative overflow-hidden bg-[#1e293b]">
                 {!isPreviewMode && (
                     <>
-                        <div className="absolute top-0 left-0 w-5 h-5 bg-[#0f172a] border-r border-b border-slate-700 z-30"></div>
+                        <div className="absolute top-0 left-0 w-5 h-5 bg-[var(--sys-bg-header)] border-r border-b border-slate-700 z-30"></div>
                         <div className="absolute top-0 left-0 w-full h-5 z-20 overflow-hidden pointer-events-none">
                             <Ruler orientation="horizontal" scale={transform.scale} offset={transform.x} length={3000} />
                         </div>
@@ -530,7 +530,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
                                     }}
                                     onMouseDown={(e) => handleItemMouseDown(e, item)}
                                 >
-                                    <div className="w-full h-full overflow-hidden relative bg-[#0f172a]/80 backdrop-blur-sm">
+                                    <div className="w-full h-full overflow-hidden relative bg-[var(--sys-bg-header)]/80 backdrop-blur-sm">
                                         <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-blue-500/50"></div>
                                         <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-blue-500/50"></div>
                                         <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-blue-500/50"></div>
@@ -568,7 +568,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
             </div>
 
             {!isPreviewMode && (
-                <div className="w-72 bg-[#0f172a] border-l border-slate-800 flex flex-col shrink-0">
+                <div className="w-72 bg-[var(--sys-bg-header)] border-l border-slate-800 flex flex-col shrink-0">
                     <div className="h-10 flex items-center px-4 bg-slate-800/50 border-b border-slate-700">
                         <span className="text-sm font-medium text-slate-200">{selectedItem ? '组件属性' : '页面信息'}</span>
                     </div>
@@ -698,7 +698,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
 
                                 <div className="pt-4 border-t border-slate-700">
                                     <label className="text-xs text-slate-400 block mb-1.5">缩略图</label>
-                                    <div className="w-full aspect-video bg-[#020617] border border-slate-700 rounded overflow-hidden relative">
+                                    <div className="w-full aspect-video bg-[var(--sys-bg-page)] border border-slate-700 rounded overflow-hidden relative">
                                         <div className="absolute inset-2 border border-slate-800 bg-[#060b2f]">
                                             <div className="grid grid-cols-3 gap-1 p-1 h-full opacity-50">
                                                 <div className="bg-blue-500/20 col-span-3 h-4"></div>

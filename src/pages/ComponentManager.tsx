@@ -233,7 +233,7 @@ export const ComponentManager: React.FC = () => {
       {/* Sidebar Categories */}
       <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-10'} shrink-0`}>
         {isSidebarOpen ? (
-            <div className="h-full flex flex-col bg-slate-900/50 p-4 rounded-lg border border-slate-800">
+            <div className="h-full flex flex-col bg-slate-900/50 p-4 rounded-lg border border-[var(--sys-border-primary)]">
                 <div className="flex justify-between items-center mb-2 shrink-0">
                     <SectionTitle title="组件列表" className="mb-0" />
                     <div className="flex items-center gap-1">
@@ -295,13 +295,13 @@ export const ComponentManager: React.FC = () => {
                                             }
                                             <span className="truncate">{cat.name}</span>
                                         </div>
-                                        <span className={`text-[10px] px-1.5 py-0.5 rounded border min-w-[24px] text-center ${isActive ? 'text-blue-300 bg-blue-900/30 border-blue-800' : 'text-slate-600 bg-slate-800/50 border-slate-700/50'}`}>
+                                        <span className={`text-[10px] px-1.5 py-0.5 rounded border min-w-[24px] text-center ${isActive ? 'text-blue-300 bg-blue-900/30 border-blue-800' : 'text-slate-600 bg-slate-800/50 border-[var(--sys-border-primary)]'}`}>
                                             {count}
                                         </span>
 
                                         {/* Hover Actions (Only in Fusion mode) */}
                                         {mode === 'fusion' && (
-                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover/item:flex gap-1 bg-slate-900/90 rounded p-1 shadow-lg border border-slate-700 z-10">
+                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover/item:flex gap-1 bg-slate-900/90 rounded p-1 shadow-lg border border-[var(--sys-border-primary)] z-10">
                                                 <button 
                                                     className="p-1 hover:text-blue-400 text-slate-400" 
                                                     onClick={(e) => handleEditGroup(e, cat)}
@@ -322,7 +322,7 @@ export const ComponentManager: React.FC = () => {
                                     
                                     {/* Sub-components Tree */}
                                     {isExpanded && catComponents.length > 0 && (
-                                        <div className="ml-4 pl-3 border-l border-slate-700/50 mt-1 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
+                                        <div className="ml-4 pl-3 border-l border-[var(--sys-border-primary)] mt-1 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
                                             {catComponents.map(c => (
                                                 <div 
                                                     key={c.id} 
@@ -349,7 +349,7 @@ export const ComponentManager: React.FC = () => {
             </div>
         ) : (
              <div 
-                  className="h-full bg-[#1e293b] border border-slate-800 rounded-lg flex flex-col items-center py-4 cursor-pointer hover:bg-slate-800 hover:border-blue-500/50 transition-colors"
+                  className="h-full bg-[#1e293b] border border-[var(--sys-border-primary)] rounded-lg flex flex-col items-center py-4 cursor-pointer hover:bg-slate-800 hover:border-blue-500/50 transition-colors"
                   onClick={() => setIsSidebarOpen(true)}
                   title="展开组件列表"
               >
@@ -398,7 +398,7 @@ export const ComponentManager: React.FC = () => {
                      </Button>
                  )}
                  <div className="w-px h-6 bg-slate-700"></div>
-                 <div className="flex bg-slate-800 rounded p-1 border border-slate-700">
+                 <div className="flex bg-slate-800 rounded p-1 border border-[var(--sys-border-primary)]">
                     <button 
                         onClick={() => setViewMode('list')} 
                         className={`p-1.5 rounded transition-colors ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}
@@ -431,7 +431,7 @@ export const ComponentManager: React.FC = () => {
                <div 
                   key={comp.id} 
                   className={`
-                      bg-[#0b1121] border border-slate-800 rounded-lg overflow-hidden hover:border-blue-500/50 hover:shadow-lg transition-all cursor-pointer group flex
+                      bg-[var(--sys-bg-page)] border border-[var(--sys-border-primary)] rounded-lg overflow-hidden hover:border-blue-500/50 hover:shadow-lg transition-all cursor-pointer group flex
                       ${viewMode === 'list' ? 'flex-row h-24 items-center' : 'flex-col'}
                       ${viewMode === 'grid-sm' ? 'h-[160px]' : ''}
                       ${viewMode === 'grid-lg' ? 'h-[220px]' : ''}
@@ -440,7 +440,7 @@ export const ComponentManager: React.FC = () => {
                >
                   {/* Visualization Area */}
                   <div className={`
-                      bg-[#020617] relative border-slate-800/50 group-hover:bg-[#0f172a] transition-colors overflow-hidden shrink-0
+                      bg-[var(--sys-bg-page)] relative border-[var(--sys-border-primary)] group-hover:bg-[var(--sys-bg-header)] transition-colors overflow-hidden shrink-0
                       ${viewMode === 'list' ? 'w-32 h-full border-r' : 'w-full border-b'}
                       ${viewMode === 'grid-sm' ? 'h-[100px]' : ''}
                       ${viewMode === 'grid-lg' ? 'h-[150px]' : ''}
@@ -475,13 +475,13 @@ export const ComponentManager: React.FC = () => {
                             <div className="flex flex-col gap-1 min-w-[200px]">
                                 <h4 className="text-slate-200 font-bold text-base truncate group-hover:text-blue-400 transition-colors" title={comp.name}>{comp.name}</h4>
                                 <div className="flex items-center gap-2">
-                                     <span className="text-[10px] text-slate-500 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded font-mono select-all">{comp.id}</span>
+                                     <span className="text-[10px] text-slate-500 bg-slate-900 border border-[var(--sys-border-primary)] px-2 py-0.5 rounded font-mono select-all">{comp.id}</span>
                                 </div>
                             </div>
 
                             {/* Center: Category */}
                             <div className="flex-1 flex justify-center">
-                                 <div className="flex items-center gap-2 px-3 py-1 bg-slate-900/50 rounded-full border border-slate-800/50">
+                                 <div className="flex items-center gap-2 px-3 py-1 bg-slate-900/50 rounded-full border border-[var(--sys-border-primary)]">
                                      <div className={`w-1.5 h-1.5 rounded-full ${['BIZ_5G', 'BIZ_COMP', 'BIZ_AIC'].includes(comp.category) ? 'bg-purple-500' : (['BIZ_IDC', 'BIZ_SDWAN'].includes(comp.category) ? 'bg-emerald-500' : 'bg-blue-500')}`}></div>
                                      <span className="text-xs text-slate-400">{categories.find(b => b.code === comp.category)?.name || comp.category}</span>
                                  </div>

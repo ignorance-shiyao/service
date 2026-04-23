@@ -5,7 +5,7 @@ import { GenericPreview } from './GenericPreview';
 export const BizCollectPreview: React.FC<{ comp: any }> = ({ comp }) => {
     if (comp.name === '设备性能 TOP-N') {
         return (
-            <div className="w-full h-full relative p-2 bg-[#020617] flex flex-col">
+            <div className="w-full h-full relative p-2 bg-[var(--sys-bg-page)] flex flex-col">
                 {/* Legend */}
                 <div className="flex justify-center items-center gap-4 mb-2 flex-wrap px-2">
                     <div className="flex items-center gap-1">

@@ -111,7 +111,7 @@ export const IDCOverview: React.FC = () => {
               <Database size={20} className="text-[#9cd3ff]" />
             </div>
           </div>
-          <div className="mt-1.5 rounded border border-[#2a67aa] bg-[#0c3468]/65 p-2">
+          <div className="mt-1.5 rounded border border-[var(--comp-panel-border)] bg-[#0c3468]/65 p-2">
             <div className="grid grid-cols-3 text-[11px] text-[#a6cefa]">
               <div>设备类型</div>
               <div className="text-center">在线数</div>
@@ -134,7 +134,7 @@ export const IDCOverview: React.FC = () => {
           <div className="grid flex-1 grid-cols-1 gap-1.5 md:grid-cols-2">
             {cameraCards.map((cam) => (
               <div key={cam.id} className="relative overflow-hidden rounded border border-[#2f78d4] bg-[#0a2f5e]">
-                <div className="flex items-center justify-between border-b border-[#2a67aa] bg-[#0d3f79]/60 px-2 py-1 text-[11px] text-[#c8e6ff]">
+                <div className="flex items-center justify-between border-b border-[var(--comp-panel-border)] bg-[#0d3f79]/60 px-2 py-1 text-[11px] text-[#c8e6ff]">
                   <span>{cam.title}</span>
                   <div className="flex items-center gap-1.5 text-[#7dc5ff]">
                     <Camera size={11} />
@@ -161,7 +161,7 @@ export const IDCOverview: React.FC = () => {
 
         <div className={`col-span-12 xl:col-span-3 ${panelClass}`}>
           {sectionTitle('IDC设备统计')}
-          <div className="flex flex-1 items-center justify-center rounded border border-[#2a67aa] bg-[#0a2f5e]">
+          <div className="flex flex-1 items-center justify-center rounded border border-[var(--comp-panel-border)] bg-[#0a2f5e]">
             <div className="relative flex h-40 w-40 items-center justify-center rounded-full border border-[#619dff] bg-[#0d356e]">
               <div className="absolute inset-2 rounded-full border border-[#3f8ef7]" />
               <Box size={42} className="text-[#2d95ff]" />
