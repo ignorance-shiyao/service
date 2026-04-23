@@ -20,8 +20,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
       <div
         className={`max-w-[88%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
           isUser
-            ? 'rounded-br-md border border-[#69bbff] bg-[#2e75ca] text-white shadow-[0_10px_22px_rgba(8,46,96,0.35)]'
-            : 'rounded-bl-md border border-[#3f7fb7] bg-[#1b4f82] text-[var(--sys-text-primary)] shadow-[0_8px_18px_rgba(3,21,47,0.3)] backdrop-blur-sm'
+            ? 'rounded-br-md border border-[#72c0ff] bg-[linear-gradient(165deg,#347fd8_0%,#2a66b8_100%)] text-white shadow-[0_10px_24px_rgba(9,49,101,0.36)]'
+            : 'rounded-bl-md border border-[#3f7fb7] bg-[linear-gradient(165deg,#1c537f_0%,#19476f_100%)] text-[var(--sys-text-primary)] shadow-[0_10px_22px_rgba(3,21,47,0.34)] backdrop-blur-sm'
         } whitespace-pre-wrap`}
       >
         {message.text}

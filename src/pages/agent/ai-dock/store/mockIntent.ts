@@ -15,7 +15,18 @@ export const detectIntent = (text: string): IntentType => {
 
   if (!input) return 'fallback';
 
-  if (has(input, ['业务查询', '我的业务', '业务列表', '有什么业务', '名下业务'])) return 'business';
+  if (has(input, [
+    '业务查询',
+    '我的业务',
+    '业务列表',
+    '有什么业务',
+    '有哪些业务',
+    '都有哪些业务',
+    '业务有哪些',
+    '名下业务',
+    '查一下业务',
+    '查业务',
+  ])) return 'business';
   if (has(input, ['月报', '周报', '报告', '报表'])) return 'report';
   if (has(input, ['工单', '进度', 'ticket'])) return 'ticket';
   if (has(input, ['报障', '故障', '修复', '维修'])) return 'fault';

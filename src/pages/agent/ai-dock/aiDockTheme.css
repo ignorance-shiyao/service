@@ -2,6 +2,14 @@
   isolation: isolate;
 }
 
+.ai-dock-surface::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 62% 18%, rgba(121, 189, 255, 0.12) 0%, rgba(121, 189, 255, 0) 58%);
+}
+
 .ai-dock-ambient {
   position: absolute;
   z-index: 0;
@@ -37,6 +45,14 @@
 
 .ai-dock-msg-enter {
   animation: ai-dock-msg-enter 220ms ease-out;
+}
+
+.ai-dock-card-reveal {
+  animation: ai-dock-card-reveal 260ms ease-out both;
+}
+
+.ai-dock-phase-ping {
+  animation: ai-dock-phase-ping 1.15s ease-in-out infinite;
 }
 
 .ai-dock-hero-robot {
@@ -120,6 +136,29 @@
   }
   40% {
     transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes ai-dock-card-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.996);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ai-dock-phase-ping {
+  0%,
+  100% {
+    transform: scale(0.88);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.15);
     opacity: 1;
   }
 }

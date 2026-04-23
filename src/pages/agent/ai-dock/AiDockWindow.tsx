@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Maximize2, Minimize2, Paperclip, RotateCcw, Send, X } from 'lucide-react';
+import { History, Maximize2, Minimize2, Paperclip, Plus, RotateCcw, Send, Trash2, X } from 'lucide-react';
 import { AiDockStore } from './store/useAiDock';
 import { MessageList } from './messageStream/MessageList';
 import { QuickChipsBar } from './chips/QuickChipsBar';
@@ -24,6 +24,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   };
 
   const [input, setInput] = useState('');
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [resizeMode, setResizeMode] = useState<ResizeMode>(null);
@@ -64,6 +65,15 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
     };
   };
 
+  const centerPosition = (width: number, height: number) => {
+    return clamp(
+      Math.round((window.innerWidth - width) / 2),
+      Math.round((window.innerHeight - height) / 2),
+      width,
+      height
+    );
+  };
+
   const startDrag = (e: React.MouseEvent) => {
     if (sizeMode === 'max') return;
     e.preventDefault();
@@ -84,8 +94,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
     const width = Math.min(window.innerWidth - 16, PRESET[nextMode].width);
     const height = Math.min(window.innerHeight - 16, PRESET[nextMode].height);
     store.setWindowSize({ width, height });
-    const next = clamp(store.position.x || 8, store.position.y || 8, width, height);
-    store.setPosition(next);
+    store.setPosition(centerPosition(width, height));
   };
 
   useEffect(() => {
@@ -184,6 +193,16 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   };
   const hasUserMessage = store.messages.some((m) => m.role === 'user');
 
+  const formatSessionTime = (ts: number) => {
+    const d = new Date(ts);
+    const today = new Date();
+    const sameDay = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
+    if (sameDay) {
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+    return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
   const cycleSizeMode = () => {
     if (sizeMode === 'small') {
       setMediumFromMax(false);
@@ -211,6 +230,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
         : '恢复到中等窗口';
 
   const cycleIcon = sizeMode === 'small' ? <Maximize2 size={13} /> : sizeMode === 'medium' ? <Maximize2 size={13} /> : <Minimize2 size={13} />;
+  const contentWrapClass = sizeMode === 'max' ? 'mx-auto w-full max-w-[1160px] px-3' : 'w-full';
 
   const onHeaderDoubleClick = () => {
     if (sizeMode === 'max') {
@@ -243,6 +263,14 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <button
+            type="button"
+            className="rounded-full border border-[#3f82c0] bg-[#1a548f] p-1.5 text-[#c8e7ff] transition hover:border-[#68bdff] hover:bg-[#2369ad]"
+            onClick={() => setHistoryOpen((v) => !v)}
+            title="会话历史"
+          >
+            <History size={13} />
+          </button>
           <button type="button" className="rounded-full border border-[#3f82c0] bg-[#1a548f] p-1.5 text-[#c8e7ff] transition hover:border-[#68bdff] hover:bg-[#2369ad]" onClick={store.clearConversation} title="清空会话"><RotateCcw size={13} /></button>
           <button type="button" className="rounded-full border border-[#3f82c0] bg-[#1a548f] p-1.5 text-[#c8e7ff] transition hover:border-[#68bdff] hover:bg-[#2369ad]" onClick={cycleSizeMode} title={cycleLabel}>
             {cycleIcon}
@@ -251,69 +279,139 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
         </div>
       </div>
 
+      {historyOpen && (
+        <div className="absolute left-3 top-[64px] z-30 w-[248px] overflow-hidden rounded-xl border border-[#2f6fae] bg-[#113763] shadow-[0_14px_30px_rgba(5,27,59,0.56)]">
+          <div className="flex items-center justify-between border-b border-[#2d659f] px-3 py-2">
+            <div className="text-xs font-semibold text-[#d8eeff]">会话历史</div>
+            <button
+              type="button"
+              onClick={() => {
+                store.createConversation();
+                setHistoryOpen(false);
+              }}
+              className="inline-flex items-center gap-1 rounded-full border border-[#4d93ce] bg-[#1a548f] px-2 py-1 text-[11px] text-[#dff2ff]"
+            >
+              <Plus size={12} />
+              新建
+            </button>
+          </div>
+          <div className="max-h-[320px] overflow-y-auto custom-scrollbar p-2">
+            {store.sessionMetas.map((session) => {
+              const active = session.id === store.activeSessionId;
+              return (
+                <div
+                  key={session.id}
+                  className={`mb-1.5 rounded-lg border px-2 py-1.5 ${active ? 'border-[#62baff] bg-[#1b538a]' : 'border-[#2f649c] bg-[#153f6e] hover:border-[#4f91c7]'}`}
+                >
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className="cursor-pointer"
+                    onClick={() => {
+                      store.switchConversation(session.id);
+                      setHistoryOpen(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        store.switchConversation(session.id);
+                        setHistoryOpen(false);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="truncate text-xs font-semibold text-[#e3f2ff]">{session.title}</div>
+                      <div className="text-[10px] text-[#8fbfe7]">{formatSessionTime(session.updatedAt)}</div>
+                    </div>
+                    <div className="mt-1 truncate text-[10px] text-[#9fc8ea]">{session.lastText}</div>
+                    <div className="mt-1 text-[10px] text-[#7fb0dc]">{session.messageCount} 条消息</div>
+                  </div>
+                  <div className="mt-1 flex justify-end">
+                    <button
+                      type="button"
+                      className="inline-flex items-center rounded border border-[#396e9f] px-1 py-0.5 text-[10px] text-[#a3cbea] hover:border-[#c86a6a] hover:text-[#ffd2d2]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        store.deleteConversation(session.id);
+                      }}
+                      title="删除会话"
+                    >
+                      <Trash2 size={10} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div
         ref={listRef}
         className="relative min-h-0 flex-1 overflow-y-auto custom-scrollbar"
       >
-        {!hasUserMessage && (
-          <div className="px-4 pt-4">
-            <div className="rounded-2xl border border-[#2f6fad] bg-[#143d6b] p-4 text-center">
-              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-[#6fc2ff] bg-[#2f77c9] text-[#e9f6ff] shadow-[0_0_20px_rgba(83,174,248,0.35)]">
-                <img src={robotEntryIcon} alt="智能体图标" className="ai-dock-hero-robot h-7 w-7" draggable={false} />
+        <div className={contentWrapClass}>
+          {!hasUserMessage && (
+            <div className="px-1 pt-4">
+              <div className="rounded-2xl border border-[#2f6fad] bg-[#143d6b] p-4 text-center">
+                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-[#6fc2ff] bg-[#2f77c9] text-[#e9f6ff] shadow-[0_0_20px_rgba(83,174,248,0.35)]">
+                  <img src={robotEntryIcon} alt="智能体图标" className="ai-dock-hero-robot h-7 w-7" draggable={false} />
+                </div>
+                <div className="ai-dock-hero-title text-xl font-semibold text-[#ebf7ff]">您好，我是智慧运维管家智能体</div>
+                <div className="ai-dock-hero-line mt-1 text-xs leading-5 text-[#b7daf6]">我可以为您提供：知识检索、智能问答、业务运行报告、自助诊断和自助报障。</div>
+                <div className="ai-dock-hero-line ai-dock-hero-line-delay mt-1 text-xs leading-5 text-[#9bc9ec]">建议先试试“业务体检”，看看今天您名下业务是否都正常。</div>
               </div>
-              <div className="ai-dock-hero-title text-xl font-semibold text-[#ebf7ff]">您好，我是智慧运维管家智能体</div>
-              <div className="ai-dock-hero-line mt-1 text-xs leading-5 text-[#b7daf6]">我可以为您提供：知识检索、智能问答、业务运行报告、自助诊断和自助报障。</div>
-              <div className="ai-dock-hero-line ai-dock-hero-line-delay mt-1 text-xs leading-5 text-[#9bc9ec]">建议先试试“业务体检”，看看今天您名下业务是否都正常。</div>
             </div>
-          </div>
-        )}
-        <MessageList messages={store.messages} store={store} />
-        {store.drawer?.type === 'knowledge' && (
-          <KnowledgeDrawer item={store.drawer.item} onClose={() => store.setDrawer(null)} />
-        )}
-        {store.drawer?.type === 'reportHistory' && (
-          <ReportHistoryDrawer
-            list={store.drawer.list}
-            onSelect={(id) => {
-              store.setActiveReportId(id);
-              store.sendUserText('查看该期报告', 'report');
-              store.setDrawer(null);
-            }}
-            onClose={() => store.setDrawer(null)}
-          />
-        )}
-        {store.drawer?.type === 'diagnosisHistory' && (
-          <DiagnosisHistoryDrawer list={store.drawer.list} onClose={() => store.setDrawer(null)} />
-        )}
-        {store.drawer?.type === 'ticket' && (
-          <TicketDetailDrawer item={store.drawer.item} onClose={() => store.setDrawer(null)} />
-        )}
+          )}
+          <MessageList messages={store.messages} store={store} />
+          {store.drawer?.type === 'knowledge' && (
+            <KnowledgeDrawer item={store.drawer.item} onClose={() => store.setDrawer(null)} />
+          )}
+          {store.drawer?.type === 'reportHistory' && (
+            <ReportHistoryDrawer
+              list={store.drawer.list}
+              onSelect={(id) => {
+                store.setActiveReportId(id);
+                store.sendUserText('查看该期报告', 'report');
+                store.setDrawer(null);
+              }}
+              onClose={() => store.setDrawer(null)}
+            />
+          )}
+          {store.drawer?.type === 'diagnosisHistory' && (
+            <DiagnosisHistoryDrawer list={store.drawer.list} onClose={() => store.setDrawer(null)} />
+          )}
+          {store.drawer?.type === 'ticket' && (
+            <TicketDetailDrawer item={store.drawer.item} onClose={() => store.setDrawer(null)} />
+          )}
+        </div>
       </div>
 
       <div className="border-t border-[#2a639f] bg-[#0f3560] px-3 py-2">
-        <div className="rounded-2xl border border-[#3575b3] bg-[#123d6f] px-2 py-2 shadow-[inset_0_1px_0_rgba(125,195,255,0.22)]">
-          <QuickChipsBar chips={store.quickChips} onClick={store.handleQuickChip} className="mb-2" />
-          <div className="flex h-[44px] items-center gap-2">
-          <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#3f82c0] bg-[#1a548f] text-[#bfe1ff] transition hover:border-[#68bdff] hover:bg-[#2369ad]" title="上传附件">
-            <Paperclip size={13} />
-          </button>
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="请输入问题，回车发送，换行请按 Shift+回车"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                submit();
-              }
-            }}
-            rows={1}
-            className="custom-scrollbar max-h-[74px] min-h-[34px] flex-1 resize-none overflow-y-auto bg-transparent px-2 py-1.5 text-xs text-[#e1f2ff] placeholder:text-[#84b4e0] outline-none"
-          />
-          <button type="button" onClick={submit} className="inline-flex h-9 items-center gap-1 rounded-full border border-[#57adff] bg-[#2b71c4] px-3 text-xs font-semibold text-[#eff8ff] shadow-[0_8px_18px_rgba(10,54,108,0.36)]">
-            <Send size={13} />
-            发送
-          </button>
+        <div className={contentWrapClass}>
+          <div className="rounded-2xl border border-[#3575b3] bg-[#123d6f] px-2 py-2 shadow-[inset_0_1px_0_rgba(125,195,255,0.22)]">
+            <QuickChipsBar chips={store.quickChips} onClick={store.handleQuickChip} className="mb-2" />
+            <div className="flex h-[44px] items-center gap-2">
+            <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#3f82c0] bg-[#1a548f] text-[#bfe1ff] transition hover:border-[#68bdff] hover:bg-[#2369ad]" title="上传附件">
+              <Paperclip size={13} />
+            </button>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="请输入问题，回车发送，换行请按 Shift+回车"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  submit();
+                }
+              }}
+              rows={1}
+              className="custom-scrollbar max-h-[74px] min-h-[34px] flex-1 resize-none overflow-y-auto bg-transparent px-2 py-1.5 text-xs text-[#e1f2ff] placeholder:text-[#84b4e0] outline-none"
+            />
+            <button type="button" onClick={submit} className="inline-flex h-9 items-center gap-1 rounded-full border border-[#57adff] bg-[#2b71c4] px-3 text-xs font-semibold text-[#eff8ff] shadow-[0_8px_18px_rgba(10,54,108,0.36)]">
+              <Send size={13} />
+              发送
+            </button>
+            </div>
           </div>
         </div>
       </div>

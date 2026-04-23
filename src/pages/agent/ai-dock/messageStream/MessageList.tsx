@@ -10,6 +10,7 @@ import { DiagnosisProgress } from './cards/DiagnosisProgress';
 import { DiagnosisReportCard } from './cards/DiagnosisReportCard';
 import { FaultFormCard } from './cards/FaultFormCard';
 import { TicketCard } from './cards/TicketCard';
+import { ProgressiveCardShell } from './cards/ProgressiveCardShell';
 
 interface MessageListProps {
   messages: AiMessage[];
@@ -49,6 +50,12 @@ const shouldShowTime = (current: AiMessage, prev?: AiMessage) => {
 };
 
 export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => {
+  const wrapCard = (message: AiMessage, node: React.ReactNode) => (
+    <ProgressiveCardShell message={message}>
+      {node}
+    </ProgressiveCardShell>
+  );
+
   return (
     <div className="space-y-2 px-3 py-3">
       {messages.map((message, index) => {
@@ -73,35 +80,44 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
             )}
 
             {message.kind === 'knowledgeCard' && (
-              <KnowledgeCard item={message.data} onOpen={store.openKnowledgeDrawer} />
+              wrapCard(message, <KnowledgeCard item={message.data} onOpen={store.openKnowledgeDrawer} />)
             )}
 
             {message.kind === 'qa' && (
-              <QaMessage
-                data={message.data}
-                onSendFollowup={store.sendUserText}
-                onOpenKnowledge={store.openKnowledgeDrawer}
-              />
+              wrapCard(
+                message,
+                <QaMessage
+                  data={message.data}
+                  onSendFollowup={store.sendUserText}
+                  onOpenKnowledge={store.openKnowledgeDrawer}
+                />
+              )
             )}
 
             {message.kind === 'reportCard' && (
-              <ReportCard
-                report={message.data}
-                businesses={store.managedBusinesses}
-                onOpenHistory={store.openReportHistory}
-                onExport={store.runReportExport}
-              />
+              wrapCard(
+                message,
+                <ReportCard
+                  report={message.data}
+                  businesses={store.managedBusinesses}
+                  onOpenHistory={store.openReportHistory}
+                  onExport={store.runReportExport}
+                />
+              )
             )}
 
             {message.kind === 'businessQuery' && (
-              <BusinessQueryCard categories={message.data} />
+              wrapCard(message, <BusinessQueryCard categories={message.data} />)
             )}
 
             {message.kind === 'diagnosisSelect' && (
-              <DiagnosisSelectCard
-                list={message.data}
-                onSelect={(item) => store.runDiagnosisFlow(item)}
-              />
+              wrapCard(
+                message,
+                <DiagnosisSelectCard
+                  list={message.data}
+                  onSelect={(item) => store.runDiagnosisFlow(item)}
+                />
+              )
             )}
 
             {message.kind === 'diagnosisProgress' && (
@@ -114,27 +130,33 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
             )}
 
             {message.kind === 'diagnosisReport' && (
-              <DiagnosisReportCard
-                data={message.data}
-                onHistory={store.openDiagnosisHistory}
-                onFault={(data) => {
-                  store.setTicketDraftFromDiagnosis(data);
-                  store.sendUserText('我要发起报障', 'fault');
-                }}
-              />
+              wrapCard(
+                message,
+                <DiagnosisReportCard
+                  data={message.data}
+                  onHistory={store.openDiagnosisHistory}
+                  onFault={(data) => {
+                    store.setTicketDraftFromDiagnosis(data);
+                    store.sendUserText('我要发起报障', 'fault');
+                  }}
+                />
+              )
             )}
 
             {message.kind === 'faultForm' && (
-              <FaultFormCard
-                defaultTitle={message.data.defaultTitle}
-                defaultBusiness={message.data.defaultBusiness}
-                fromDiagnosis={message.data.fromDiagnosis}
-                onSubmit={store.submitFaultTicket}
-              />
+              wrapCard(
+                message,
+                <FaultFormCard
+                  defaultTitle={message.data.defaultTitle}
+                  defaultBusiness={message.data.defaultBusiness}
+                  fromDiagnosis={message.data.fromDiagnosis}
+                  onSubmit={store.submitFaultTicket}
+                />
+              )
             )}
 
             {message.kind === 'ticketCard' && (
-              <TicketCard ticket={message.data} onOpen={store.openTicketDetail} />
+              wrapCard(message, <TicketCard ticket={message.data} onOpen={store.openTicketDetail} />)
             )}
 
             {message.kind === 'systemNotice' && !message.text && (
@@ -150,14 +172,17 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
             )}
 
             {message.kind === 'fallback' && (
-              <div className="rounded-xl border border-[#496ea4] bg-[linear-gradient(135deg,rgba(26,68,113,0.85)_0%,rgba(48,67,131,0.82)_56%,rgba(92,65,122,0.78)_100%)] p-3 text-xs text-[#c9def5]">
-                <div className="text-sm font-semibold text-[#eef6ff]">{message.data.title}</div>
-                <p className="mt-1">{message.data.desc}</p>
-                <div className="mt-2 flex gap-2">
-                  <button type="button" className="rounded border border-[#58b7ea] bg-[linear-gradient(180deg,#2674b6_0%,#1a5a92_100%)] px-2 py-1 text-[11px] text-[#e9f7ff]" onClick={() => store.sendUserText('联系客户经理')}>联系客户经理</button>
-                  <button type="button" className="rounded border border-[#c78f54] bg-[linear-gradient(180deg,#a76b2f_0%,#7f4a1e_100%)] px-2 py-1 text-[11px] text-[#fff0d9]" onClick={() => store.sendUserText('我要反馈这个问题')}>反馈问题</button>
+              wrapCard(
+                message,
+                <div className="rounded-xl border border-[#496ea4] bg-[linear-gradient(135deg,rgba(26,68,113,0.85)_0%,rgba(48,67,131,0.82)_56%,rgba(92,65,122,0.78)_100%)] p-3 text-xs text-[#c9def5]">
+                  <div className="text-sm font-semibold text-[#eef6ff]">{message.data.title}</div>
+                  <p className="mt-1">{message.data.desc}</p>
+                  <div className="mt-2 flex gap-2">
+                    <button type="button" className="rounded border border-[#58b7ea] bg-[linear-gradient(180deg,#2674b6_0%,#1a5a92_100%)] px-2 py-1 text-[11px] text-[#e9f7ff]" onClick={() => store.sendUserText('联系客户经理')}>联系客户经理</button>
+                    <button type="button" className="rounded border border-[#c78f54] bg-[linear-gradient(180deg,#a76b2f_0%,#7f4a1e_100%)] px-2 py-1 text-[11px] text-[#fff0d9]" onClick={() => store.sendUserText('我要反馈这个问题')}>反馈问题</button>
+                  </div>
                 </div>
-              </div>
+              )
             )}
           </div>
         );
