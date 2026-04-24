@@ -3,15 +3,18 @@ import { BaseChart } from '../../../../../components/BaseChart';
 import { ReportItem } from '../../mocks/reports';
 import { ManagedBusiness } from '../../mocks/businesses';
 import { BarChart3 } from 'lucide-react';
+import { CardActionBar } from './CardActionBar';
 
 interface ReportCardProps {
   report: ReportItem;
   businesses: ManagedBusiness[];
   onOpenHistory: () => void;
   onExport: (type: 'pdf' | 'image') => void;
+  onCopy?: (text: string) => void;
+  onAsk?: (text: string) => void;
 }
 
-export const ReportCard: React.FC<ReportCardProps> = ({ report, businesses, onOpenHistory, onExport }) => {
+export const ReportCard: React.FC<ReportCardProps> = ({ report, businesses, onOpenHistory, onExport, onCopy, onAsk }) => {
   const [expanded, setExpanded] = useState(false);
 
   const option = useMemo(() => ({
@@ -53,12 +56,31 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, businesses, onOp
           </div>
         ))}
       </div>
-      <div className="mt-2 flex items-center gap-3">
-        <button type="button" className="text-[11px] text-[#9cdcff] underline" onClick={() => setExpanded((v) => !v)}>
-          {expanded ? '收起全文' : '查看全文'}
-        </button>
-        <button type="button" className="text-[11px] text-[#bfc8ff] underline" onClick={onOpenHistory}>历史报告</button>
-      </div>
+      <CardActionBar
+        actions={[
+          {
+            key: 'copy',
+            label: '复制摘要',
+            onClick: () => onCopy?.(`${report.title}\n${report.summary}`),
+          },
+          {
+            key: 'ask',
+            label: '生成解读',
+            onClick: () => onAsk?.(`请解读《${report.title}》，给出重点结论和建议`),
+          },
+          {
+            key: 'expand',
+            label: expanded ? '收起全文' : '查看全文',
+            tone: 'primary',
+            onClick: () => setExpanded((v) => !v),
+          },
+          {
+            key: 'history',
+            label: '历史报告',
+            onClick: onOpenHistory,
+          },
+        ]}
+      />
 
       {expanded && (
         <div className="mt-3 space-y-3 border-t border-[#5a84be] pt-3">
@@ -100,10 +122,12 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, businesses, onOp
               {report.suggestions.map((s) => <div key={s}>• {s}</div>)}
             </div>
           </div>
-          <div className="flex gap-2">
-            <button type="button" className="rounded border border-[#6bbdff] bg-[#2b6fb3] px-2 py-1 text-[11px] text-[#eef8ff] shadow-[0_8px_14px_rgba(11,49,96,0.32)] hover:brightness-110" onClick={() => onExport('pdf')}>导出 PDF</button>
-            <button type="button" className="rounded border border-[#7adbc7] bg-[#2b7e6f] px-2 py-1 text-[11px] text-[#e8fff9] shadow-[0_8px_14px_rgba(14,79,69,0.3)] hover:brightness-110" onClick={() => onExport('image')}>导出长图</button>
-          </div>
+          <CardActionBar
+            actions={[
+              { key: 'pdf', label: '导出 PDF', tone: 'primary', onClick: () => onExport('pdf') },
+              { key: 'image', label: '导出长图', onClick: () => onExport('image') },
+            ]}
+          />
         </div>
       )}
     </div>

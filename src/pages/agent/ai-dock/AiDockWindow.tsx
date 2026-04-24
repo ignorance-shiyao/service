@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { History, Maximize2, Minimize2, Paperclip, Plus, RotateCcw, Send, Trash2, X } from 'lucide-react';
+import { ChevronDown, History, LoaderCircle, Maximize2, Minimize2, Paperclip, Plus, RotateCcw, Send, Square, Trash2, X } from 'lucide-react';
 import { AiDockStore } from './store/useAiDock';
 import { MessageList } from './messageStream/MessageList';
 import { QuickChipsBar } from './chips/QuickChipsBar';
@@ -30,15 +30,28 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   const [resizeMode, setResizeMode] = useState<ResizeMode>(null);
   const [sizeMode, setSizeMode] = useState<SizeMode>('small');
   const [mediumFromMax, setMediumFromMax] = useState(false);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<'all' | 'diagnosis' | 'ticket' | 'report' | 'business'>('all');
+  const [historyKeyword, setHistoryKeyword] = useState('');
   const dragRef = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
   const resizeRef = useRef<{ x: number; y: number; left: number; top: number; width: number; height: number } | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const stickToBottomRef = useRef(true);
 
   useEffect(() => {
     if (!listRef.current) return;
-    listRef.current.scrollTop = listRef.current.scrollHeight;
+    if (stickToBottomRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
+    }
   }, [store.messages]);
+
+  useEffect(() => {
+    if (!inputRef.current) return;
+    inputRef.current.style.height = 'auto';
+    inputRef.current.style.height = `${Math.min(74, Math.max(34, inputRef.current.scrollHeight))}px`;
+  }, [input]);
 
   useEffect(() => {
     if (sizeMode !== 'max') return;
@@ -240,6 +253,59 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
     applySizeMode('max');
   };
 
+  const filteredSessionMetas = useMemo(() => {
+    let list = store.sessionMetas;
+    if (historyFilter !== 'all') {
+      const matcher: Record<'diagnosis' | 'ticket' | 'report' | 'business', RegExp> = {
+        diagnosis: /诊断/,
+        ticket: /工单|报障/,
+        report: /报告|导出/,
+        business: /业务清单|业务/,
+      };
+      const reg = matcher[historyFilter];
+      list = list.filter((session) =>
+        session.snapshotTags.some((tag) => reg.test(tag.label))
+      );
+    }
+    const keyword = historyKeyword.trim().toLowerCase();
+    if (!keyword) return list;
+    return list.filter((session) => {
+      const fields = [
+        session.title,
+        session.customerName,
+        session.lastText,
+        ...session.snapshotTags.map((tag) => tag.label),
+      ]
+        .join(' ')
+        .toLowerCase();
+      return fields.includes(keyword);
+    });
+  }, [historyFilter, historyKeyword, store.sessionMetas]);
+
+  const tagToneClass: Record<'blue' | 'cyan' | 'indigo' | 'green' | 'amber', string> = {
+    blue: 'border-[#4c8fc4] bg-[#1a4f82] text-[#d8eeff]',
+    cyan: 'border-[#4ea8b8] bg-[#1f5d67] text-[#d9fbff]',
+    indigo: 'border-[#607dca] bg-[#364d94] text-[#e2eaff]',
+    green: 'border-[#58a683] bg-[#285f4b] text-[#ddfff2]',
+    amber: 'border-[#b18657] bg-[#6f4f30] text-[#fff1df]',
+  };
+
+  const scrollToBottom = () => {
+    if (!listRef.current) return;
+    listRef.current.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
+    stickToBottomRef.current = true;
+    setShowScrollToBottom(false);
+  };
+
+  const handleMessageScroll = () => {
+    if (!listRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = listRef.current;
+    const distance = scrollHeight - clientHeight - scrollTop;
+    const nearBottom = distance < 56;
+    stickToBottomRef.current = nearBottom;
+    setShowScrollToBottom(!nearBottom);
+  };
+
   return (
     <div
       ref={wrapRef}
@@ -296,7 +362,56 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
             </button>
           </div>
           <div className="max-h-[320px] overflow-y-auto custom-scrollbar p-2">
-            {store.sessionMetas.map((session) => {
+            <div className="mb-2">
+              <input
+                value={historyKeyword}
+                onChange={(e) => setHistoryKeyword(e.target.value)}
+                placeholder="搜索会话/客户/关键词"
+                className="w-full rounded-md border border-[#3a6f9d] bg-[#123e69] px-2 py-1 text-[10px] text-[#d6ebff] placeholder:text-[#85b0d2] outline-none focus:border-[#62b9ff]"
+              />
+            </div>
+            <div className="mb-2 flex items-center justify-between">
+              <div className="text-[10px] text-[#8ebce0]">共 {filteredSessionMetas.length} 个会话</div>
+              <button
+                type="button"
+                disabled={filteredSessionMetas.length === 0}
+                onClick={() => {
+                  if (filteredSessionMetas.length === 0) return;
+                  const ok = window.confirm(`确认删除当前筛选下的 ${filteredSessionMetas.length} 个会话吗？`);
+                  if (!ok) return;
+                  store.deleteConversations(filteredSessionMetas.map((item) => item.id));
+                }}
+                className="rounded-full border border-[#915a5a] bg-[#5a2a36] px-1.5 py-0.5 text-[10px] text-[#ffd8d8] disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                删除筛选结果
+              </button>
+            </div>
+            <div className="mb-2 flex flex-wrap gap-1">
+              {[
+                { id: 'all', label: '全部' },
+                { id: 'diagnosis', label: '诊断' },
+                { id: 'ticket', label: '工单' },
+                { id: 'report', label: '报告' },
+                { id: 'business', label: '业务' },
+              ].map((item) => {
+                const active = historyFilter === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setHistoryFilter(item.id as typeof historyFilter)}
+                    className={`rounded-full border px-1.5 py-0.5 text-[10px] ${
+                      active
+                        ? 'border-[#63b8ff] bg-[#1a5288] text-[#e3f4ff]'
+                        : 'border-[#396b98] bg-[#143f6d] text-[#a3cae8]'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+            {filteredSessionMetas.map((session) => {
               const active = session.id === store.activeSessionId;
               return (
                 <div
@@ -323,7 +438,17 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
                       <div className="text-[10px] text-[#8fbfe7]">{formatSessionTime(session.updatedAt)}</div>
                     </div>
                     <div className="mt-1 truncate text-[10px] text-[#9fc8ea]">{session.lastText}</div>
+                    <div className="mt-1 truncate text-[10px] text-[#83b8e1]">客户：{session.customerName}</div>
                     <div className="mt-1 text-[10px] text-[#7fb0dc]">{session.messageCount} 条消息</div>
+                    {session.snapshotTags.length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {session.snapshotTags.map((tag) => (
+                          <span key={tag.label} className={`rounded-full border px-1.5 py-0.5 text-[10px] ${tagToneClass[tag.tone]}`}>
+                            {tag.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="mt-1 flex justify-end">
                     <button
@@ -331,6 +456,8 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
                       className="inline-flex items-center rounded border border-[#396e9f] px-1 py-0.5 text-[10px] text-[#a3cbea] hover:border-[#c86a6a] hover:text-[#ffd2d2]"
                       onClick={(e) => {
                         e.stopPropagation();
+                        const ok = window.confirm(`确认删除会话「${session.title}」吗？`);
+                        if (!ok) return;
                         store.deleteConversation(session.id);
                       }}
                       title="删除会话"
@@ -341,12 +468,18 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
                 </div>
               );
             })}
+            {filteredSessionMetas.length === 0 && (
+              <div className="rounded-lg border border-[#2f649c] bg-[#153f6e] px-2 py-2 text-center text-[10px] text-[#9bc2df]">
+                当前条件下暂无会话
+              </div>
+            )}
           </div>
         </div>
       )}
 
       <div
         ref={listRef}
+        onScroll={handleMessageScroll}
         className="relative min-h-0 flex-1 overflow-y-auto custom-scrollbar"
       >
         <div className={contentWrapClass}>
@@ -384,17 +517,35 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
             <TicketDetailDrawer item={store.drawer.item} onClose={() => store.setDrawer(null)} />
           )}
         </div>
+        {showScrollToBottom && (
+          <button
+            type="button"
+            onClick={scrollToBottom}
+            className="absolute bottom-3 right-3 z-10 inline-flex h-8 items-center gap-1 rounded-full border border-[#5ba5e3] bg-[#1f5a95] px-2.5 text-[11px] text-[#e6f4ff] shadow-[0_8px_18px_rgba(8,37,75,0.34)] transition hover:border-[#8fd0ff] hover:bg-[#2a6daf]"
+            title="回到底部"
+          >
+            <ChevronDown size={13} />
+            回到底部
+          </button>
+        )}
       </div>
 
       <div className="border-t border-[#2a639f] bg-[#0f3560] px-3 py-2">
         <div className={contentWrapClass}>
           <div className="rounded-2xl border border-[#3575b3] bg-[#123d6f] px-2 py-2 shadow-[inset_0_1px_0_rgba(125,195,255,0.22)]">
             <QuickChipsBar chips={store.quickChips} onClick={store.handleQuickChip} className="mb-2" />
+            {store.isResponding && (
+              <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[11px] text-[#9ed1f5]">
+                <LoaderCircle size={12} className="ai-dock-spin" />
+                正在生成回复，您可以随时停止
+              </div>
+            )}
             <div className="flex h-[44px] items-center gap-2">
             <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#3f82c0] bg-[#1a548f] text-[#bfe1ff] transition hover:border-[#68bdff] hover:bg-[#2369ad]" title="上传附件">
               <Paperclip size={13} />
             </button>
             <textarea
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="请输入问题，回车发送，换行请按 Shift+回车"
@@ -407,10 +558,21 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
               rows={1}
               className="custom-scrollbar max-h-[74px] min-h-[34px] flex-1 resize-none overflow-y-auto bg-transparent px-2 py-1.5 text-xs text-[#e1f2ff] placeholder:text-[#84b4e0] outline-none"
             />
-            <button type="button" onClick={submit} className="inline-flex h-9 items-center gap-1 rounded-full border border-[#57adff] bg-[#2b71c4] px-3 text-xs font-semibold text-[#eff8ff] shadow-[0_8px_18px_rgba(10,54,108,0.36)]">
-              <Send size={13} />
-              发送
-            </button>
+            {store.isResponding ? (
+              <button
+                type="button"
+                onClick={store.stopResponding}
+                className="inline-flex h-9 items-center gap-1 rounded-full border border-[#7dbfff] bg-[#2a5f96] px-3 text-xs font-semibold text-[#eaf6ff] shadow-[0_8px_18px_rgba(10,54,108,0.36)]"
+              >
+                <Square size={11} />
+                停止
+              </button>
+            ) : (
+              <button type="button" onClick={submit} className="inline-flex h-9 items-center gap-1 rounded-full border border-[#57adff] bg-[#2b71c4] px-3 text-xs font-semibold text-[#eff8ff] shadow-[0_8px_18px_rgba(10,54,108,0.36)]">
+                <Send size={13} />
+                发送
+              </button>
+            )}
             </div>
           </div>
         </div>

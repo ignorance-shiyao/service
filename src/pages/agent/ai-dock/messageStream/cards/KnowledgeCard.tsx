@@ -1,13 +1,16 @@
 import React from 'react';
 import { BookOpen } from 'lucide-react';
 import { KnowledgeItem } from '../../mocks/knowledge';
+import { CardActionBar } from './CardActionBar';
 
 interface KnowledgeCardProps {
   item: KnowledgeItem;
   onOpen: (id: string) => void;
+  onCopy?: (text: string) => void;
+  onAsk?: (text: string) => void;
 }
 
-export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({ item, onOpen }) => {
+export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({ item, onOpen, onCopy, onAsk }) => {
   const tone = ['青蓝', '紫蓝', '橙金'][item.title.length % 3];
   const toneClass =
     tone === '青蓝'
@@ -34,14 +37,27 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({ item, onOpen }) =>
             </span>
           ))}
         </div>
-        <button
-          type="button"
-          className="rounded-md border border-[#6fc0ff] bg-[#2b6fb3] px-2 py-1 text-[11px] text-[#edf7ff] shadow-[0_8px_16px_rgba(10,51,101,0.34)] hover:brightness-110"
-          onClick={() => onOpen(item.id)}
-        >
-          查看完整
-        </button>
       </div>
+      <CardActionBar
+        actions={[
+          {
+            key: 'copy',
+            label: '复制摘要',
+            onClick: () => onCopy?.(`${item.title}\n${item.summary}`),
+          },
+          {
+            key: 'ask',
+            label: '继续追问',
+            onClick: () => onAsk?.(`结合知识条目《${item.title}》，给我更详细的说明`),
+          },
+          {
+            key: 'open',
+            label: '查看完整',
+            tone: 'primary',
+            onClick: () => onOpen(item.id),
+          },
+        ]}
+      />
     </div>
   );
 };

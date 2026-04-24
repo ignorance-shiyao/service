@@ -72,6 +72,8 @@ export type AiConversationSessionMeta = {
   updatedAt: number;
   lastText: string;
   messageCount: number;
+  customerName: string;
+  snapshotTags: Array<{ label: string; tone: 'blue' | 'cyan' | 'indigo' | 'green' | 'amber' }>;
 };
 
 type PersistedAiDockSessions = {
@@ -126,6 +128,22 @@ type BusinessQueryCategory = {
   label: string;
   items: BusinessQueryItem[];
 };
+
+type FlowStatus = 'running' | 'done' | 'stopped';
+type FlowLogEntry = { time: string; text: string };
+
+const nowFlowTime = () =>
+  new Date().toLocaleTimeString('zh-CN', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+
+const appendFlowLog = (logs: FlowLogEntry[], text: string): FlowLogEntry[] => [
+  ...logs,
+  { time: nowFlowTime(), text },
+];
 
 const ANHUI_ADDRESS_POOL = [
   { region: '合肥市蜀山区', sites: ['望江西路创新产业园', '高新区习友路政企节点', '天鹅湖商务区汇聚点'] },
@@ -417,6 +435,64 @@ const formatSessionTitle = (input: string): string => {
   return t.length > 14 ? `${t.slice(0, 14)}…` : t;
 };
 
+const buildSessionSnapshotTags = (messages: AiMessage[]): Array<{ label: string; tone: 'blue' | 'cyan' | 'indigo' | 'green' | 'amber' }> => {
+  const tags: Array<{ label: string; tone: 'blue' | 'cyan' | 'indigo' | 'green' | 'amber' }> = [];
+  const seen = new Set<string>();
+  const recent = [...messages].reverse();
+
+  const pushTag = (key: string, label: string, tone: 'blue' | 'cyan' | 'indigo' | 'green' | 'amber') => {
+    if (seen.has(key) || tags.length >= 3) return;
+    seen.add(key);
+    tags.push({ label, tone });
+  };
+
+  for (const message of recent) {
+    if (tags.length >= 3) break;
+    if (message.kind === 'diagnosisReport') {
+      const score = typeof message.data?.score === 'number' ? ` ${message.data.score}分` : '';
+      pushTag('diagnosis', `诊断完成${score}`, 'cyan');
+      continue;
+    }
+    if (message.kind === 'reportCard') {
+      pushTag('report', '运行报告', 'blue');
+      continue;
+    }
+    if (message.kind === 'businessQuery') {
+      pushTag('business', '业务清单', 'indigo');
+      continue;
+    }
+    if (message.kind === 'ticketCard') {
+      const status = typeof message.data?.status === 'string' ? ` ${message.data.status}` : '';
+      pushTag('ticket', `工单${status}`, 'amber');
+      continue;
+    }
+    if (message.kind === 'faultForm') {
+      pushTag('fault', '报障处理中', 'amber');
+      continue;
+    }
+    if (message.kind === 'systemNotice' && message.data) {
+      const title = String(message.data.title || '');
+      const done = message.data.status === 'done';
+      if (title.includes('工单')) {
+        pushTag('ticket_flow', done ? '工单流转完成' : '工单流转中', done ? 'green' : 'blue');
+        continue;
+      }
+      if (title.includes('生成') || title.includes('导出')) {
+        pushTag('export', done ? '导出完成' : '导出处理中', done ? 'green' : 'blue');
+        continue;
+      }
+    }
+    if (message.kind === 'qa' || message.kind === 'knowledgeCard') {
+      pushTag('knowledge', '知识问答', 'indigo');
+    }
+  }
+
+  if (tags.length === 0 && messages.length > 0) {
+    pushTag('chat', '常规会话', 'blue');
+  }
+  return tags;
+};
+
 const AI_DOCK_SESSION_STORAGE_KEY = 'ai_dock_sessions_json_v1';
 
 const toValidSession = (value: any): AiConversationSession | null => {
@@ -475,6 +551,7 @@ export const useAiDock = () => {
   const [isResponding, setIsResponding] = useState(false);
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const processingRef = useRef(false);
+  const stopRespondingRef = useRef(false);
 
   useEffect(() => {
     if (sessions.length === 0) {
@@ -553,6 +630,44 @@ export const useAiDock = () => {
     }));
   }, [updateActiveSession]);
 
+  const createSystemNoticeFlow = useCallback((title: string, firstLog: string, progress = 0) => {
+    const logs = appendFlowLog([], firstLog);
+    const id = appendMessage({
+      role: 'system',
+      kind: 'systemNotice',
+      data: {
+        title,
+        progress,
+        status: 'running' as FlowStatus,
+        logs,
+      },
+    });
+    return { id, logs };
+  }, [appendMessage]);
+
+  const advanceSystemNoticeFlow = useCallback(
+    (
+      id: string,
+      payload: {
+        logs: FlowLogEntry[];
+        logText?: string;
+        title?: string;
+        progress: number;
+        status?: FlowStatus;
+      }
+    ) => {
+      const logs = payload.logText ? appendFlowLog(payload.logs, payload.logText) : payload.logs;
+      updateMessageData(id, {
+        title: payload.title,
+        progress: payload.progress,
+        status: payload.status || (payload.progress >= 100 ? 'done' : 'running'),
+        logs,
+      });
+      return logs;
+    },
+    [updateMessageData]
+  );
+
   const streamAssistantText = useCallback(async (text: string) => {
     const source = text.trim();
     if (!source) return;
@@ -566,6 +681,10 @@ export const useAiDock = () => {
     let current = '';
     let index = 0;
     while (index < source.length) {
+      if (stopRespondingRef.current) {
+        updateMessageText(messageId, current || '已停止本次回复。');
+        return;
+      }
       const ch = source[index];
       const step = /[，。！？；,.!?：:\n]/.test(ch) ? 1 : Math.min(source.length - index, ch.charCodeAt(0) > 127 ? 1 : 2);
       current += source.slice(index, index + step);
@@ -585,7 +704,9 @@ export const useAiDock = () => {
   }, [appendMessage, updateMessageText]);
 
   const appendCardWithThinking = useCallback(async (appendCard: () => void | Promise<void>, ms = 380) => {
+    if (stopRespondingRef.current) return;
     await delay(ms);
+    if (stopRespondingRef.current) return;
     await appendCard();
   }, []);
 
@@ -638,36 +759,90 @@ export const useAiDock = () => {
   }, [appendMessage]);
 
   const runDiagnosisFlow = useCallback(async (template: DiagnosisTemplate) => {
+    let logs: FlowLogEntry[] = appendFlowLog([], `已启动「${template.name}」诊断任务`);
+
     await delay(380);
+    if (stopRespondingRef.current) return;
     const progressId = appendMessage({
       role: 'assistant',
       kind: 'diagnosisProgress',
-      data: { title: template.title, progress: 0, step: DIAGNOSIS_STEPS[0], running: true },
+      data: {
+        title: template.title,
+        progress: 0,
+        step: DIAGNOSIS_STEPS[0],
+        running: true,
+        status: 'running',
+        logs,
+      },
     });
 
     for (let i = 0; i < DIAGNOSIS_STEPS.length; i += 1) {
+      if (stopRespondingRef.current) {
+        logs = appendFlowLog(logs, '用户已停止本次诊断任务');
+        updateMessageData(progressId, {
+          running: false,
+          status: 'stopped',
+          step: '已停止',
+          logs,
+          progress: Math.max(0, DIAGNOSIS_STEPS.length ? Math.floor((i / DIAGNOSIS_STEPS.length) * 100) : 0),
+        });
+        return;
+      }
       await delay(600);
       const progress = Math.round(((i + 1) / DIAGNOSIS_STEPS.length) * 100);
-      updateMessageData(progressId, { progress, step: DIAGNOSIS_STEPS[i], running: progress < 100 });
+      logs = appendFlowLog(logs, `${DIAGNOSIS_STEPS[i]}完成`);
+      updateMessageData(progressId, {
+        progress,
+        step: DIAGNOSIS_STEPS[i],
+        running: progress < 100,
+        status: progress < 100 ? 'running' : 'done',
+        logs,
+      });
     }
 
     await delay(350);
+    if (stopRespondingRef.current) return;
+    logs = appendFlowLog(logs, '诊断完成，已生成最终报告');
+    updateMessageData(progressId, {
+      running: false,
+      status: 'done',
+      step: '分析完成',
+      progress: 100,
+      logs,
+    });
     appendMessage({ role: 'assistant', kind: 'diagnosisReport', data: template });
   }, [appendMessage, updateMessageData]);
 
   const runReportExport = useCallback(async (type: 'pdf' | 'image') => {
-    const id = appendMessage({
-      role: 'system',
-      kind: 'systemNotice',
-      data: { title: `正在生成${type === 'pdf' ? 'PDF' : '长图'}...`, progress: 30 },
+    const docName = type === 'pdf' ? 'PDF' : '长图';
+    const { id, logs: initialLogs } = createSystemNoticeFlow(`正在生成${docName}...`, `开始生成${docName}文件`, 20);
+    let logs = initialLogs;
+    await delay(420);
+    logs = advanceSystemNoticeFlow(id, {
+      logs,
+      logText: '已完成图表渲染与数据聚合',
+      progress: 55,
+      title: `正在生成${docName}...`,
     });
-    await delay(450);
-    updateMessageData(id, { progress: 60, title: `正在生成${type === 'pdf' ? 'PDF' : '长图'}...` });
-    await delay(450);
-    updateMessageData(id, { progress: 100, title: `已生成${type === 'pdf' ? 'PDF' : '长图'}，点击下载` });
-  }, [appendMessage, updateMessageData]);
+    await delay(420);
+    logs = advanceSystemNoticeFlow(id, {
+      logs,
+      logText: '已完成模板排版与导出封装',
+      progress: 85,
+      title: `正在生成${docName}...`,
+    });
+    await delay(360);
+    advanceSystemNoticeFlow(id, {
+      logs,
+      logText: `${docName}已生成，可执行下载`,
+      progress: 100,
+      status: 'done',
+      title: `已生成${docName}，点击下载`,
+    });
+  }, [advanceSystemNoticeFlow, createSystemNoticeFlow]);
 
   const handleIntent = useCallback(async (inputRaw: string, intent?: IntentType) => {
+    if (stopRespondingRef.current) return;
     const input = inputRaw.toLowerCase();
     const intentFromModel = intent || detectIntent(input);
     const shouldForceBusiness =
@@ -813,6 +988,7 @@ export const useAiDock = () => {
     const trimmed = text.trim();
     if (!trimmed || processingRef.current) return;
 
+    stopRespondingRef.current = false;
     processingRef.current = true;
     setIsResponding(true);
 
@@ -824,15 +1000,33 @@ export const useAiDock = () => {
     });
 
     appendMessage({ role: 'user', kind: 'text', text: trimmed });
-    await delay(280);
-    await handleIntent(trimmed, forcedIntent);
-    setIsResponding(false);
-    processingRef.current = false;
+    try {
+      await delay(280);
+      if (stopRespondingRef.current) return;
+      await handleIntent(trimmed, forcedIntent);
+    } finally {
+      setIsResponding(false);
+      processingRef.current = false;
+      stopRespondingRef.current = false;
+    }
   }, [appendMessage, handleIntent, updateActiveSession]);
+
+  const stopResponding = useCallback(() => {
+    if (!processingRef.current) return;
+    stopRespondingRef.current = true;
+    processingRef.current = false;
+    setIsResponding(false);
+  }, []);
 
   const handleQuickChip = useCallback(async (chip: QuickChip) => {
     await sendUserText(chip.prompt);
   }, [sendUserText]);
+
+  const retryLastQuestion = useCallback(async () => {
+    const lastUser = [...messages].reverse().find((m) => m.role === 'user' && typeof m.text === 'string' && m.text.trim());
+    if (!lastUser?.text) return;
+    await sendUserText(lastUser.text);
+  }, [messages, sendUserText]);
 
   const openKnowledgeDrawer = useCallback((id: string) => {
     const item = KNOWLEDGE_ITEMS.find((k) => k.id === id);
@@ -879,14 +1073,32 @@ export const useAiDock = () => {
       ticketDraftFromDiagnosis: null,
     }));
 
-    await delay(350);
-    appendMessage({
-      role: 'system',
-      kind: 'systemNotice',
-      data: { title: `工单 ${id} 状态更新：已自动分派到二线团队`, progress: 100 },
+    const { id: noticeId, logs: initialLogs } = createSystemNoticeFlow(`工单 ${id} 状态流转中`, `工单 ${id} 已创建，等待系统分派`, 25);
+    let logs = initialLogs;
+    await delay(360);
+    logs = advanceSystemNoticeFlow(noticeId, {
+      logs,
+      logText: '工单已自动分派到二线团队',
+      progress: 60,
+      title: `工单 ${id} 状态流转中`,
+    });
+    await delay(420);
+    logs = advanceSystemNoticeFlow(noticeId, {
+      logs,
+      logText: '责任人已确认受理，进入处理中',
+      progress: 85,
+      title: `工单 ${id} 状态流转中`,
+    });
+    await delay(360);
+    advanceSystemNoticeFlow(noticeId, {
+      logs,
+      logText: '状态已更新为处理中，可在工单详情追踪进展',
+      progress: 100,
+      status: 'done',
+      title: `工单 ${id} 状态更新：处理中`,
     });
     setIsResponding(false);
-  }, [appendMessage, updateActiveSession]);
+  }, [advanceSystemNoticeFlow, appendMessage, createSystemNoticeFlow, updateActiveSession]);
 
   const setActiveReportId = useCallback((id: string) => {
     updateActiveSession((session) => ({ ...session, activeReportId: id, updatedAt: Date.now() }));
@@ -913,19 +1125,30 @@ export const useAiDock = () => {
 
   const deleteConversation = useCallback((id: string) => {
     setSessions((prev) => {
-      if (prev.length <= 1) {
-        const keep = prev[0] || createSession('当前会话');
-        return [{
-          ...keep,
-          title: '当前会话',
-          updatedAt: Date.now(),
-          messages: welcomeMessages(),
-          tickets: TICKETS,
-          activeReportId: REPORTS[0].id,
-          ticketDraftFromDiagnosis: null,
-        }];
-      }
       const filtered = prev.filter((s) => s.id !== id);
+      if (filtered.length === 0) {
+        const next = createSession('当前会话');
+        setActiveSessionId(next.id);
+        return [next];
+      }
+      if (!filtered.some((s) => s.id === activeSessionId)) {
+        setActiveSessionId(filtered[0].id);
+      }
+      return filtered;
+    });
+    setDrawer(null);
+  }, [activeSessionId]);
+
+  const deleteConversations = useCallback((ids: string[]) => {
+    const idSet = new Set(ids);
+    if (!idSet.size) return;
+    setSessions((prev) => {
+      const filtered = prev.filter((s) => !idSet.has(s.id));
+      if (filtered.length === 0) {
+        const next = createSession('当前会话');
+        setActiveSessionId(next.id);
+        return [next];
+      }
       if (!filtered.some((s) => s.id === activeSessionId)) {
         setActiveSessionId(filtered[0].id);
       }
@@ -945,6 +1168,8 @@ export const useAiDock = () => {
           updatedAt: session.updatedAt,
           lastText: extractMessagePreview(last),
           messageCount: session.messages.length,
+          customerName: session.customer.name,
+          snapshotTags: buildSessionSnapshotTags(session.messages),
         };
       });
   }, [sessions]);
@@ -965,8 +1190,10 @@ export const useAiDock = () => {
     messages,
     isResponding,
     sendUserText,
+    stopResponding,
     quickChips,
     handleQuickChip,
+    retryLastQuestion,
     drawer,
     setDrawer,
     openKnowledgeDrawer,
@@ -985,6 +1212,7 @@ export const useAiDock = () => {
     createConversation,
     switchConversation,
     deleteConversation,
+    deleteConversations,
   };
 };
 

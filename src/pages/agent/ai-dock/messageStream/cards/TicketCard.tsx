@@ -1,13 +1,16 @@
 import React from 'react';
 import { Ticket } from 'lucide-react';
 import { TicketItem } from '../../mocks/tickets';
+import { CardActionBar } from './CardActionBar';
 
 interface TicketCardProps {
   ticket: TicketItem;
   onOpen: (id: string) => void;
+  onCopy?: (text: string) => void;
+  onAsk?: (text: string) => void;
 }
 
-export const TicketCard: React.FC<TicketCardProps> = ({ ticket, onOpen }) => {
+export const TicketCard: React.FC<TicketCardProps> = ({ ticket, onOpen, onCopy, onAsk }) => {
   const statusTone = ticket.status.includes('待')
     ? {
         badge: 'border-[#b0824f] bg-[#8b5c2d] text-[#ffe7c7]',
@@ -34,7 +37,26 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, onOpen }) => {
       </div>
       <div className="mt-1 text-xs text-[#d6e9f8]">{ticket.title}</div>
       <div className="mt-1 text-[11px] text-[#b8daf4]">业务：{ticket.business} · 责任人：{ticket.owner}</div>
-      <button type="button" className="mt-2 rounded border border-[#68bfff] bg-[#2b6fb3] px-2 py-0.5 text-[11px] text-[#eef8ff] shadow-[0_6px_12px_rgba(10,52,102,0.3)] hover:brightness-110" onClick={() => onOpen(ticket.id)}>查看详情</button>
+      <CardActionBar
+        actions={[
+          {
+            key: 'copy',
+            label: '复制工单',
+            onClick: () => onCopy?.(`${ticket.id}\n${ticket.title}\n业务：${ticket.business}\n状态：${ticket.status}`),
+          },
+          {
+            key: 'ask',
+            label: '催办建议',
+            onClick: () => onAsk?.(`请给我工单 ${ticket.id} 的催办话术，语气专业简洁`),
+          },
+          {
+            key: 'open',
+            label: '查看详情',
+            tone: 'primary',
+            onClick: () => onOpen(ticket.id),
+          },
+        ]}
+      />
     </div>
   );
 };

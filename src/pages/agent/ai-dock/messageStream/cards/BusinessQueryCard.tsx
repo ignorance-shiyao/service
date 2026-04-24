@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, Layers3 } from 'lucide-react';
+import { CardActionBar } from './CardActionBar';
 
 type BusinessQueryItem = {
   id: string;
@@ -20,10 +21,20 @@ type BusinessQueryCategory = {
 
 interface BusinessQueryCardProps {
   categories: BusinessQueryCategory[];
+  onCopy?: (text: string) => void;
+  onAsk?: (text: string) => void;
 }
 
 const PAGE_SIZE = 14;
 const STREAM_STEP = 1;
+type QueryFlowPhase = 'boot' | 'summary' | 'types' | 'list' | 'done';
+type QueryFlowStatus = 'running' | 'done';
+type QueryFlowLog = { time: string; text: string };
+type QueryFlowState = {
+  phase: QueryFlowPhase;
+  status: QueryFlowStatus;
+  logs: QueryFlowLog[];
+};
 
 const getCategoryTone = (code: string, active: boolean) => {
   const tone = {
@@ -50,8 +61,15 @@ const getCategoryTone = (code: string, active: boolean) => {
 };
 
 const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+const nowFlowTime = () =>
+  new Date().toLocaleTimeString('zh-CN', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 
-export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories }) => {
+export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories, onCopy, onAsk }) => {
   const [activeCode, setActiveCode] = useState(categories[0]?.code || '');
   const [expandedItemId, setExpandedItemId] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -64,6 +82,19 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
   const [listEnabled, setListEnabled] = useState(false);
   const [showTypeSection, setShowTypeSection] = useState(false);
   const [showListSection, setShowListSection] = useState(false);
+  const [flow, setFlow] = useState<QueryFlowState>({
+    phase: 'boot',
+    status: 'running',
+    logs: [{ time: nowFlowTime(), text: '开始执行业务清单查询' }],
+  });
+
+  const appendFlowLog = (text: string, patch?: Partial<QueryFlowState>) => {
+    setFlow((prev) => ({
+      ...prev,
+      ...patch,
+      logs: [...prev.logs, { time: nowFlowTime(), text }],
+    }));
+  };
 
   const activeCategory = useMemo(
     () => categories.find((c) => c.code === activeCode) || categories[0],
@@ -112,6 +143,11 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
     };
 
     const boot = async () => {
+      setFlow({
+        phase: 'summary',
+        status: 'running',
+        logs: [{ time: nowFlowTime(), text: '开始执行业务清单查询' }],
+      });
       setOverviewText('');
       setTypeText('');
       setRegionText('');
@@ -121,6 +157,7 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
       setShowListSection(false);
       setStreamedCount(0);
 
+      appendFlowLog('进入摘要生成阶段', { phase: 'summary' });
       await runText(summary.overview, setOverviewText);
       if (cancelled) return;
       await sleep(140);
@@ -129,6 +166,7 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
       await sleep(120);
       await runText(summary.regionLine, setRegionText);
       if (cancelled) return;
+      appendFlowLog('摘要生成完成，进入类型分布阶段', { phase: 'types' });
       setShowTypeSection(true);
 
       for (let i = 1; i <= categories.length; i += 1) {
@@ -140,6 +178,7 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
       setShowListSection(true);
       setListEnabled(true);
       setStreamedCount(STREAM_STEP);
+      appendFlowLog('业务清单加载开始', { phase: 'list' });
     };
 
     boot();
@@ -174,6 +213,22 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
 
   const streamedItems = targetItems.slice(0, streamedCount);
 
+  useEffect(() => {
+    if (!listEnabled) return;
+    if (streamedCount <= 0) return;
+    if (streamedCount >= targetItems.length && visibleCount >= (activeCategory?.items.length || 0)) {
+      setFlow((prev) => {
+        if (prev.status === 'done') return prev;
+        return {
+          ...prev,
+          phase: 'done',
+          status: 'done',
+          logs: [...prev.logs, { time: nowFlowTime(), text: '业务清单加载完成' }],
+        };
+      });
+    }
+  }, [activeCategory?.items.length, listEnabled, streamedCount, targetItems.length, visibleCount]);
+
   return (
     <section className="rounded-2xl border border-[#3e77ad] bg-[linear-gradient(165deg,#123a66_0%,#10355d_100%)] p-3 shadow-[0_12px_26px_rgba(6,27,57,0.35)]">
       <header className="mb-3 flex items-center justify-between">
@@ -187,6 +242,22 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
           {categories.length} 类 / {totalCount} 条
         </span>
       </header>
+      <div className="mb-2 rounded-lg border border-[#2f679d] bg-[rgba(11,47,83,0.6)] px-2 py-1.5">
+        <div className="flex items-center justify-between text-[10px]">
+          <span className="text-[#a6cbed]">阶段：{flow.phase === 'done' ? '完成' : flow.phase}</span>
+          <span className={`rounded-full border px-1.5 py-0.5 ${flow.status === 'done' ? 'border-[#60be98] bg-[#1d5f4b] text-[#ddfff2]' : 'border-[#61afe5] bg-[#1a4f82] text-[#dff2ff]'}`}>
+            {flow.status === 'done' ? '已完成' : '执行中'}
+          </span>
+        </div>
+        <div className="mt-1 max-h-[46px] overflow-hidden text-[10px] text-[#c9e4fb]">
+          {flow.logs.slice(-2).map((line, idx) => (
+            <div key={`${line.time}_${idx}`}>
+              <span className="mr-1 text-[#90bcdf]">{line.time}</span>
+              {line.text}
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="mb-2 rounded-xl border border-[#2f679d] bg-[#0f3358] p-2">
         <div className="mb-1 text-[11px] text-[#90bce0]">查询总结</div>
@@ -196,6 +267,26 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
           <div>{regionText || (typeText ? '▌' : '')}</div>
         </div>
       </div>
+      <CardActionBar
+        actions={[
+          {
+            key: 'copy',
+            label: '复制总结',
+            onClick: () => onCopy?.([summary.overview, summary.typeLine, summary.regionLine].join('\n')),
+          },
+          {
+            key: 'ask-overview',
+            label: '生成业务概览',
+            onClick: () => onAsk?.('基于当前业务清单，给我一份业务概览和重点建议'),
+          },
+          {
+            key: 'ask-detail',
+            label: '分析当前类型',
+            tone: 'primary',
+            onClick: () => onAsk?.(`请针对${activeCategory?.label || '当前类型'}业务做风险和优化建议`),
+          },
+        ]}
+      />
 
       {showTypeSection && (
         <div className="mb-2 rounded-xl border border-[#2f679d] bg-[#0f3358] p-2">
@@ -207,7 +298,10 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
                 <button
                   key={c.code}
                   type="button"
-                  onClick={() => setActiveCode(c.code)}
+                  onClick={() => {
+                    setActiveCode(c.code);
+                    appendFlowLog(`切换到业务类型：${c.label}`, { phase: 'list' });
+                  }}
                   className={`shrink-0 rounded-full border px-3 py-1 text-xs transition ${getCategoryTone(c.code, active)}`}
                 >
                   {c.label}（{c.items.length}）
@@ -228,7 +322,13 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
               const t = e.currentTarget;
               const nearBottom = t.scrollTop + t.clientHeight >= t.scrollHeight - 28;
               if (nearBottom && listEnabled) {
-                setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, activeCategory?.items.length || prev));
+                setVisibleCount((prev) => {
+                  const next = Math.min(prev + PAGE_SIZE, activeCategory?.items.length || prev);
+                  if (next > prev) {
+                    appendFlowLog(`继续加载清单：${next}/${activeCategory?.items.length || next}`, { phase: 'list' });
+                  }
+                  return next;
+                });
               }
             }}
           >

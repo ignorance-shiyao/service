@@ -11,6 +11,7 @@ import { DiagnosisReportCard } from './cards/DiagnosisReportCard';
 import { FaultFormCard } from './cards/FaultFormCard';
 import { TicketCard } from './cards/TicketCard';
 import { ProgressiveCardShell } from './cards/ProgressiveCardShell';
+import { CardActionBar } from './cards/CardActionBar';
 
 interface MessageListProps {
   messages: AiMessage[];
@@ -50,6 +51,15 @@ const shouldShowTime = (current: AiMessage, prev?: AiMessage) => {
 };
 
 export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => {
+  const copyMessage = async (text: string) => {
+    if (!text.trim()) return;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (_error) {
+      // ignore clipboard permission errors
+    }
+  };
+
   const wrapCard = (message: AiMessage, node: React.ReactNode) => (
     <ProgressiveCardShell message={message}>
       {node}
@@ -76,11 +86,23 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
             )}
 
             {(message.kind === 'text' || message.kind === 'systemNotice') && message.text && (
-              <MessageBubble message={message} />
+              <MessageBubble
+                message={message}
+                onCopy={copyMessage}
+                onRetry={message.role === 'assistant' ? store.retryLastQuestion : undefined}
+              />
             )}
 
             {message.kind === 'knowledgeCard' && (
-              wrapCard(message, <KnowledgeCard item={message.data} onOpen={store.openKnowledgeDrawer} />)
+              wrapCard(
+                message,
+                <KnowledgeCard
+                  item={message.data}
+                  onOpen={store.openKnowledgeDrawer}
+                  onCopy={copyMessage}
+                  onAsk={store.sendUserText}
+                />
+              )
             )}
 
             {message.kind === 'qa' && (
@@ -90,6 +112,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                   data={message.data}
                   onSendFollowup={store.sendUserText}
                   onOpenKnowledge={store.openKnowledgeDrawer}
+                  onCopy={copyMessage}
                 />
               )
             )}
@@ -102,12 +125,21 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                   businesses={store.managedBusinesses}
                   onOpenHistory={store.openReportHistory}
                   onExport={store.runReportExport}
+                  onCopy={copyMessage}
+                  onAsk={store.sendUserText}
                 />
               )
             )}
 
             {message.kind === 'businessQuery' && (
-              wrapCard(message, <BusinessQueryCard categories={message.data} />)
+              wrapCard(
+                message,
+                <BusinessQueryCard
+                  categories={message.data}
+                  onCopy={copyMessage}
+                  onAsk={store.sendUserText}
+                />
+              )
             )}
 
             {message.kind === 'diagnosisSelect' && (
@@ -116,6 +148,8 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                 <DiagnosisSelectCard
                   list={message.data}
                   onSelect={(item) => store.runDiagnosisFlow(item)}
+                  onAsk={store.sendUserText}
+                  onCopy={copyMessage}
                 />
               )
             )}
@@ -126,6 +160,10 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                 progress={message.data.progress}
                 step={message.data.step}
                 running={message.data.running}
+                status={message.data.status}
+                logs={message.data.logs}
+                onCopy={copyMessage}
+                onAsk={store.sendUserText}
               />
             )}
 
@@ -135,6 +173,8 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                 <DiagnosisReportCard
                   data={message.data}
                   onHistory={store.openDiagnosisHistory}
+                  onCopy={copyMessage}
+                  onAsk={store.sendUserText}
                   onFault={(data) => {
                     store.setTicketDraftFromDiagnosis(data);
                     store.sendUserText('我要发起报障', 'fault');
@@ -156,18 +196,72 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
             )}
 
             {message.kind === 'ticketCard' && (
-              wrapCard(message, <TicketCard ticket={message.data} onOpen={store.openTicketDetail} />)
+              wrapCard(
+                message,
+                <TicketCard
+                  ticket={message.data}
+                  onOpen={store.openTicketDetail}
+                  onCopy={copyMessage}
+                  onAsk={store.sendUserText}
+                />
+              )
             )}
 
             {message.kind === 'systemNotice' && !message.text && (
               <div className="rounded-lg border border-[#3f7db6] bg-[linear-gradient(135deg,rgba(25,84,146,0.9)_0%,rgba(17,66,114,0.9)_55%,rgba(20,96,113,0.86)_100%)] px-3 py-2 text-xs text-[#d8edff] shadow-[0_8px_16px_rgba(8,37,75,0.3)]">
-                <div className="mb-1 inline-flex items-center rounded-full border border-[rgba(147,214,255,0.45)] bg-[rgba(26,109,156,0.38)] px-1.5 py-0.5 text-[10px] text-[#bfe7ff]">系统通知</div>
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <div className="inline-flex items-center rounded-full border border-[rgba(147,214,255,0.45)] bg-[rgba(26,109,156,0.38)] px-1.5 py-0.5 text-[10px] text-[#bfe7ff]">系统通知</div>
+                  {message.data.status && (
+                    <div
+                      className={`rounded-full border px-1.5 py-0.5 text-[10px] ${
+                        message.data.status === 'done'
+                          ? 'border-[#5fbf98] bg-[rgba(25,106,84,0.6)] text-[#dcfff3]'
+                          : 'border-[#69b7ef] bg-[rgba(23,77,128,0.6)] text-[#def3ff]'
+                      }`}
+                    >
+                      {message.data.status === 'done' ? '已完成' : '处理中'}
+                    </div>
+                  )}
+                </div>
                 <div>{message.data.title}</div>
                 {typeof message.data.progress === 'number' && (
                   <div className="mt-1.5 h-1.5 rounded-full bg-[#0c325f]">
                     <div className="h-1.5 rounded-full bg-[linear-gradient(90deg,#6ed9ff_0%,#4f99ff_45%,#63d3a8_100%)]" style={{ width: `${message.data.progress}%` }} />
                   </div>
                 )}
+                {Array.isArray(message.data.logs) && message.data.logs.length > 0 && (
+                  <div className="custom-scrollbar mt-2 max-h-[120px] overflow-y-auto rounded border border-[rgba(111,177,230,0.35)] bg-[rgba(11,48,87,0.45)] px-2 py-1.5">
+                    {message.data.logs.map((line: { time: string; text: string }, idx: number) => (
+                      <div key={`${line.time}_${idx}`} className="text-[11px] text-[#d6ebff]">
+                        <span className="mr-1 text-[#97c5eb]">{line.time}</span>
+                        {line.text}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <CardActionBar
+                  actions={[
+                    {
+                      key: 'copy',
+                      label: '复制通知',
+                      onClick: () =>
+                        copyMessage(
+                          [
+                            String(message.data.title || '系统通知'),
+                            ...(Array.isArray(message.data.logs)
+                              ? message.data.logs.map((line: { time: string; text: string }) => `${line.time} ${line.text}`)
+                              : []),
+                          ].join('\n')
+                        ),
+                    },
+                    {
+                      key: 'ask',
+                      label: '继续处理',
+                      tone: 'primary',
+                      onClick: () => store.sendUserText('请基于这条系统通知给我下一步操作建议'),
+                    },
+                  ]}
+                />
               </div>
             )}
 
@@ -177,10 +271,26 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                 <div className="rounded-xl border border-[#496ea4] bg-[linear-gradient(135deg,rgba(26,68,113,0.85)_0%,rgba(48,67,131,0.82)_56%,rgba(92,65,122,0.78)_100%)] p-3 text-xs text-[#c9def5]">
                   <div className="text-sm font-semibold text-[#eef6ff]">{message.data.title}</div>
                   <p className="mt-1">{message.data.desc}</p>
-                  <div className="mt-2 flex gap-2">
-                    <button type="button" className="rounded border border-[#58b7ea] bg-[linear-gradient(180deg,#2674b6_0%,#1a5a92_100%)] px-2 py-1 text-[11px] text-[#e9f7ff]" onClick={() => store.sendUserText('联系客户经理')}>联系客户经理</button>
-                    <button type="button" className="rounded border border-[#c78f54] bg-[linear-gradient(180deg,#a76b2f_0%,#7f4a1e_100%)] px-2 py-1 text-[11px] text-[#fff0d9]" onClick={() => store.sendUserText('我要反馈这个问题')}>反馈问题</button>
-                  </div>
+                  <CardActionBar
+                    actions={[
+                      {
+                        key: 'retry',
+                        label: '换个问法',
+                        onClick: () => store.retryLastQuestion(),
+                      },
+                      {
+                        key: 'manager',
+                        label: '联系客户经理',
+                        onClick: () => store.sendUserText('联系客户经理'),
+                      },
+                      {
+                        key: 'feedback',
+                        label: '反馈问题',
+                        tone: 'primary',
+                        onClick: () => store.sendUserText('我要反馈这个问题'),
+                      },
+                    ]}
+                  />
                 </div>
               )
             )}
@@ -193,6 +303,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
             <span className="h-1.5 w-1.5 rounded-full bg-[#a8d9ff]" />
           </div>
           <div className="rounded-2xl rounded-bl-md border border-[#2f6fad] bg-[rgba(17,60,108,0.78)] px-3 py-2">
+            <div className="mb-1 text-[10px] text-[#9dcaf0]">智慧运维管家正在思考</div>
             <div className="ai-dock-typing">
               <i />
               <i />
