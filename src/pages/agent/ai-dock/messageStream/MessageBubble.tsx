@@ -31,10 +31,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onCopy, o
           {isUser ? '我' : '智慧运维管家'} · {formatBubbleTime(message.createdAt)}
         </div>
         <div
-          className={`rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+          className={`ai-dock-bubble rounded-2xl px-3 py-2 text-sm leading-relaxed ${
             isUser
-              ? 'rounded-br-md border border-[#72c0ff] bg-[linear-gradient(165deg,#347fd8_0%,#2a66b8_100%)] text-white shadow-[0_10px_24px_rgba(9,49,101,0.36)]'
-              : 'rounded-bl-md border border-[#3f7fb7] bg-[linear-gradient(165deg,#1c537f_0%,#19476f_100%)] text-[var(--sys-text-primary)] shadow-[0_10px_22px_rgba(3,21,47,0.34)] backdrop-blur-sm'
+              ? 'ai-dock-bubble-user rounded-br-md border border-[#74c5ff] text-white'
+              : 'ai-dock-bubble-assistant rounded-bl-md border border-[#4a8abb] text-[var(--sys-text-primary)] backdrop-blur-sm'
           } whitespace-pre-wrap`}
         >
           {message.text}

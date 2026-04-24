@@ -242,23 +242,6 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
           {categories.length} 类 / {totalCount} 条
         </span>
       </header>
-      <div className="mb-2 rounded-lg border border-[#2f679d] bg-[rgba(11,47,83,0.6)] px-2 py-1.5">
-        <div className="flex items-center justify-between text-[10px]">
-          <span className="text-[#a6cbed]">阶段：{flow.phase === 'done' ? '完成' : flow.phase}</span>
-          <span className={`rounded-full border px-1.5 py-0.5 ${flow.status === 'done' ? 'border-[#60be98] bg-[#1d5f4b] text-[#ddfff2]' : 'border-[#61afe5] bg-[#1a4f82] text-[#dff2ff]'}`}>
-            {flow.status === 'done' ? '已完成' : '执行中'}
-          </span>
-        </div>
-        <div className="mt-1 max-h-[46px] overflow-hidden text-[10px] text-[#c9e4fb]">
-          {flow.logs.slice(-2).map((line, idx) => (
-            <div key={`${line.time}_${idx}`}>
-              <span className="mr-1 text-[#90bcdf]">{line.time}</span>
-              {line.text}
-            </div>
-          ))}
-        </div>
-      </div>
-
       <div className="mb-2 rounded-xl border border-[#2f679d] bg-[#0f3358] p-2">
         <div className="mb-1 text-[11px] text-[#90bce0]">查询总结</div>
         <div className="space-y-0.5 text-[11px] leading-5 text-[#cfe5fa]">

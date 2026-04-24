@@ -1,5 +1,11 @@
 .ai-dock-surface {
   isolation: isolate;
+  background:
+    linear-gradient(180deg, rgba(17, 71, 118, 0.96) 0%, rgba(12, 50, 88, 0.98) 42%, rgba(10, 42, 74, 0.98) 100%);
+  box-shadow:
+    0 22px 56px rgba(1, 13, 31, 0.62),
+    0 0 0 1px rgba(97, 177, 238, 0.28),
+    inset 0 1px 0 rgba(191, 230, 255, 0.15);
 }
 
 .ai-dock-surface::before {
@@ -7,7 +13,9 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse at 62% 18%, rgba(121, 189, 255, 0.12) 0%, rgba(121, 189, 255, 0) 58%);
+  background:
+    linear-gradient(90deg, rgba(80, 184, 232, 0.08), rgba(74, 151, 221, 0.03) 48%, rgba(72, 196, 158, 0.08)),
+    radial-gradient(ellipse at 62% 18%, rgba(121, 189, 255, 0.12) 0%, rgba(121, 189, 255, 0) 58%);
 }
 
 .ai-dock-ambient {
@@ -41,6 +49,115 @@
   right: 32%;
   top: 20%;
   background: rgba(96, 209, 177, 0.16);
+}
+
+.ai-dock-header {
+  background: rgba(19, 76, 124, 0.92);
+  box-shadow: inset 0 -1px 0 rgba(117, 184, 235, 0.18);
+  backdrop-filter: blur(12px);
+}
+
+.ai-dock-avatar-frame {
+  background: #164f82;
+  box-shadow:
+    inset 0 1px 0 rgba(200, 236, 255, 0.18),
+    0 8px 18px rgba(4, 25, 54, 0.3);
+}
+
+.ai-dock-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #3f82c0;
+  background: #1a548f;
+  color: #c8e7ff;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ai-dock-icon-button:hover {
+  border-color: #78c8ff;
+  background: #2369ad;
+  box-shadow: 0 8px 18px rgba(7, 40, 82, 0.28);
+  transform: translateY(-1px);
+}
+
+.ai-dock-message-pane {
+  background:
+    linear-gradient(180deg, rgba(13, 54, 95, 0.34) 0%, rgba(9, 43, 78, 0.1) 100%),
+    repeating-linear-gradient(0deg, rgba(119, 187, 240, 0.035) 0 1px, transparent 1px 34px);
+}
+
+.ai-dock-welcome-card {
+  background: rgba(24, 78, 124, 0.74);
+  box-shadow:
+    inset 0 1px 0 rgba(199, 236, 255, 0.16),
+    0 14px 34px rgba(3, 24, 52, 0.28);
+}
+
+.ai-dock-composer-band {
+  background: rgba(13, 54, 96, 0.9);
+  box-shadow: inset 0 1px 0 rgba(124, 195, 255, 0.14);
+}
+
+.ai-dock-composer {
+  background: #164a78;
+  box-shadow:
+    inset 0 1px 0 rgba(181, 224, 255, 0.18),
+    0 10px 24px rgba(3, 24, 52, 0.24);
+}
+
+.ai-dock-send-button {
+  background: #2d7cc9;
+  box-shadow: 0 9px 18px rgba(8, 50, 104, 0.34);
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.ai-dock-send-button:hover {
+  background: #3489dc;
+  transform: translateY(-1px);
+}
+
+.ai-dock-popover {
+  background: rgba(17, 55, 99, 0.96);
+  box-shadow:
+    0 18px 38px rgba(3, 21, 47, 0.56),
+    inset 0 1px 0 rgba(191, 230, 255, 0.12);
+  backdrop-filter: blur(14px);
+}
+
+.ai-dock-session-item {
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ai-dock-session-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(4, 25, 54, 0.22);
+}
+
+.ai-dock-input {
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.ai-dock-input:focus {
+  box-shadow: 0 0 0 2px rgba(93, 178, 244, 0.16);
+}
+
+.ai-dock-bubble {
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ai-dock-bubble:hover {
+  transform: translateY(-1px);
+}
+
+.ai-dock-bubble-user {
+  background: #2d78c7;
+  box-shadow: 0 10px 22px rgba(7, 47, 100, 0.34);
+}
+
+.ai-dock-bubble-assistant {
+  background: #194f7d;
+  box-shadow: 0 10px 22px rgba(3, 21, 47, 0.28);
 }
 
 .ai-dock-msg-enter {
@@ -107,13 +224,15 @@
   padding: 4px 10px;
   font-size: 11px;
   line-height: 1;
-  transition: all 0.18s ease;
+  box-shadow: inset 0 1px 0 rgba(198, 233, 255, 0.1);
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
 }
 
 .ai-dock-card-action:hover {
   border-color: #70c1ff;
   color: #eff8ff;
   background: rgba(25, 86, 143, 0.85);
+  transform: translateY(-1px);
 }
 
 .ai-dock-card-action-primary {

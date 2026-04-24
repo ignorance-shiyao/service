@@ -310,14 +310,14 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
     <div
       ref={wrapRef}
       style={{ ...style, width: store.windowSize.width, height: store.windowSize.height }}
-      className={`ai-dock-surface fixed z-[220] flex flex-col overflow-hidden rounded-[16px] border border-[#2e6aa9] bg-[#0a2a52] shadow-[0_18px_48px_rgba(2,16,38,0.58),0_0_0_1px_rgba(87,172,242,0.2)] ${isDragging ? 'cursor-grabbing' : ''}`}
+      className={`ai-dock-surface fixed z-[220] flex flex-col overflow-hidden rounded-[16px] border border-[#2e6aa9] ${isDragging ? 'cursor-grabbing' : ''}`}
     >
       <span className="ai-dock-ambient ai-dock-ambient-a" />
       <span className="ai-dock-ambient ai-dock-ambient-b" />
       <span className="ai-dock-ambient ai-dock-ambient-c" />
-      <div className="relative flex h-[56px] items-center justify-between border-b border-[#2a639f] bg-[#103d6e] px-3" onMouseDown={startDrag} onDoubleClick={onHeaderDoubleClick}>
+      <div className="ai-dock-header relative flex h-[56px] items-center justify-between border-b border-[#2a639f] px-3" onMouseDown={startDrag} onDoubleClick={onHeaderDoubleClick}>
         <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#4e95cf] bg-[#1a4f82] shadow-[0_8px_18px_rgba(6,33,70,0.3)]">
+          <div className="ai-dock-avatar-frame flex h-9 w-9 items-center justify-center rounded-lg border border-[#4e95cf]">
             <img src={robotEntryIcon} alt="AI管家" className="h-7 w-7" draggable={false} />
           </div>
           <div>
@@ -331,22 +331,22 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
         <div className="flex items-center gap-1">
           <button
             type="button"
-            className="rounded-full border border-[#3f82c0] bg-[#1a548f] p-1.5 text-[#c8e7ff] transition hover:border-[#68bdff] hover:bg-[#2369ad]"
+            className="ai-dock-icon-button rounded-full p-1.5"
             onClick={() => setHistoryOpen((v) => !v)}
             title="会话历史"
           >
             <History size={13} />
           </button>
-          <button type="button" className="rounded-full border border-[#3f82c0] bg-[#1a548f] p-1.5 text-[#c8e7ff] transition hover:border-[#68bdff] hover:bg-[#2369ad]" onClick={store.clearConversation} title="清空会话"><RotateCcw size={13} /></button>
-          <button type="button" className="rounded-full border border-[#3f82c0] bg-[#1a548f] p-1.5 text-[#c8e7ff] transition hover:border-[#68bdff] hover:bg-[#2369ad]" onClick={cycleSizeMode} title={cycleLabel}>
+          <button type="button" className="ai-dock-icon-button rounded-full p-1.5" onClick={store.clearConversation} title="清空会话"><RotateCcw size={13} /></button>
+          <button type="button" className="ai-dock-icon-button rounded-full p-1.5" onClick={cycleSizeMode} title={cycleLabel}>
             {cycleIcon}
           </button>
-          <button type="button" className="rounded-full border border-[#3f82c0] bg-[#1a548f] p-1.5 text-[#c8e7ff] transition hover:border-[#68bdff] hover:bg-[#2369ad]" onClick={onClose} title="关闭"><X size={13} /></button>
+          <button type="button" className="ai-dock-icon-button rounded-full p-1.5" onClick={onClose} title="关闭"><X size={13} /></button>
         </div>
       </div>
 
       {historyOpen && (
-        <div className="absolute left-3 top-[64px] z-30 w-[248px] overflow-hidden rounded-xl border border-[#2f6fae] bg-[#113763] shadow-[0_14px_30px_rgba(5,27,59,0.56)]">
+        <div className="ai-dock-popover absolute left-3 top-[64px] z-30 w-[248px] overflow-hidden rounded-xl border border-[#2f6fae]">
           <div className="flex items-center justify-between border-b border-[#2d659f] px-3 py-2">
             <div className="text-xs font-semibold text-[#d8eeff]">会话历史</div>
             <button
@@ -367,7 +367,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
                 value={historyKeyword}
                 onChange={(e) => setHistoryKeyword(e.target.value)}
                 placeholder="搜索会话/客户/关键词"
-                className="w-full rounded-md border border-[#3a6f9d] bg-[#123e69] px-2 py-1 text-[10px] text-[#d6ebff] placeholder:text-[#85b0d2] outline-none focus:border-[#62b9ff]"
+                className="ai-dock-input w-full rounded-md border border-[#3a6f9d] bg-[#123e69] px-2 py-1 text-[10px] text-[#d6ebff] placeholder:text-[#85b0d2] outline-none focus:border-[#62b9ff]"
               />
             </div>
             <div className="mb-2 flex items-center justify-between">
@@ -416,7 +416,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
               return (
                 <div
                   key={session.id}
-                  className={`mb-1.5 rounded-lg border px-2 py-1.5 ${active ? 'border-[#62baff] bg-[#1b538a]' : 'border-[#2f649c] bg-[#153f6e] hover:border-[#4f91c7]'}`}
+                  className={`ai-dock-session-item mb-1.5 rounded-lg border px-2 py-1.5 ${active ? 'border-[#62baff] bg-[#1b538a]' : 'border-[#2f649c] bg-[#153f6e] hover:border-[#4f91c7]'}`}
                 >
                   <div
                     role="button"
@@ -480,12 +480,12 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
       <div
         ref={listRef}
         onScroll={handleMessageScroll}
-        className="relative min-h-0 flex-1 overflow-y-auto custom-scrollbar"
+        className="ai-dock-message-pane relative min-h-0 flex-1 overflow-y-auto custom-scrollbar"
       >
         <div className={contentWrapClass}>
           {!hasUserMessage && (
             <div className="px-1 pt-4">
-              <div className="rounded-2xl border border-[#2f6fad] bg-[#143d6b] p-4 text-center">
+              <div className="ai-dock-welcome-card rounded-2xl border border-[#2f6fad] p-4 text-center">
                 <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-[#6fc2ff] bg-[#2f77c9] text-[#e9f6ff] shadow-[0_0_20px_rgba(83,174,248,0.35)]">
                   <img src={robotEntryIcon} alt="智能体图标" className="ai-dock-hero-robot h-7 w-7" draggable={false} />
                 </div>
@@ -530,9 +530,9 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
         )}
       </div>
 
-      <div className="border-t border-[#2a639f] bg-[#0f3560] px-3 py-2">
+      <div className="ai-dock-composer-band border-t border-[#2a639f] px-3 py-2">
         <div className={contentWrapClass}>
-          <div className="rounded-2xl border border-[#3575b3] bg-[#123d6f] px-2 py-2 shadow-[inset_0_1px_0_rgba(125,195,255,0.22)]">
+          <div className="ai-dock-composer rounded-2xl border border-[#3575b3] px-2 py-2">
             <QuickChipsBar chips={store.quickChips} onClick={store.handleQuickChip} className="mb-2" />
             {store.isResponding && (
               <div className="mb-1.5 flex items-center gap-1.5 px-1 text-[11px] text-[#9ed1f5]">
@@ -541,7 +541,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
               </div>
             )}
             <div className="flex h-[44px] items-center gap-2">
-            <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#3f82c0] bg-[#1a548f] text-[#bfe1ff] transition hover:border-[#68bdff] hover:bg-[#2369ad]" title="上传附件">
+            <button type="button" className="ai-dock-icon-button inline-flex h-8 w-8 rounded-full" title="上传附件">
               <Paperclip size={13} />
             </button>
             <textarea
@@ -562,13 +562,13 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
               <button
                 type="button"
                 onClick={store.stopResponding}
-                className="inline-flex h-9 items-center gap-1 rounded-full border border-[#7dbfff] bg-[#2a5f96] px-3 text-xs font-semibold text-[#eaf6ff] shadow-[0_8px_18px_rgba(10,54,108,0.36)]"
+                className="inline-flex h-9 items-center gap-1 rounded-full border border-[#7dbfff] bg-[#2a5f96] px-3 text-xs font-semibold text-[#eaf6ff] shadow-[0_8px_18px_rgba(10,54,108,0.36)] transition hover:translate-y-[-1px]"
               >
                 <Square size={11} />
                 停止
               </button>
             ) : (
-              <button type="button" onClick={submit} className="inline-flex h-9 items-center gap-1 rounded-full border border-[#57adff] bg-[#2b71c4] px-3 text-xs font-semibold text-[#eff8ff] shadow-[0_8px_18px_rgba(10,54,108,0.36)]">
+              <button type="button" onClick={submit} className="ai-dock-send-button inline-flex h-9 items-center gap-1 rounded-full border border-[#57adff] px-3 text-xs font-semibold text-[#eff8ff]">
                 <Send size={13} />
                 发送
               </button>

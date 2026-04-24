@@ -8,6 +8,8 @@ import { BusinessQueryCard } from './cards/BusinessQueryCard';
 import { DiagnosisSelectCard } from './cards/DiagnosisSelectCard';
 import { DiagnosisProgress } from './cards/DiagnosisProgress';
 import { DiagnosisReportCard } from './cards/DiagnosisReportCard';
+import { BusinessDiagnosisSelectCard } from './cards/BusinessDiagnosisSelectCard';
+import { BusinessDiagnosisReportCard } from './cards/BusinessDiagnosisReportCard';
 import { FaultFormCard } from './cards/FaultFormCard';
 import { TicketCard } from './cards/TicketCard';
 import { ProgressiveCardShell } from './cards/ProgressiveCardShell';
@@ -177,7 +179,42 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                   onAsk={store.sendUserText}
                   onFault={(data) => {
                     store.setTicketDraftFromDiagnosis(data);
+                    store.setFaultContext({
+                      source: 'diagnosis',
+                      title: `${data.name}异常报障`,
+                      business: data.name,
+                      businessType: data.name,
+                      severity: data.score < 82 ? '高' : '中',
+                      desc: `故障业务：${data.name}\n诊断标题：${data.title}\n诊断结论：${data.conclusion}\n关键发现：${data.findings.join('；')}\n建议：${data.suggestions.join('；')}`,
+                    });
                     store.sendUserText('我要发起报障', 'fault');
+                  }}
+                />
+              )
+            )}
+
+            {message.kind === 'businessDiagnosisSelect' && (
+              wrapCard(
+                message,
+                <BusinessDiagnosisSelectCard
+                  categories={message.data}
+                  onSubmit={store.runBusinessDiagnosisFlow}
+                  onCopy={copyMessage}
+                  onAsk={store.sendUserText}
+                />
+              )
+            )}
+
+            {message.kind === 'businessDiagnosisReport' && (
+              wrapCard(
+                message,
+                <BusinessDiagnosisReportCard
+                  data={message.data}
+                  onCopy={copyMessage}
+                  onAsk={store.sendUserText}
+                  onFault={(context) => {
+                    store.setFaultContext(context);
+                    store.sendUserText(`${context.business}发起报障`, 'fault');
                   }}
                 />
               )
@@ -189,6 +226,10 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                 <FaultFormCard
                   defaultTitle={message.data.defaultTitle}
                   defaultBusiness={message.data.defaultBusiness}
+                  defaultDesc={message.data.defaultDesc}
+                  defaultSeverity={message.data.defaultSeverity}
+                  context={message.data.context}
+                  businessOptions={message.data.businessOptions}
                   fromDiagnosis={message.data.fromDiagnosis}
                   onSubmit={store.submitFaultTicket}
                 />

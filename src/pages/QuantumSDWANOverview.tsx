@@ -1499,19 +1499,19 @@ export const QuantumSDWANOverview: React.FC = () => {
               )}
               {hoveredSite && (
                 <div
-                  className="pointer-events-none absolute z-[2] w-[180px] -translate-x-1/2 rounded border border-[#2b6cb3] bg-[var(--comp-panel-background)]/95 p-2 text-[10px] text-[#d7ecff] shadow-[0_0_18px_rgba(34,139,255,0.28)]"
+                  className="pointer-events-none absolute z-[2] w-[188px] -translate-x-1/2 rounded border border-[#55a8ff]/75 bg-[linear-gradient(155deg,rgba(8,42,87,0.97)_0%,rgba(7,35,73,0.95)_58%,rgba(5,27,58,0.93)_100%)] p-2 text-[10px] text-[#e4f2ff] backdrop-blur-[2px] shadow-[0_0_22px_rgba(34,139,255,0.34)]"
                   style={{ left: `${hoveredSite.x}%`, top: `${hoveredSite.y - 9}%` }}
                 >
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-[#e6f3ff]">{hoveredSite.site.name}</span>
-                    <span className={`rounded px-1 py-[1px] text-[9px] ${hoveredSite.site.quantum ? 'bg-[#5b21b6]/50 text-[#eedbff]' : 'bg-[#0b4d85]/60 text-[#bde4ff]'}`}>
+                    <span className="text-[11px] font-semibold tracking-[0.02em] text-[#f2f8ff]">{hoveredSite.site.name}</span>
+                    <span className={`rounded border px-1 py-[1px] text-[9px] ${hoveredSite.site.quantum ? 'border-[#ba8bff]/60 bg-[#5b21b6]/72 text-[#f3e9ff]' : 'border-[#75c7ff]/55 bg-[#0b4d85]/78 text-[#d5eeff]'}`}>
                       {hoveredSite.site.quantum ? '量子站点' : '普通站点'}
                     </span>
                   </div>
-                  <div>类型: {hoveredSite.site.type}</div>
-                  <div>设备型号: {hoveredSite.site.model}</div>
-                  <div>隧道数: {hoveredSite.site.tunnels}</div>
-                  <div>量子状态: {hoveredSite.site.quantum ? '已启用' : '未启用'}</div>
+                  <div className="text-[#e4f2ff]/95">类型: {hoveredSite.site.type}</div>
+                  <div className="text-[#e4f2ff]/95">设备型号: {hoveredSite.site.model}</div>
+                  <div className="text-[#e4f2ff]/95">隧道数: {hoveredSite.site.tunnels}</div>
+                  <div className="text-[#e4f2ff]/95">量子状态: {hoveredSite.site.quantum ? '已启用' : '未启用'}</div>
                 </div>
               )}
             </div>

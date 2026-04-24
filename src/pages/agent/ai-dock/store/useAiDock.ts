@@ -19,6 +19,8 @@ export type MessageKind =
   | 'diagnosisSelect'
   | 'diagnosisProgress'
   | 'diagnosisReport'
+  | 'businessDiagnosisSelect'
+  | 'businessDiagnosisReport'
   | 'faultForm'
   | 'ticketCard'
   | 'systemNotice'
@@ -64,6 +66,7 @@ export type AiConversationSession = {
   tickets: TicketItem[];
   activeReportId: string;
   ticketDraftFromDiagnosis: DiagnosisTemplate | null;
+  faultContext: FaultContext | null;
 };
 
 export type AiConversationSessionMeta = {
@@ -127,6 +130,48 @@ type BusinessQueryCategory = {
   code: ManagedBusiness['code'];
   label: string;
   items: BusinessQueryItem[];
+};
+
+export type BusinessDiagnosisTarget = {
+  code: ManagedBusiness['code'];
+  label: string;
+  item: BusinessQueryItem;
+};
+
+export type BusinessDiagnosisResult = {
+  id: string;
+  name: string;
+  type: string;
+  region: string;
+  site: string;
+  score: number;
+  level: '健康' | '关注' | '异常';
+  summary: string;
+  metrics: Array<{ label: string; value: string; status: 'normal' | 'warning' | 'danger' }>;
+  findings: string[];
+  suggestions: string[];
+};
+
+export type BusinessDiagnosisReportPayload = {
+  title: string;
+  generatedAt: string;
+  total: number;
+  averageScore: number;
+  summary: string;
+  results: BusinessDiagnosisResult[];
+  nextActions: string[];
+};
+
+export type FaultContext = {
+  source: 'businessDiagnosis' | 'diagnosis' | 'manual';
+  title: string;
+  business: string;
+  businessId?: string;
+  businessType?: string;
+  region?: string;
+  site?: string;
+  severity?: string;
+  desc?: string;
 };
 
 type FlowStatus = 'running' | 'done' | 'stopped';
@@ -401,6 +446,69 @@ const buildBusinessQueryData = (customer: CustomerContext): BusinessQueryCategor
   });
 };
 
+const buildBusinessDiagnosisReport = (targets: BusinessDiagnosisTarget[]): BusinessDiagnosisReportPayload => {
+  const results: BusinessDiagnosisResult[] = targets.map((target, index) => {
+    const seed = target.item.id.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0) + index * 7;
+    const score = Math.max(68, Math.min(98, 96 - (seed % 27)));
+    const level: BusinessDiagnosisResult['level'] = score >= 88 ? '健康' : score >= 78 ? '关注' : '异常';
+    const latency = 8 + (seed % 34);
+    const loss = Number(((seed % 48) / 100).toFixed(2));
+    const availability = Number((99.96 - (seed % 42) / 100).toFixed(2));
+    const riskText =
+      level === '健康'
+        ? '核心指标稳定，当前未发现明显风险。'
+        : level === '关注'
+          ? '存在轻微波动，建议纳入重点观察。'
+          : '存在质量异常，需要尽快排查处理。';
+
+    return {
+      id: target.item.id,
+      name: target.item.name,
+      type: target.label,
+      region: target.item.region,
+      site: target.item.site,
+      score,
+      level,
+      summary: `${target.label}「${target.item.name}」诊断完成，${riskText}`,
+      metrics: [
+        { label: '可用率', value: `${availability}%`, status: availability >= 99.7 ? 'normal' : availability >= 99.4 ? 'warning' : 'danger' },
+        { label: '时延', value: `${latency}ms`, status: latency <= 22 ? 'normal' : latency <= 32 ? 'warning' : 'danger' },
+        { label: '丢包', value: `${loss}%`, status: loss <= 0.18 ? 'normal' : loss <= 0.35 ? 'warning' : 'danger' },
+        { label: '健康评分', value: `${score}`, status: level === '健康' ? 'normal' : level === '关注' ? 'warning' : 'danger' },
+      ],
+      findings: [
+        level === '健康' ? '近24小时关键指标处于稳定区间' : '近24小时存在指标波动，峰值集中在业务高峰时段',
+        `${target.item.region} 接入侧链路质量${level === '异常' ? '低于基线' : '符合当前业务基线'}`,
+        `业务安装点「${target.item.site}」最近一次资料更新时间为 ${target.item.updatedAt}`,
+      ],
+      suggestions: [
+        level === '异常' ? '建议立即发起报障并关联本次体检结果' : '建议保持当前巡检策略并持续观察趋势',
+        level === '健康' ? '可纳入低频巡检清单' : '建议提高该业务未来7天巡检频次',
+        '如需进一步定位，可继续发起单业务深度诊断',
+      ],
+    };
+  });
+
+  const averageScore = Math.round(results.reduce((sum, item) => sum + item.score, 0) / Math.max(1, results.length));
+  const abnormalCount = results.filter((item) => item.level === '异常').length;
+  const warningCount = results.filter((item) => item.level === '关注').length;
+  const typeSummary = Array.from(new Set(results.map((item) => item.type))).join('、') || '业务';
+
+  return {
+    title: '业务体检报告',
+    generatedAt: new Date().toLocaleString('zh-CN', { hour12: false }),
+    total: results.length,
+    averageScore,
+    summary: `本次共体检 ${results.length} 条业务，覆盖 ${typeSummary}。平均健康评分 ${averageScore} 分，${abnormalCount} 条异常，${warningCount} 条需要关注。`,
+    results,
+    nextActions: [
+      abnormalCount > 0 ? '优先处理异常业务，建议直接发起报障并附带体检结果。' : '当前未发现严重异常，可保持日常巡检节奏。',
+      warningCount > 0 ? '对关注业务设置未来7天重点观察，跟踪时延、丢包和可用率变化。' : '关注业务数量较少，可按现有服务等级继续运营。',
+      '如客户需要汇报材料，可基于本次体检结果继续生成运行说明。',
+    ],
+  };
+};
+
 const createSession = (title?: string): AiConversationSession => {
   const now = Date.now();
   return {
@@ -413,6 +521,7 @@ const createSession = (title?: string): AiConversationSession => {
     tickets: TICKETS,
     activeReportId: REPORTS[0].id,
     ticketDraftFromDiagnosis: null,
+    faultContext: null,
   };
 };
 
@@ -451,6 +560,15 @@ const buildSessionSnapshotTags = (messages: AiMessage[]): Array<{ label: string;
     if (message.kind === 'diagnosisReport') {
       const score = typeof message.data?.score === 'number' ? ` ${message.data.score}分` : '';
       pushTag('diagnosis', `诊断完成${score}`, 'cyan');
+      continue;
+    }
+    if (message.kind === 'businessDiagnosisReport') {
+      const score = typeof message.data?.averageScore === 'number' ? ` ${message.data.averageScore}分` : '';
+      pushTag('health_check', `体检完成${score}`, 'cyan');
+      continue;
+    }
+    if (message.kind === 'businessDiagnosisSelect') {
+      pushTag('health_select', '业务体检', 'cyan');
       continue;
     }
     if (message.kind === 'reportCard') {
@@ -513,6 +631,7 @@ const toValidSession = (value: any): AiConversationSession | null => {
     tickets: value.tickets as TicketItem[],
     activeReportId,
     ticketDraftFromDiagnosis: (value.ticketDraftFromDiagnosis as DiagnosisTemplate | null) || null,
+    faultContext: (value.faultContext as FaultContext | null) || null,
   };
 };
 
@@ -583,6 +702,7 @@ export const useAiDock = () => {
   const tickets = activeSession?.tickets || TICKETS;
   const activeReportId = activeSession?.activeReportId || REPORTS[0].id;
   const ticketDraftFromDiagnosis = activeSession?.ticketDraftFromDiagnosis || null;
+  const faultContext = activeSession?.faultContext || null;
   const activeCustomer = activeSession?.customer || CUSTOMER_POOL[0];
 
   const activeReport = useMemo(
@@ -739,6 +859,7 @@ export const useAiDock = () => {
       tickets: TICKETS,
       activeReportId: REPORTS[0].id,
       ticketDraftFromDiagnosis: null,
+      faultContext: null,
     }));
     setDrawer(null);
     setIsResponding(false);
@@ -811,6 +932,51 @@ export const useAiDock = () => {
       logs,
     });
     appendMessage({ role: 'assistant', kind: 'diagnosisReport', data: template });
+  }, [appendMessage, updateMessageData]);
+
+  const runBusinessDiagnosisFlow = useCallback(async (targets: BusinessDiagnosisTarget[]) => {
+    if (targets.length === 0) return;
+    const selectedText = targets.length > 6
+      ? `${targets.slice(0, 6).map((target) => target.item.name).join('、')} 等 ${targets.length} 条业务`
+      : targets.map((target) => target.item.name).join('、');
+    let logs: FlowLogEntry[] = appendFlowLog([], `已接收业务体检任务：${selectedText}`);
+
+    await delay(260);
+    const progressId = appendMessage({
+      role: 'assistant',
+      kind: 'diagnosisProgress',
+      data: {
+        title: '业务体检执行中',
+        progress: 0,
+        step: '准备采集所选业务指标',
+        running: true,
+        status: 'running',
+        logs,
+      },
+    });
+
+    const steps = [
+      '采集业务运行指标',
+      '关联站点、链路和资源信息',
+      '计算健康评分与风险等级',
+      '生成体检摘要、详情和后续建议',
+    ];
+    for (let i = 0; i < steps.length; i += 1) {
+      await delay(520);
+      const progress = Math.round(((i + 1) / steps.length) * 100);
+      logs = appendFlowLog(logs, `${steps[i]}完成`);
+      updateMessageData(progressId, {
+        progress,
+        step: steps[i],
+        running: progress < 100,
+        status: progress < 100 ? 'running' : 'done',
+        logs,
+      });
+    }
+
+    await delay(320);
+    const report = buildBusinessDiagnosisReport(targets);
+    appendMessage({ role: 'assistant', kind: 'businessDiagnosisReport', data: report });
   }, [appendMessage, updateMessageData]);
 
   const runReportExport = useCallback(async (type: 'pdf' | 'image') => {
@@ -904,15 +1070,26 @@ export const useAiDock = () => {
 
     if (resolvedIntent === 'fault') {
       await appendCardWithThinking(() => {
+        const businessOptions = buildBusinessQueryData(activeCustomer)
+          .flatMap((category) => category.items.slice(0, 10).map((item) => ({
+            id: item.id,
+            label: `${category.label}｜${item.name}`,
+            value: item.name,
+            type: category.label,
+            region: item.region,
+            site: item.site,
+          })));
         appendMessage({
           role: 'assistant',
           kind: 'faultForm',
           data: {
-            defaultTitle: ticketDraftFromDiagnosis
-              ? `${ticketDraftFromDiagnosis.name}异常报障`
-              : '业务异常报障',
-            defaultBusiness: ticketDraftFromDiagnosis?.name || '政企业务专网',
-            fromDiagnosis: !!ticketDraftFromDiagnosis,
+            defaultTitle: faultContext?.title || (ticketDraftFromDiagnosis ? `${ticketDraftFromDiagnosis.name}异常报障` : '业务异常报障'),
+            defaultBusiness: faultContext?.business || ticketDraftFromDiagnosis?.name || businessOptions[0]?.value || '政企业务专网',
+            defaultDesc: faultContext?.desc || '',
+            defaultSeverity: faultContext?.severity || '中',
+            context: faultContext,
+            businessOptions,
+            fromDiagnosis: !!ticketDraftFromDiagnosis || !!faultContext,
           },
         });
       }, 420);
@@ -923,7 +1100,11 @@ export const useAiDock = () => {
       const matched = pickDiagnosis(input);
       if (!matched) {
         await appendCardWithThinking(() => {
-          appendMessage({ role: 'assistant', kind: 'diagnosisSelect', data: DIAGNOSIS_TEMPLATES });
+          appendMessage({
+            role: 'assistant',
+            kind: 'businessDiagnosisSelect',
+            data: buildBusinessQueryData(activeCustomer),
+          });
         }, 360);
       } else {
         await runDiagnosisFlow(matched);
@@ -982,7 +1163,7 @@ export const useAiDock = () => {
         },
       });
     }, 360);
-  }, [activeCustomer, activeReport, appendCardWithThinking, appendMessage, pushQa, runDiagnosisFlow, ticketDraftFromDiagnosis, tickets]);
+  }, [activeCustomer, activeReport, appendCardWithThinking, appendMessage, faultContext, pushQa, runDiagnosisFlow, ticketDraftFromDiagnosis, tickets]);
 
   const sendUserText = useCallback(async (text: string, forcedIntent?: IntentType) => {
     const trimmed = text.trim();
@@ -1071,6 +1252,7 @@ export const useAiDock = () => {
       updatedAt: Date.now(),
       tickets: [ticket, ...session.tickets],
       ticketDraftFromDiagnosis: null,
+      faultContext: null,
     }));
 
     const { id: noticeId, logs: initialLogs } = createSystemNoticeFlow(`工单 ${id} 状态流转中`, `工单 ${id} 已创建，等待系统分派`, 25);
@@ -1106,6 +1288,10 @@ export const useAiDock = () => {
 
   const setTicketDraftFromDiagnosis = useCallback((diagnosis: DiagnosisTemplate | null) => {
     updateActiveSession((session) => ({ ...session, ticketDraftFromDiagnosis: diagnosis, updatedAt: Date.now() }));
+  }, [updateActiveSession]);
+
+  const setFaultContext = useCallback((context: FaultContext | null) => {
+    updateActiveSession((session) => ({ ...session, faultContext: context, updatedAt: Date.now() }));
   }, [updateActiveSession]);
 
   const createConversation = useCallback(() => {
@@ -1204,7 +1390,9 @@ export const useAiDock = () => {
     setActiveReportId,
     runReportExport,
     runDiagnosisFlow,
+    runBusinessDiagnosisFlow,
     setTicketDraftFromDiagnosis,
+    setFaultContext,
     submitFaultTicket,
     managedBusinesses: MANAGED_BUSINESSES,
     activeSessionId,
