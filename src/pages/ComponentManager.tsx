@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, Button, Badge, Input, SectionTitle, Modal, ConfirmDialog, Select } from '../components/UI';
 import { Search, Plus, LayoutGrid, Eye, Code, Edit2, List, Grid, Monitor, Trash2, FolderPlus, MoreVertical, Folder, AlertCircle, ChevronDown, ChevronRight, ChevronsLeft, ChevronsRight, FileCode } from 'lucide-react';
-import { BUSINESS_TYPES, MOCK_COMPONENTS } from '../constants';
 import { useGlobalContext } from '../GlobalContext';
 import { BizLinePreview } from '../components/previews/BizLinePreview';
 import { BizInetPreview } from '../components/previews/BizInetPreview';
@@ -18,21 +17,23 @@ import { BizSDWANPreview } from '../components/previews/BizSDWANPreview';
 import { GenericPreview } from '../components/previews/GenericPreview';
 import { ComponentEditor } from '../components/ComponentEditor';
 import { useNavigate, useMatch } from 'react-router-dom';
+import { useAppData } from '../context/AppDataContext';
 
 export const ComponentManager: React.FC = () => {
   const { mode, currentDomain } = useGlobalContext();
+  const { components: sourceComponents, businessTypes } = useAppData();
   const navigate = useNavigate();
   
   // Data States
   // Initialize with remark and status fields
-  const [components, setComponents] = useState(() => 
-      MOCK_COMPONENTS.map(c => ({
+  const [components, setComponents] = useState(() =>
+      sourceComponents.map(c => ({
           ...c,
           status: (c as any).status || 'published' 
       }))
   );
   
-  const [categories, setCategories] = useState(BUSINESS_TYPES.map(b => ({ ...b, remark: '' })));
+  const [categories, setCategories] = useState(businessTypes.map(b => ({ ...b, remark: '' })));
   
   // Sidebar State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -55,6 +56,19 @@ export const ComponentManager: React.FC = () => {
   const [currentGroup, setCurrentGroup] = useState<{ name: string, code: string, remark: string, id?: string }>({ name: '', code: '', remark: '' });
   const [groupDeleteId, setGroupDeleteId] = useState<string | null>(null);
   const [groupDeleteWarning, setGroupDeleteWarning] = useState<string | null>(null);
+
+  useEffect(() => {
+    setComponents(
+      sourceComponents.map((c) => ({
+        ...c,
+        status: (c as any).status || 'published',
+      }))
+    );
+  }, [sourceComponents]);
+
+  useEffect(() => {
+    setCategories(businessTypes.map((b) => ({ ...b, remark: '' })));
+  }, [businessTypes]);
 
   // Initialize Group Form
   useEffect(() => {

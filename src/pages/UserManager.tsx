@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, Table, Button, Badge, Modal, Input, Select, Switch, ConfirmDialog, SectionTitle, ColumnConfigDialog } from '../components/UI';
 import { Plus, Edit2, Trash2, Search, RotateCcw, UserPlus, Folder, ChevronDown, ChevronRight, User as UserIcon, Mail, Phone, Shield, Lock, Eye, CheckSquare, Check, AlertTriangle, RefreshCcw, Settings, Grid, MoreHorizontal, Building2, GitBranch, Download, ChevronsLeft, ChevronsRight } from 'lucide-react';
-import { MOCK_USERS, MOCK_ROLES, MOCK_DOMAINS, MOCK_MENUS, REGIONS, BUSINESS_TYPES, MOCK_DEPTS } from '../constants';
 import { User, Domain, Role, Menu, Department } from '../types';
 import { useGlobalContext } from '../GlobalContext';
 import { useNavigate, useMatch } from 'react-router-dom';
 import { showAppToast } from '../components/AppFeedback';
+import { useAppData } from '../context/AppDataContext';
 
 // Unified Node Type for the Sidebar
 type MixedNode = {
@@ -18,13 +18,14 @@ type MixedNode = {
 
 export const UserManager: React.FC = () => {
   const { mode, currentDomain } = useGlobalContext();
+  const { users, roles, domains, menus, regions, businessTypes, depts } = useAppData();
   const navigate = useNavigate();
   
   const [selectedNode, setSelectedNode] = useState<{ id: string, type: 'domain' | 'dept' } | null>(null);
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
   const [isTreeOpen, setIsTreeOpen] = useState(true);
 
-  const [userData, setUserData] = useState<User[]>(MOCK_USERS);
+  const [userData, setUserData] = useState<User[]>([]);
   
   const [searchUsername, setSearchUsername] = useState('');
   const [searchRoleId, setSearchRoleId] = useState(''); 
@@ -49,6 +50,10 @@ export const UserManager: React.FC = () => {
   // Column Config
   const [isColumnConfigOpen, setIsColumnConfigOpen] = useState(false);
 
+  useEffect(() => {
+    setUserData(users);
+  }, [users]);
+
   // Sync Modal State with Route
   useEffect(() => {
       if (matchAdd) {
@@ -61,7 +66,7 @@ export const UserManager: React.FC = () => {
               if (selectedNode.type === 'domain') {
                   baseDomainId = selectedNode.id;
               } else if (selectedNode.type === 'dept') {
-                  const dept = MOCK_DEPTS.find(d => d.id === selectedNode.id);
+                  const dept = depts.find(d => d.id === selectedNode.id);
                   if (dept) {
                       baseDomainId = dept.domainId;
                       deptId = dept.id;
@@ -136,7 +141,7 @@ export const UserManager: React.FC = () => {
     { 
         key: 'dept', header: '所属部门', 
         accessor: (row: User) => {
-            const deptName = row.deptId ? (MOCK_DEPTS.find(d => d.id === row.deptId)?.name || row.deptId) : null;
+            const deptName = row.deptId ? (depts.find(d => d.id === row.deptId)?.name || row.deptId) : null;
             return (
                 <div className="flex items-center justify-center text-slate-300 text-sm">
                     {deptName ? (
@@ -154,11 +159,11 @@ export const UserManager: React.FC = () => {
     { 
         key: 'role', header: '所属角色', 
         accessor: (row: User) => {
-            const roles = row.roles.map(r => MOCK_ROLES.find(mr => mr.id === r.roleId)?.name).filter(Boolean);
-            if (roles.length === 0) return <span className="text-slate-500 text-xs">-</span>;
+            const roleNames = row.roles.map(r => roles.find(mr => mr.id === r.roleId)?.name).filter(Boolean);
+            if (roleNames.length === 0) return <span className="text-slate-500 text-xs">-</span>;
             return (
                 <div className="flex flex-wrap gap-1 justify-center">
-                    {roles.map((r, i) => <Badge key={i} color="blue">{r}</Badge>)}
+                    {roleNames.map((r, i) => <Badge key={i} color="blue">{r}</Badge>)}
                 </div>
             )
         }
@@ -168,7 +173,7 @@ export const UserManager: React.FC = () => {
         accessor: (row: User) => (
             <div className="flex items-center text-slate-300 text-sm justify-center">
                 <Folder size={12} className="mr-1.5 text-blue-500"/>
-                {MOCK_DOMAINS.find(d => d.id === row.baseDomainId)?.name}
+                {domains.find(d => d.id === row.baseDomainId)?.name}
             </div>
         )
     },
@@ -217,7 +222,7 @@ export const UserManager: React.FC = () => {
           setSearchDomainId(currentDomain.id);
       } else {
           // Find root domain
-          const root = MOCK_DOMAINS.find(d => !d.parentId);
+          const root = domains.find(d => !d.parentId);
           if (root) {
               setSelectedNode({ id: root.id, type: 'domain' });
               setExpandedKeys(new Set([root.id]));
@@ -232,7 +237,7 @@ export const UserManager: React.FC = () => {
       const domainNodes = new Map<string, MixedNode>();
       
       // Filter domains based on mode
-      let visibleDomains = MOCK_DOMAINS;
+      let visibleDomains = domains;
       if (mode === 'switching' && currentDomain) {
           visibleDomains = [currentDomain];
       }
@@ -269,10 +274,10 @@ export const UserManager: React.FC = () => {
       });
 
       domainNodes.forEach((node) => {
-          const domainRootDepts = MOCK_DEPTS.filter(d => d.domainId === node.id && d.parentId === null);
+          const domainRootDepts = depts.filter(d => d.domainId === node.id && d.parentId === null);
           const deptNodes = domainRootDepts.map(d => {
               const buildDeptTree = (root: Department): MixedNode => {
-                  const children = MOCK_DEPTS.filter(child => child.parentId === root.id);
+                  const children = depts.filter(child => child.parentId === root.id);
                   return {
                       id: root.id,
                       name: root.name,
@@ -288,7 +293,7 @@ export const UserManager: React.FC = () => {
       });
 
       return rootNodes;
-  }, [mode, currentDomain]);
+  }, [mode, currentDomain, domains, depts]);
 
   const toggleExpand = (e: React.MouseEvent, id: string) => {
       e.stopPropagation();
@@ -381,7 +386,7 @@ export const UserManager: React.FC = () => {
       }
 
       const newRoles = Array.from(selectedRoleIds).map(rId => {
-          const roleDef = MOCK_ROLES.find(r => r.id === rId);
+          const roleDef = roles.find(r => r.id === rId);
           return {
               roleId: rId,
               targetDomainId: currentUser.baseDomainId!,
@@ -436,9 +441,9 @@ export const UserManager: React.FC = () => {
 
   // --- Helpers for Modal ---
   const getDeptOptions = (domainId: string) => {
-      const depts = MOCK_DEPTS.filter(d => d.domainId === domainId);
+      const domainDepts = depts.filter(d => d.domainId === domainId);
       const buildHierarchy = (parentId: string | null = null, depth = 0): {id: string, name: string, depth: number}[] => {
-          const children = depts.filter(d => d.parentId === parentId);
+          const children = domainDepts.filter(d => d.parentId === parentId);
           let res: {id: string, name: string, depth: number}[] = [];
           children.forEach(c => {
               res.push({ id: c.id, name: c.name, depth });
@@ -456,8 +461,8 @@ export const UserManager: React.FC = () => {
 
   const availableRoles = useMemo(() => {
       if (!currentUser.baseDomainId) return [];
-      return MOCK_ROLES.filter(r => r.domainId === currentUser.baseDomainId);
-  }, [currentUser.baseDomainId]);
+      return roles.filter(r => r.domainId === currentUser.baseDomainId);
+  }, [currentUser.baseDomainId, roles]);
 
   const toggleRoleSelection = (roleId: string) => {
       const newSet = new Set(selectedRoleIds);
@@ -468,7 +473,7 @@ export const UserManager: React.FC = () => {
 
   // --- Permission Audit Helper ---
   const calculateEffectivePermissions = (user: User) => {
-      const userRoles = user.roles.map(ur => MOCK_ROLES.find(r => r.id === ur.roleId)).filter(Boolean) as Role[];
+      const userRoles = user.roles.map(ur => roles.find(r => r.id === ur.roleId)).filter(Boolean) as Role[];
       const allMenuIds = new Set<string>();
       const allRegions = new Set<string>();
       const allBizTypes = new Set<string>();
@@ -544,7 +549,7 @@ export const UserManager: React.FC = () => {
                         <div className="w-40">
                             <Select 
                                 label="所属角色"
-                                options={[{label: '全部', value: ''}, ...MOCK_ROLES.map(r => ({label: r.name, value: r.id}))]}
+                                options={[{label: '全部', value: ''}, ...roles.map(r => ({label: r.name, value: r.id}))]}
                                 value={searchRoleId}
                                 onChange={e => setSearchRoleId(e.target.value)}
                             />
@@ -553,7 +558,7 @@ export const UserManager: React.FC = () => {
                         <div className="w-40">
                             <Select 
                                 label="所属域"
-                                options={[{label: '全部', value: ''}, ...MOCK_DOMAINS.map(d => ({label: d.name, value: d.id}))]}
+                                options={[{label: '全部', value: ''}, ...domains.map(d => ({label: d.name, value: d.id}))]}
                                 value={searchDomainId}
                                 onChange={e => setSearchDomainId(e.target.value)}
                                 disabled={mode === 'switching'} // Lock if in switching mode
@@ -596,7 +601,7 @@ export const UserManager: React.FC = () => {
             <Card className="flex-1 overflow-hidden flex flex-col">
                 <div className="flex justify-between items-center px-4 py-2 border-b border-[var(--sys-border-primary)] bg-slate-900/20">
                      <span className="text-xs text-slate-500">
-                         当前过滤: <span className="text-blue-400 font-medium">{selectedNode ? (selectedNode.type === 'domain' ? '域' : '部门') + ' - ' + (mixedTree.find(n => n.id === selectedNode.id)?.name || MOCK_DEPTS.find(d => d.id === selectedNode.id)?.name) : '全部'}</span>
+                         当前过滤: <span className="text-blue-400 font-medium">{selectedNode ? (selectedNode.type === 'domain' ? '域' : '部门') + ' - ' + (mixedTree.find(n => n.id === selectedNode.id)?.name || depts.find(d => d.id === selectedNode.id)?.name) : '全部'}</span>
                      </span>
                 </div>
 
@@ -664,7 +669,7 @@ export const UserManager: React.FC = () => {
                         <div className="relative">
                              <Select 
                                 label="归属组织 (Domain)" 
-                                options={MOCK_DOMAINS.map(d => ({ label: d.name, value: d.id }))}
+                                options={domains.map(d => ({ label: d.name, value: d.id }))}
                                 value={currentUser.baseDomainId}
                                 disabled={true}
                                 className="opacity-60 cursor-not-allowed bg-slate-800"
@@ -711,7 +716,7 @@ export const UserManager: React.FC = () => {
                     <div className="flex justify-between items-center mb-4">
                         <SectionTitle title="角色分配" className="mb-0" />
                         <span className="text-xs font-normal text-slate-500 bg-slate-800/50 px-2 py-1 rounded">
-                            组织: {MOCK_DOMAINS.find(d => d.id === currentUser.baseDomainId)?.name}
+                            组织: {domains.find(d => d.id === currentUser.baseDomainId)?.name}
                         </span>
                     </div>
                     
@@ -785,7 +790,7 @@ export const UserManager: React.FC = () => {
                                     <span className="text-xs text-green-500 flex items-center gap-1"><CheckSquare size={12}/> 已授权</span>
                                 </div>
                                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                                    {renderAuditMenuTree(MOCK_MENUS, calculateEffectivePermissions(auditUser).menus)}
+                                    {renderAuditMenuTree(menus, calculateEffectivePermissions(auditUser).menus)}
                                 </div>
                             </div>
                         </div>
@@ -803,7 +808,7 @@ export const UserManager: React.FC = () => {
                                          <div className="flex flex-wrap gap-2">
                                              {calculateEffectivePermissions(auditUser).regions.size > 0 ? (
                                                  Array.from(calculateEffectivePermissions(auditUser).regions).map(rCode => (
-                                                     <Badge key={rCode} color="gray">{REGIONS.find(r => r.code === rCode)?.name || rCode}</Badge>
+                                                     <Badge key={rCode} color="gray">{regions.find(r => r.code === rCode)?.name || rCode}</Badge>
                                                  ))
                                              ) : <span className="text-xs text-slate-600 italic">无特定区域限制</span>}
                                          </div>
@@ -813,7 +818,7 @@ export const UserManager: React.FC = () => {
                                          <div className="flex flex-wrap gap-2">
                                              {calculateEffectivePermissions(auditUser).bizTypes.size > 0 ? (
                                                  Array.from(calculateEffectivePermissions(auditUser).bizTypes).map(bCode => (
-                                                     <Badge key={bCode} color="blue">{BUSINESS_TYPES.find(b => b.code === bCode)?.name || bCode}</Badge>
+                                                     <Badge key={bCode} color="blue">{businessTypes.find(b => b.code === bCode)?.name || bCode}</Badge>
                                                  ))
                                              ) : <span className="text-xs text-slate-600 italic">无特定业务限制</span>}
                                          </div>

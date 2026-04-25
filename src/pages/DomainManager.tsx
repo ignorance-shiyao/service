@@ -1,15 +1,20 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, Table, Button, Badge, Modal, Input, Select, Switch, ConfirmDialog, SectionTitle, ColumnConfigDialog } from '../components/UI';
 import { Plus, Edit2, Trash2, Search, RotateCcw, Building2, ChevronLeft, ChevronRight, ChevronsRight, ChevronsLeft, Users, Repeat, Crown, Globe, Download, Settings, FileText } from 'lucide-react';
-import { MOCK_DOMAINS, MOCK_CUSTOMERS } from '../constants';
 import { Domain } from '../types';
 import { useGlobalContext } from '../GlobalContext';
 import { useNavigate, useMatch } from 'react-router-dom';
+import { useAppData } from '../context/AppDataContext';
 
 export const DomainManager: React.FC = () => {
   const { mode, currentDomain } = useGlobalContext();
+  const { domains, customers } = useAppData();
   const navigate = useNavigate();
-  const [data, setData] = useState<Domain[]>(MOCK_DOMAINS);
+  const [data, setData] = useState<Domain[]>([]);
+
+  useEffect(() => {
+    setData(domains);
+  }, [domains]);
 
   // Routing Matches
   const matchAdd = useMatch('/system/domain/add');
@@ -148,7 +153,7 @@ export const DomainManager: React.FC = () => {
         const ids = row.customerIds || [];
         if (ids.length === 0) return <span className="text-slate-500">-</span>;
         
-        const names = ids.map(id => MOCK_CUSTOMERS.find(c => c.id === id)?.name).filter(Boolean) as string[];
+        const names = ids.map(id => customers.find(c => c.id === id)?.name).filter(Boolean) as string[];
         const displayCount = 2;
         const visibleNames = names.slice(0, displayCount);
         const diff = names.length - displayCount;
@@ -284,8 +289,8 @@ export const DomainManager: React.FC = () => {
   const ITEMS_PER_TRANSFER_PAGE = 8; // Keep pagination for transfer list inside modal only
 
   const availableCustomers = useMemo(() => {
-    return MOCK_CUSTOMERS.filter(c => !currentCustomerIds.includes(c.id));
-  }, [currentCustomerIds]);
+    return customers.filter(c => !currentCustomerIds.includes(c.id));
+  }, [currentCustomerIds, customers]);
 
   const filteredSource = useMemo(() => {
     return availableCustomers.filter(c => c.name.toLowerCase().includes(transferSearch.toLowerCase()));
@@ -569,7 +574,7 @@ export const DomainManager: React.FC = () => {
                           <Button size="sm" variant="ghost" className="text-red-400 text-xs px-2 h-6" onClick={() => setCurrentEditDomain(prev => ({...prev!, customerIds: []}))}>清空</Button>
                       </div>
                       <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                         {MOCK_CUSTOMERS.filter(c => currentCustomerIds.includes(c.id)).map(item => (
+                         {customers.filter(c => currentCustomerIds.includes(c.id)).map(item => (
                             <div 
                                 key={item.id} 
                                 className={`flex items-center p-2 rounded hover:bg-slate-800 cursor-pointer ${selectedTarget.includes(item.id) ? 'bg-blue-600/20' : ''}`}

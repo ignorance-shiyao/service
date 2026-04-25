@@ -1,13 +1,18 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Table, Button, Badge, Modal, Input, Select, Switch, ConfirmDialog, ColumnConfigDialog } from '../components/UI';
 import { Plus, Edit2, Trash2, Folder, FileText, MousePointer, Search, RotateCcw, Download, Settings } from 'lucide-react';
-import { MOCK_MENUS } from '../constants';
 import { Menu } from '../types';
 import { showAppToast } from '../components/AppFeedback';
+import { useAppData } from '../context/AppDataContext';
 
 export const MenuManager: React.FC = () => {
-  const [data, setData] = useState<Menu[]>(MOCK_MENUS);
+  const { menus } = useAppData();
+  const [data, setData] = useState<Menu[]>([]);
+
+  useEffect(() => {
+    setData(menus);
+  }, [menus]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Search State

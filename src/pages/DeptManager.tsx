@@ -2,10 +2,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, Table, Button, Badge, Modal, Input, Select, Switch, ConfirmDialog, Pagination, SectionTitle, ColumnConfigDialog } from '../components/UI';
 import { Plus, Edit2, Trash2, Search, RotateCcw, Folder, ChevronDown, ChevronRight, Phone, Mail, User, Grid, RefreshCcw, Settings, Lock, Building2, Download, ChevronsLeft, ChevronsRight } from 'lucide-react';
-import { MOCK_DEPTS, MOCK_DOMAINS } from '../constants';
 import { Department, Domain } from '../types';
 import { useGlobalContext } from '../GlobalContext';
 import { showAppToast } from '../components/AppFeedback';
+import { useAppData } from '../context/AppDataContext';
 
 // Unified Node Type for the Sidebar
 type MixedNode = {
@@ -18,6 +18,7 @@ type MixedNode = {
 
 export const DeptManager: React.FC = () => {
   const { mode, currentDomain } = useGlobalContext();
+  const { domains, depts } = useAppData();
   
   // -- Selection State --
   const [selectedDomainId, setSelectedDomainId] = useState<string>('');
@@ -25,7 +26,7 @@ export const DeptManager: React.FC = () => {
   const [isTreeOpen, setIsTreeOpen] = useState(true);
 
   // -- Data State (Departments) --
-  const [deptData, setDeptData] = useState<Department[]>(MOCK_DEPTS);
+  const [deptData, setDeptData] = useState<Department[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedTableKeys, setExpandedTableKeys] = useState<Set<string>>(new Set(['1', '11', '12'])); 
 
@@ -44,6 +45,10 @@ export const DeptManager: React.FC = () => {
 
   // Column Config
   const [isColumnConfigOpen, setIsColumnConfigOpen] = useState(false);
+
+  useEffect(() => {
+    setDeptData(depts);
+  }, [depts]);
 
   const toggleTableExpand = (id: string) => {
       const newSet = new Set(expandedTableKeys);
@@ -130,7 +135,7 @@ export const DeptManager: React.FC = () => {
           setExpandedKeys(new Set([currentDomain.id]));
       } else {
           // Find root
-          const root = MOCK_DOMAINS.find(d => !d.parentId);
+          const root = domains.find(d => !d.parentId);
           if (root) {
               setSelectedDomainId(root.id);
               setExpandedKeys(new Set([root.id]));
@@ -144,7 +149,7 @@ export const DeptManager: React.FC = () => {
       const domainNodes = new Map<string, MixedNode>();
       
       // Filter domains based on mode
-      let visibleDomains = MOCK_DOMAINS;
+      let visibleDomains = domains;
       if (mode === 'switching' && currentDomain) {
           visibleDomains = [currentDomain];
       }
@@ -187,7 +192,7 @@ export const DeptManager: React.FC = () => {
       });
 
       return rootNodes;
-  }, [mode, currentDomain, deptData]);
+  }, [mode, currentDomain, deptData, domains]);
 
   const toggleExpand = (e: React.MouseEvent, id: string) => {
       e.stopPropagation();
@@ -380,7 +385,7 @@ export const DeptManager: React.FC = () => {
       setTargetStatusChange(null);
   };
 
-  const selectedDomainName = MOCK_DOMAINS.find(d => d.id === selectedDomainId)?.name || '未选择';
+  const selectedDomainName = domains.find(d => d.id === selectedDomainId)?.name || '未选择';
 
   return (
       <div className="h-full flex gap-4 overflow-hidden">
@@ -496,7 +501,7 @@ export const DeptManager: React.FC = () => {
                       <div className="relative">
                            <label className="text-sm text-slate-400 block mb-1.5">归属组织 (Domain)</label>
                            <Select 
-                              options={MOCK_DOMAINS.map(d => ({ label: d.name, value: d.id }))}
+                              options={domains.map(d => ({ label: d.name, value: d.id }))}
                               value={currentDept.domainId}
                               disabled={true}
                               className="opacity-60 cursor-not-allowed bg-slate-800"

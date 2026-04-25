@@ -1,12 +1,17 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Table, Button, Badge, Modal, Input, Select, SectionTitle, ColumnConfigDialog } from '../components/UI';
 import { Search, RotateCcw, FileText, Clock, AlertCircle, Eye, Download, Settings } from 'lucide-react';
-import { MOCK_LOGS } from '../constants';
 import { OperLog } from '../types';
+import { useAppData } from '../context/AppDataContext';
 
 export const LogManager: React.FC = () => {
-  const [logs, setLogs] = useState<OperLog[]>(MOCK_LOGS);
+  const { logs: mockLogs } = useAppData();
+  const [logs, setLogs] = useState<OperLog[]>([]);
+
+  useEffect(() => {
+    setLogs(mockLogs);
+  }, [mockLogs]);
   const [searchModule, setSearchModule] = useState('');
   const [searchUser, setSearchUser] = useState('');
   const [searchStatus, setSearchStatus] = useState('');

@@ -2,10 +2,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, Table, Button, Badge, Modal, Input, Select, ConfirmDialog, SectionTitle, ColumnConfigDialog, Switch } from '../components/UI';
 import { Plus, Edit2, Trash2, Search, RotateCcw, CheckSquare, Square, MinusSquare, Shield, ChevronDown, Folder, UserPlus, Lock, ChevronRight, Download, Settings, Building2, ChevronsLeft, ChevronsRight } from 'lucide-react';
-import { MOCK_ROLES, REGIONS, MOCK_DOMAINS, MOCK_MENUS, BUSINESS_TYPES } from '../constants';
 import { Role, Domain, Menu } from '../types';
 import { useGlobalContext } from '../GlobalContext';
 import { showAppToast } from '../components/AppFeedback';
+import { useAppData } from '../context/AppDataContext';
 
 // Tree Node Type
 type TreeNode = {
@@ -18,6 +18,7 @@ type TreeNode = {
 
 export const RoleManager: React.FC = () => {
   const { mode, currentDomain } = useGlobalContext();
+  const { roles, regions, domains, menus, businessTypes } = useAppData();
   
   // --- Sidebar State ---
   const [selectedDomainId, setSelectedDomainId] = useState<string>('');
@@ -25,7 +26,7 @@ export const RoleManager: React.FC = () => {
   const [isTreeOpen, setIsTreeOpen] = useState(true);
 
   // --- Data State ---
-  const [roleData, setRoleData] = useState<Role[]>(MOCK_ROLES);
+  const [roleData, setRoleData] = useState<Role[]>([]);
   
   // --- Modal & Editing State ---
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,6 +57,10 @@ export const RoleManager: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isColumnConfigOpen, setIsColumnConfigOpen] = useState(false);
 
+  useEffect(() => {
+    setRoleData(roles);
+  }, [roles]);
+
   // --- Initialization ---
   useEffect(() => {
       // Set default selected domain
@@ -64,7 +69,7 @@ export const RoleManager: React.FC = () => {
           setExpandedKeys(new Set([currentDomain.id]));
       } else {
           // Find root
-          const root = MOCK_DOMAINS.find(d => !d.parentId);
+          const root = domains.find(d => !d.parentId);
           if (root) {
               setSelectedDomainId(root.id);
               setExpandedKeys(new Set([root.id]));
@@ -76,7 +81,7 @@ export const RoleManager: React.FC = () => {
   const domainTree = useMemo(() => {
       const domainNodes = new Map<string, TreeNode>();
       
-      let visibleDomains = MOCK_DOMAINS;
+      let visibleDomains = domains;
       if (mode === 'switching' && currentDomain) {
           visibleDomains = [currentDomain];
       }
@@ -102,7 +107,7 @@ export const RoleManager: React.FC = () => {
       });
 
       return rootNodes;
-  }, [mode, currentDomain]);
+  }, [mode, currentDomain, domains]);
 
   const toggleExpand = (e: React.MouseEvent, id: string) => {
       e.stopPropagation();
@@ -221,7 +226,7 @@ export const RoleManager: React.FC = () => {
     },
     { 
         key: 'domain', header: '所属域', 
-        accessor: (row: Role) => MOCK_DOMAINS.find(d => d.id === row.domainId)?.name || row.domainId,
+        accessor: (row: Role) => domains.find(d => d.id === row.domainId)?.name || row.domainId,
         width: '15%'
     },
     {
@@ -263,7 +268,7 @@ export const RoleManager: React.FC = () => {
                   }
                   return [];
               };
-              findParents(menu.id, MOCK_MENUS).forEach(pid => newSelected.add(pid));
+              findParents(menu.id, menus).forEach(pid => newSelected.add(pid));
           }
           setSelectedMenuIds(newSelected);
       };
@@ -291,9 +296,9 @@ export const RoleManager: React.FC = () => {
   };
 
   // --- Helper: Data Scope Logic ---
-  const isAllRegionsSelected = (currentRole.regionScope?.length || 0) === REGIONS.length;
+  const isAllRegionsSelected = (currentRole.regionScope?.length || 0) === regions.length;
   const toggleAllRegions = () => {
-      setCurrentRole({ ...currentRole, regionScope: isAllRegionsSelected ? [] : REGIONS.map(r => r.code) });
+      setCurrentRole({ ...currentRole, regionScope: isAllRegionsSelected ? [] : regions.map(r => r.code) });
   };
   const toggleRegion = (code: string) => {
       const current = currentRole.regionScope || [];
@@ -316,7 +321,7 @@ export const RoleManager: React.FC = () => {
       setTargetSelected([]);
   };
 
-  const selectedDomainName = MOCK_DOMAINS.find(d => d.id === selectedDomainId)?.name || '未选择';
+  const selectedDomainName = domains.find(d => d.id === selectedDomainId)?.name || '未选择';
 
   return (
     <div className="h-full flex gap-4 overflow-hidden">
@@ -425,7 +430,7 @@ export const RoleManager: React.FC = () => {
                                 <div className="relative">
                                     <Select 
                                         label="所属域" 
-                                        options={MOCK_DOMAINS.map(d => ({ label: d.name, value: d.id }))}
+                                        options={domains.map(d => ({ label: d.name, value: d.id }))}
                                         value={currentRole.domainId}
                                         disabled={true} 
                                         className="opacity-60 cursor-not-allowed bg-slate-800"
@@ -445,7 +450,7 @@ export const RoleManager: React.FC = () => {
                                  <CheckSquare size={14} /> 提示：勾选该角色可访问的菜单资源。系统支持父子菜单联动选择。
                             </div>
                             <div className="border border-[var(--sys-border-primary)] rounded-lg p-5 bg-[#1e293b]/30 min-h-[350px]">
-                                {renderMenuTree(MOCK_MENUS)}
+                                {renderMenuTree(menus)}
                             </div>
                         </div>
                     )}
@@ -462,7 +467,7 @@ export const RoleManager: React.FC = () => {
                                     </label>
                                 </div>
                                 <div className="grid grid-cols-4 gap-4">
-                                    {REGIONS.slice(0, 16).map(reg => (
+                                    {regions.slice(0, 16).map(reg => (
                                         <label key={reg.code} className="flex items-center space-x-2 cursor-pointer hover:text-blue-400 group">
                                             <input type="checkbox" className="rounded bg-slate-900 border-[var(--sys-border-secondary)] text-blue-500" checked={currentRole.regionScope?.includes(reg.code) || false} onChange={() => toggleRegion(reg.code)} />
                                             <span className="text-sm text-slate-400 group-hover:text-slate-200">{reg.name}</span>
@@ -483,7 +488,7 @@ export const RoleManager: React.FC = () => {
                                             </div>
                                             <div className="flex flex-wrap gap-1 pb-1">
                                                 <button onClick={() => setBizCategoryFilter('all')} className={`px-2 py-1 text-[10px] rounded whitespace-nowrap transition-colors border ${bizCategoryFilter === 'all' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-slate-800 border-[var(--sys-border-secondary)] text-slate-400 hover:border-[var(--sys-border-secondary)]'}`}>全部</button>
-                                                {BUSINESS_TYPES.map(bt => (
+                                                {businessTypes.map(bt => (
                                                     <button key={bt.code} onClick={() => setBizCategoryFilter(bt.code)} className={`px-2 py-1 text-[10px] rounded whitespace-nowrap transition-colors border ${bizCategoryFilter === bt.code ? 'bg-blue-600 border-blue-600 text-white' : 'bg-slate-800 border-[var(--sys-border-secondary)] text-slate-400 hover:border-[var(--sys-border-secondary)]'}`}>{bt.name}</button>
                                                 ))}
                                             </div>
@@ -495,7 +500,7 @@ export const RoleManager: React.FC = () => {
                                                     <input type="checkbox" checked={sourceSelected.includes(item.id)} readOnly className="mr-2 rounded bg-slate-900 border-[var(--sys-border-secondary)] pointer-events-none" />
                                                     <div className="flex flex-col overflow-hidden">
                                                         <span className="text-sm truncate text-slate-300">{item.name}</span>
-                                                        <span className="text-[10px] text-slate-500">{BUSINESS_TYPES.find(b => b.code === item.category)?.name}</span>
+                                                        <span className="text-[10px] text-slate-500">{businessTypes.find(b => b.code === item.category)?.name}</span>
                                                     </div>
                                                 </div>
                                             ))}
@@ -518,7 +523,7 @@ export const RoleManager: React.FC = () => {
                                                     <input type="checkbox" checked={targetSelected.includes(item.id)} readOnly className="mr-2 rounded bg-slate-900 border-[var(--sys-border-secondary)] pointer-events-none" />
                                                     <div className="flex flex-col overflow-hidden">
                                                         <span className="text-sm truncate text-slate-300">{item.name}</span>
-                                                        <span className="text-[10px] text-slate-500">{BUSINESS_TYPES.find(b => b.code === item.category)?.name}</span>
+                                                        <span className="text-[10px] text-slate-500">{businessTypes.find(b => b.code === item.category)?.name}</span>
                                                     </div>
                                                 </div>
                                             ))}

@@ -1,13 +1,18 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Table, Button, Badge, Modal, Input, Select, Switch, ConfirmDialog, SectionTitle, ColumnConfigDialog } from '../components/UI';
 import { Plus, Edit2, Trash2, Search, RotateCcw, Briefcase, Download, Settings } from 'lucide-react';
-import { MOCK_POSTS } from '../constants';
 import { Post } from '../types';
 import { showAppToast } from '../components/AppFeedback';
+import { useAppData } from '../context/AppDataContext';
 
 export const PostManager: React.FC = () => {
-  const [data, setData] = useState<Post[]>(MOCK_POSTS);
+  const { posts } = useAppData();
+  const [data, setData] = useState<Post[]>([]);
+
+  useEffect(() => {
+    setData(posts);
+  }, [posts]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPost, setCurrentPost] = useState<Partial<Post>>({});
   

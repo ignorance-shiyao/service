@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { X, Save, Eye, Layers, LayoutGrid, Maximize, Minimize, Image as ImageIcon, Plus, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Trash2, Search, MousePointer2 } from 'lucide-react';
 import { Button, Input, Switch } from './UI';
-import { BUSINESS_TYPES, MOCK_COMPONENTS, MOCK_CUSTOMERS } from '../constants';
 import { BizIdcPreview } from './previews/BizIdcPreview';
 import { BizLinePreview } from './previews/BizLinePreview';
 import { BizInetPreview } from './previews/BizInetPreview';
@@ -15,6 +14,7 @@ import { BizOtherPreview } from './previews/BizOtherPreview';
 import { BizAICPreview } from './previews/BizAICPreview';
 import { BizSDWANPreview } from './previews/BizSDWANPreview';
 import { GenericPreview } from './previews/GenericPreview';
+import { useAppData } from '../context/AppDataContext';
 
 interface TemplateEditorProps {
   template: any;
@@ -90,18 +90,19 @@ const Ruler: React.FC<{ orientation: 'horizontal' | 'vertical'; scale: number; o
 };
 
 export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClose, onSave, initialPreview = false }) => {
+  const { businessTypes, components, customers } = useAppData();
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [activeLeftTab, setActiveLeftTab] = useState<'components' | 'layers'>('components');
   
   const allowedBusinessTypes = useMemo(() => {
       const baseTypes = ['BIZ_BASE', 'BIZ_OTHER'];
-      if (!template?.customerId) return [...baseTypes, ...BUSINESS_TYPES.map(b => b.code)]; 
+      if (!template?.customerId) return [...baseTypes, ...businessTypes.map(b => b.code)];
       
-      const customer = MOCK_CUSTOMERS.find(c => c.id === template.customerId);
+      const customer = customers.find(c => c.id === template.customerId);
       if (!customer) return baseTypes;
       
       return [...baseTypes, ...customer.businessTypes];
-  }, [template]);
+  }, [template, businessTypes, customers]);
 
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['BIZ_OTHER', 'BIZ_IDC', 'BIZ_BASE', 'BIZ_AIC', 'BIZ_SDWAN']);
   const [isPreviewMode, setIsPreviewMode] = useState(initialPreview);
@@ -347,7 +348,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
                     <span className="text-white font-bold text-sm">{pageConfig.name}</span>
                     {template.customerId && (
                         <div className="flex items-center text-[10px] text-slate-500 border border-slate-700 rounded px-2 py-0.5 bg-slate-900/50">
-                            所属客户: {MOCK_CUSTOMERS.find(c => c.id === template.customerId)?.name}
+                            所属客户: {customers.find(c => c.id === template.customerId)?.name}
                         </div>
                     )}
                     <div className="flex items-center gap-2 ml-4 border-l border-slate-700 pl-4">
@@ -402,8 +403,8 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
                             </div>
                             
                             <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
-                                {BUSINESS_TYPES.filter(bt => allowedBusinessTypes.includes(bt.code)).map(cat => {
-                                    const comps = MOCK_COMPONENTS.filter(c => c.category === cat.code);
+                                {businessTypes.filter(bt => allowedBusinessTypes.includes(bt.code)).map(cat => {
+                                    const comps = components.filter(c => c.category === cat.code);
                                     if (comps.length === 0) return null;
                                     const isExpanded = expandedCategories.includes(cat.code);
 
@@ -505,7 +506,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, onClos
                         />
 
                         {layoutItems.map(item => {
-                            const compDef = MOCK_COMPONENTS.find(c => c.id === item.compId);
+                            const compDef = components.find(c => c.id === item.compId);
                             let PreviewComp: any = GenericPreview;
                             if (compDef?.category === 'BIZ_AIC') PreviewComp = BizAICPreview;
                             if (compDef?.category === 'BIZ_SDWAN') PreviewComp = BizSDWANPreview;

@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Cpu, Shield, Settings, Users, Network, Menu as MenuIcon, LogOut, ChevronDown, User as UserIcon, LayoutGrid, ArrowRightLeft, Check, Layout, FolderTree, Briefcase, Book, FileText, Loader2, Zap, Home, BarChart3, Boxes, Workflow, Monitor, Bell, Siren, Clapperboard, Headset, ChevronLeft, ChevronRight, Search, X, List, Maximize2, Minimize2 } from 'lucide-react';
 import { GlobalContext, ViewMode } from './GlobalContext';
-import { MOCK_DOMAINS } from './constants';
 import { Domain } from './types';
 import { KnowledgeBaseView } from './KnowledgeBase/KnowledgeBaseView';
 import { FaultReportingView } from './FaultReporting/FaultReportingView';
@@ -16,6 +15,7 @@ import { QuantumSDWANOverview } from './pages/QuantumSDWANOverview';
 import { NotificationMatrix } from './Assistant/NotificationMatrix';
 import { AiDock } from './pages/agent/ai-dock';
 import { AppFeedbackHost } from './components/AppFeedback';
+import { useAppData } from './context/AppDataContext';
 
 // --- Lazy Load Pages ---
 const DomainManager = lazy(() => import('./pages/DomainManager').then(module => ({ default: module.DomainManager })));
@@ -186,6 +186,7 @@ const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const menuViewportRef = useRef<HTMLDivElement>(null);
+  const { domains } = useAppData();
 
   // --- Global Context State ---
   const [mode, setMode] = useState<ViewMode>('fusion');
@@ -390,7 +391,7 @@ const App: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-3">
-                                    {MOCK_DOMAINS.filter(d => !d.isSuper).map(domain => (
+                                    {domains.filter(d => !d.isSuper).map(domain => (
                                         <button
                                             key={domain.id}
                                             onClick={() => handleSwitchToDomain(domain)}

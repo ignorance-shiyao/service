@@ -1,18 +1,19 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Table, Button, Badge, Modal, Input, Select, Switch, ConfirmDialog, Pagination, SectionTitle } from '../components/UI';
 import { Plus, Edit2, Trash2, Search, RotateCcw, Book, List, RefreshCcw } from 'lucide-react';
-import { MOCK_DICT_TYPES, MOCK_DICT_DATA } from '../constants';
 import { DictType, DictData } from '../types';
+import { useAppData } from '../context/AppDataContext';
 
 export const DictManager: React.FC = () => {
+  const { dictTypes, dictData } = useAppData();
   // Left: Type List State
-  const [types, setTypes] = useState<DictType[]>(MOCK_DICT_TYPES);
-  const [selectedTypeId, setSelectedTypeId] = useState<string>(MOCK_DICT_TYPES[0]?.id || '');
+  const [types, setTypes] = useState<DictType[]>([]);
+  const [selectedTypeId, setSelectedTypeId] = useState<string>('');
   const [searchType, setSearchType] = useState('');
 
   // Right: Data List State
-  const [datas, setDatas] = useState<DictData[]>(MOCK_DICT_DATA);
+  const [datas, setDatas] = useState<DictData[]>([]);
   const [searchLabel, setSearchLabel] = useState('');
 
   // Modal State
@@ -20,6 +21,12 @@ export const DictManager: React.FC = () => {
   const [dataModalOpen, setDataModalOpen] = useState(false);
   const [currentType, setCurrentType] = useState<Partial<DictType>>({});
   const [currentData, setCurrentData] = useState<Partial<DictData>>({});
+
+  useEffect(() => {
+    setTypes(dictTypes);
+    setDatas(dictData);
+    setSelectedTypeId((prev) => prev || dictTypes[0]?.id || '');
+  }, [dictTypes, dictData]);
 
   // --- Type Logic ---
   const filteredTypes = useMemo(() => {

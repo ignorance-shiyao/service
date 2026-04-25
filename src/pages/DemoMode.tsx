@@ -2,27 +2,17 @@
 import React, { useState, useMemo } from 'react';
 import { Card, Table, Button, Badge, Select } from '../components/UI';
 import { Users, Repeat, Crown, Building2, Database, LayoutDashboard, Globe, ArrowRightLeft } from 'lucide-react';
-import { MOCK_DOMAINS, MOCK_CUSTOMERS } from '../constants';
-
-// Mock Data for Demo
-// Updated Domain IDs to match constants.ts: 5 = Hefei Branch, 6 = Ma'anshan Branch
-const MOCK_ORDERS = [
-  { id: 'ORD-001', customer: '安徽省电力公司', product: '互联网专线 100M', amount: '¥50,000', domainId: '5', domainName: '合肥分公司', status: 'normal' },
-  { id: 'ORD-002', customer: '江淮汽车集团', product: '5G 切片服务', amount: '¥120,000', domainId: '5', domainName: '合肥分公司', status: 'normal' },
-  { id: 'ORD-003', customer: '马钢集团', product: 'IDC 机柜托管', amount: '¥80,000', domainId: '6', domainName: '马鞍山分公司', status: 'warning' },
-  { id: 'ORD-004', customer: '马钢集团', product: '5G 智慧工厂工业控制', amount: '¥580,000', domainId: '6', domainName: '马鞍山分公司', status: 'normal' },
-  { id: 'ORD-005', customer: '科大讯飞', product: 'AI 算力包', amount: '¥200,000', domainId: '5', domainName: '合肥分公司', status: 'normal' },
-  { id: 'ORD-006', customer: '马钢集团', product: '企业上云服务', amount: '¥45,000', domainId: '6', domainName: '马鞍山分公司', status: 'normal' },
-];
+import { useAppData } from '../context/AppDataContext';
 
 export const DemoMode: React.FC = () => {
+  const { domains, demoOrders } = useAppData();
   const [activeTab, setActiveTab] = useState<'fusion' | 'switching'>('fusion');
   
   // Switching Mode State: Default to Hefei Branch (ID 5)
   const [currentContextId, setCurrentContextId] = useState('5');
 
   // --- Fusion Logic ---
-  const fusionData = MOCK_ORDERS; // See all
+  const fusionData = demoOrders; // See all
   const fusionStats = {
       total: fusionData.length,
       amount: fusionData.reduce((acc, cur) => acc + parseInt(cur.amount.replace(/[^0-9]/g, '')), 0),
@@ -30,15 +20,15 @@ export const DemoMode: React.FC = () => {
   };
 
   // --- Switching Logic ---
-  const switchingData = MOCK_ORDERS.filter(o => o.domainId === currentContextId);
-  const currentDomainInfo = MOCK_DOMAINS.find(d => d.id === currentContextId);
+  const switchingData = demoOrders.filter(o => o.domainId === currentContextId);
+  const currentDomainInfo = domains.find(d => d.id === currentContextId);
 
-  // Generate options dynamically from MOCK_DOMAINS for Branches
+  // Generate options dynamically for Branches
   const domainOptions = useMemo(() => {
-      return MOCK_DOMAINS
+      return domains
         .filter(d => d.code.startsWith('BRANCH')) // Only show Branches for this demo scenario
         .map(d => ({ label: `🏢 ${d.name}`, value: d.id }));
-  }, []);
+  }, [domains]);
 
   // Columns definition
   const columns = [

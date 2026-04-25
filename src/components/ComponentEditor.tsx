@@ -14,7 +14,7 @@ import { BizOtherPreview } from './previews/BizOtherPreview';
 import { BizAICPreview } from './previews/BizAICPreview';
 import { BizSDWANPreview } from './previews/BizSDWANPreview';
 import { GenericPreview } from './previews/GenericPreview';
-import { BUSINESS_TYPES } from '../constants';
+import { useAppData } from '../context/AppDataContext';
 
 const PLUGIN_TYPES = [
   'Echarts',
@@ -67,6 +67,7 @@ const CodeAreaRow: React.FC<{ label: string; value: string; onChange: (val: stri
 );
 
 export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onClose, onSave }) => {
+  const { businessTypes } = useAppData();
   const isAddMode = !component.id;
   const [isBasicConfigOpen, setIsBasicConfigOpen] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -112,7 +113,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
       });
   }, [component]);
 
-  const categoryName = BUSINESS_TYPES.find(b => b.code === compMeta.category)?.name || compMeta.category;
+  const categoryName = businessTypes.find(b => b.code === compMeta.category)?.name || compMeta.category;
 
   const handleSave = () => {
       const updatedComponent = {
@@ -365,7 +366,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
                                   onChange={e => setCompMeta({...compMeta, category: e.target.value})}
                                   className="w-full bg-[#1e293b] border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 appearance-none focus:ring-1 focus:ring-blue-500 outline-none hover:border-slate-600"
                               >
-                                  {BUSINESS_TYPES.map(bt => (
+                                      {businessTypes.map(bt => (
                                       <option key={bt.code} value={bt.code}>{bt.name}</option>
                                   ))}
                               </select>

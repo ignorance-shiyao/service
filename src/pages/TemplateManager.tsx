@@ -2,7 +2,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, Button, Badge, Input, SectionTitle, Select } from '../components/UI';
 import { Search, Plus, MoreVertical, Edit2, Play, Monitor, Building2, LayoutGrid, List, Grid, Folder, ChevronDown, ChevronRight, ChevronsLeft, ChevronsRight, Globe, Database } from 'lucide-react';
-import { MOCK_TEMPLATES, BUSINESS_TYPES, MOCK_CUSTOMERS, MOCK_DOMAINS, MOCK_COMPONENTS } from '../constants';
 import { useGlobalContext } from '../GlobalContext';
 import { TemplateEditor } from '../components/TemplateEditor';
 import { Domain } from '../types';
@@ -11,12 +10,14 @@ import { BizLinePreview } from '../components/previews/BizLinePreview';
 import { BizInetPreview } from '../components/previews/BizInetPreview';
 import { BizIdcPreview } from '../components/previews/BizIdcPreview';
 import { Biz5GPreview } from '../components/previews/Biz5GPreview';
+import { useAppData } from '../context/AppDataContext';
 
 // --- Thumbnail Component ---
 const TemplateThumbnail: React.FC<{ template: any }> = ({ template }) => {
+    const { components } = useAppData();
     // Pick relevant components based on business types to simulate a dashboard
     const relevantComps = useMemo(() => {
-        let list = MOCK_COMPONENTS.filter(c => 
+        let list = components.filter(c =>
             template.businessTypes.includes(c.category) || c.category === 'BIZ_BASE'
         );
         // Shuffle deterministically based on template ID to keep it consistent
@@ -26,7 +27,7 @@ const TemplateThumbnail: React.FC<{ template: any }> = ({ template }) => {
             const idB = b.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
             return (seed % idA) - (seed % idB);
         }).slice(0, 3);
-    }, [template]);
+    }, [template, components]);
 
     return (
         <div className="w-full h-full bg-[var(--sys-bg-header)] p-1 grid grid-cols-2 grid-rows-2 gap-1 pointer-events-none select-none overflow-hidden relative">
@@ -67,9 +68,10 @@ type TreeNode = {
 
 export const TemplateManager: React.FC = () => {
   const { mode, currentDomain } = useGlobalContext();
+  const { templates: sourceTemplates, businessTypes, customers, domains } = useAppData();
   
   // -- Data State --
-  const [templates, setTemplates] = useState(MOCK_TEMPLATES);
+  const [templates, setTemplates] = useState(sourceTemplates);
 
   // -- Sidebar State --
   const [selectedDomainId, setSelectedDomainId] = useState<string>('all');
@@ -89,6 +91,10 @@ export const TemplateManager: React.FC = () => {
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
   const [startInPreview, setStartInPreview] = useState(false);
 
+  useEffect(() => {
+    setTemplates(sourceTemplates);
+  }, [sourceTemplates]);
+
   // --- Initialization ---
   useEffect(() => {
       if (mode === 'switching' && currentDomain) {
@@ -97,7 +103,7 @@ export const TemplateManager: React.FC = () => {
       } else {
           // Fusion mode: default to 'all' or root
           setSelectedDomainId('all');
-          const root = MOCK_DOMAINS.find(d => !d.parentId);
+          const root = domains.find(d => !d.parentId);
           if (root) setExpandedKeys(new Set([root.id]));
       }
   }, [mode, currentDomain]);
@@ -105,7 +111,7 @@ export const TemplateManager: React.FC = () => {
   // --- Tree Logic ---
   const domainTree = useMemo(() => {
       const domainNodes = new Map<string, TreeNode>();
-      let visibleDomains = MOCK_DOMAINS;
+      let visibleDomains = domains;
       if (mode === 'switching' && currentDomain) {
           visibleDomains = [currentDomain];
       }
@@ -124,7 +130,7 @@ export const TemplateManager: React.FC = () => {
           }
       });
       return rootNodes;
-  }, [mode, currentDomain]);
+  }, [mode, currentDomain, domains]);
 
   const toggleExpand = (e: React.MouseEvent, id: string) => {
       e.stopPropagation();
@@ -168,7 +174,7 @@ export const TemplateManager: React.FC = () => {
 
     // 1. Domain Filter
     if (selectedDomainId !== 'all') {
-        const domain = MOCK_DOMAINS.find(d => d.id === selectedDomainId);
+        const domain = domains.find(d => d.id === selectedDomainId);
         if (domain && domain.customerIds) {
             list = list.filter(t => t.customerId && domain.customerIds!.includes(t.customerId));
         } else if (selectedDomainId === '1') {
@@ -192,7 +198,7 @@ export const TemplateManager: React.FC = () => {
     if (search) {
       const lowerSearch = search.toLowerCase();
       list = list.filter(t => {
-          const customerName = MOCK_CUSTOMERS.find(c => c.id === t.customerId)?.name || '';
+          const customerName = customers.find(c => c.id === t.customerId)?.name || '';
           return t.name.toLowerCase().includes(lowerSearch) || customerName.toLowerCase().includes(lowerSearch);
       });
     }
@@ -315,7 +321,7 @@ export const TemplateManager: React.FC = () => {
                     >
                         全部
                     </button>
-                    {BUSINESS_TYPES.map(bt => (
+                    {businessTypes.map(bt => (
                         <button 
                             key={bt.code}
                             onClick={() => setActiveCategory(bt.code)}
@@ -334,18 +340,18 @@ export const TemplateManager: React.FC = () => {
              <div className="mb-3 flex items-center text-xs text-slate-500 px-1">
                  <span>当前过滤:</span>
                  <span className="mx-1 text-blue-400 bg-blue-900/20 px-2 py-0.5 rounded border border-blue-500/20">
-                     {selectedDomainId === 'all' ? '全部域' : MOCK_DOMAINS.find(d => d.id === selectedDomainId)?.name}
+                     {selectedDomainId === 'all' ? '全部域' : domains.find(d => d.id === selectedDomainId)?.name}
                  </span>
                  <span className="mx-1">+</span>
                  <span className="mx-1 text-blue-400 bg-blue-900/20 px-2 py-0.5 rounded border border-blue-500/20">
-                     {activeCategory === 'all' ? '全部业务' : BUSINESS_TYPES.find(b => b.code === activeCategory)?.name}
+                     {activeCategory === 'all' ? '全部业务' : businessTypes.find(b => b.code === activeCategory)?.name}
                  </span>
                  <span className="ml-auto">共 {filteredTemplates.length} 个模板</span>
              </div>
 
              <div className={`${getContainerClass()} pb-6`}>
                 {filteredTemplates.map(temp => {
-                    const customer = MOCK_CUSTOMERS.find(c => c.id === temp.customerId);
+                    const customer = customers.find(c => c.id === temp.customerId);
                     
                     return (
                       <div 
@@ -408,7 +414,7 @@ export const TemplateManager: React.FC = () => {
                                         {temp.businessTypes.map((bt: string) => (
                                             <span key={bt} className="text-xs px-2 py-1 bg-slate-800/50 text-slate-300 rounded border border-[var(--sys-border-primary)] whitespace-nowrap flex items-center gap-1">
                                                 <div className="w-1 h-1 rounded-full bg-blue-500"></div>
-                                                {BUSINESS_TYPES.find(b => b.code === bt)?.name}
+                                                {businessTypes.find(b => b.code === bt)?.name}
                                             </span>
                                         ))}
                                     </div>
@@ -441,7 +447,7 @@ export const TemplateManager: React.FC = () => {
                                         <div className="flex flex-wrap gap-1 mt-2 mb-2">
                                             {temp.businessTypes.slice(0, viewMode === 'grid-sm' ? 2 : 3).map((bt: string) => (
                                                 <span key={bt} className="text-[10px] px-1.5 py-0.5 bg-slate-800/80 text-slate-400 rounded border border-[var(--sys-border-primary)] whitespace-nowrap">
-                                                    {BUSINESS_TYPES.find(b => b.code === bt)?.name}
+                                                    {businessTypes.find(b => b.code === bt)?.name}
                                                 </span>
                                             ))}
                                             {temp.businessTypes.length > (viewMode === 'grid-sm' ? 2 : 3) && <span className="text-[10px] text-slate-500">...</span>}
