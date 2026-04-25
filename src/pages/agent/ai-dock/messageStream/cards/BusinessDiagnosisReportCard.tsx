@@ -107,7 +107,7 @@ export const BusinessDiagnosisReportCard: React.FC<BusinessDiagnosisReportCardPr
       <CardActionBar
         actions={[
           { key: 'copy', label: '复制报告', onClick: () => onCopy?.(copyText) },
-          { key: 'ask', label: '生成汇报说明', onClick: () => onAsk?.('基于本次业务体检结果，生成一份客户汇报说明') },
+          { key: 'ask', label: '生成汇报说明', onClick: () => onAsk?.('基于本次业务诊断结果，生成一份客户汇报说明') },
           {
             key: 'fault',
             label: '发起报障',
@@ -121,7 +121,7 @@ export const BusinessDiagnosisReportCard: React.FC<BusinessDiagnosisReportCardPr
               region: selectedFaultTarget.region,
               site: selectedFaultTarget.site,
               severity: selectedFaultTarget.level === '异常' ? '高' : '中',
-              desc: `故障业务：${selectedFaultTarget.name}\n业务类型：${selectedFaultTarget.type}\n故障位置：${selectedFaultTarget.region} / ${selectedFaultTarget.site}\n体检结论：${selectedFaultTarget.summary}\n建议：${selectedFaultTarget.suggestions.join('；')}`,
+              desc: `故障业务：${selectedFaultTarget.name}\n业务类型：${selectedFaultTarget.type}\n故障位置：${selectedFaultTarget.region} / ${selectedFaultTarget.site}\n诊断结论：${selectedFaultTarget.summary}\n建议：${selectedFaultTarget.suggestions.join('；')}`,
             }),
           },
         ]}

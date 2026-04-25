@@ -54,7 +54,7 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
         <Wrench size={14} className="text-[#9bd4ff]" />
         发起自助报障
       </div>
-      {fromDiagnosis && <div className="mt-1 text-[11px] text-[#8fc7ff]">已自动关联诊断/体检上下文</div>}
+      {fromDiagnosis && <div className="mt-1 text-[11px] text-[#8fc7ff]">已自动关联诊断上下文</div>}
       {(context || selectedOption) && (
         <div className="mt-2 rounded-lg border border-[#2f679d] bg-[#0f3358] p-2 text-[11px] text-[#d5ebff]">
           <div className="mb-1 flex items-center gap-1 text-[#9ecfff]">

@@ -4,6 +4,7 @@ import { Card, Table, Button, Badge, Modal, Input, Select, Switch, ConfirmDialog
 import { Plus, Edit2, Trash2, Folder, FileText, MousePointer, Search, RotateCcw, Download, Settings } from 'lucide-react';
 import { MOCK_MENUS } from '../constants';
 import { Menu } from '../types';
+import { showAppToast } from '../components/AppFeedback';
 
 export const MenuManager: React.FC = () => {
   const [data, setData] = useState<Menu[]>(MOCK_MENUS);
@@ -43,7 +44,7 @@ export const MenuManager: React.FC = () => {
   const handleDelete = (id: string) => {
       const target = fullFlatData.find(m => m.id === id);
       if (target && target.children && target.children.length > 0) {
-          alert("该菜单包含子菜单，请先删除子菜单！");
+          showAppToast('该菜单包含子菜单，请先删除子菜单。', { tone: 'warning' });
           return;
       }
       setDeleteTargetId(id);
@@ -146,7 +147,7 @@ export const MenuManager: React.FC = () => {
 
   const handleSave = () => {
       if (!currentMenu.name || !currentMenu.type) {
-          alert("请完善必要信息");
+          showAppToast('请完善必要信息。', { tone: 'warning' });
           return;
       }
 

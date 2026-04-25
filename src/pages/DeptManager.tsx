@@ -5,6 +5,7 @@ import { Plus, Edit2, Trash2, Search, RotateCcw, Folder, ChevronDown, ChevronRig
 import { MOCK_DEPTS, MOCK_DOMAINS } from '../constants';
 import { Department, Domain } from '../types';
 import { useGlobalContext } from '../GlobalContext';
+import { showAppToast } from '../components/AppFeedback';
 
 // Unified Node Type for the Sidebar
 type MixedNode = {
@@ -276,7 +277,7 @@ export const DeptManager: React.FC = () => {
 
   const handleAdd = (parentId: string | null = null) => {
       if (!selectedDomainId) {
-          alert("请先选择左侧组织机构(域)");
+          showAppToast('请先选择左侧组织机构(域)。', { tone: 'warning' });
           return;
       }
       setCurrentDept({
@@ -290,7 +291,7 @@ export const DeptManager: React.FC = () => {
 
   const handleSave = () => {
       if (!currentDept.name || !currentDept.leader) {
-          alert("请完善基本信息");
+          showAppToast('请完善基本信息。', { tone: 'warning' });
           return;
       }
 

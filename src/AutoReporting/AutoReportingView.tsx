@@ -9,6 +9,7 @@ import {
   Calendar, Clock, Check
 } from 'lucide-react';
 import { Button, Badge, SectionTitle, Input, Card, Modal } from '../components/UI';
+import { showAppToast } from '../components/AppFeedback';
 import { ReportItem, BusinessSummary, ReportMetric, Recommendation } from './types';
 import { MOCK_REPORTS } from './data';
 import { BaseChart } from '../components/BaseChart';
@@ -186,7 +187,11 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
     const updated = reports.map(r => r.id === report.id ? { ...r, smsSent: true } : r);
     setReports(updated);
     if (selectedReport?.id === report.id) setSelectedReport({ ...selectedReport, smsSent: true });
-    alert("【短信网关】下发成功：\n内容：【运维管家】您的月度业务简报已就绪，统计周期："+report.period+"，请登录平台查阅。");
+    showAppToast(`短信已下发：统计周期 ${report.period}，请登录平台查阅。`, {
+      title: '短信网关',
+      tone: 'success',
+      duration: 3600,
+    });
   };
 
   const renderTrend = (trend: 'up' | 'down' | 'stable', changeRate: string) => {

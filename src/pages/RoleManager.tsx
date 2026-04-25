@@ -5,6 +5,7 @@ import { Plus, Edit2, Trash2, Search, RotateCcw, CheckSquare, Square, MinusSquar
 import { MOCK_ROLES, REGIONS, MOCK_DOMAINS, MOCK_MENUS, BUSINESS_TYPES } from '../constants';
 import { Role, Domain, Menu } from '../types';
 import { useGlobalContext } from '../GlobalContext';
+import { showAppToast } from '../components/AppFeedback';
 
 // Tree Node Type
 type TreeNode = {
@@ -153,7 +154,7 @@ export const RoleManager: React.FC = () => {
   // --- Actions ---
   const handleAdd = () => {
       if (!selectedDomainId) {
-          alert("请先选择左侧归属域");
+          showAppToast('请先选择左侧归属域。', { tone: 'warning' });
           return;
       }
       setCurrentRole({ 
@@ -188,7 +189,7 @@ export const RoleManager: React.FC = () => {
 
   const handleSave = () => {
       if (!currentRole.name || !currentRole.code) {
-          alert("请完善角色基本信息");
+          showAppToast('请完善角色基本信息。', { tone: 'warning' });
           return;
       }
 

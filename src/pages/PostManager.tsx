@@ -4,6 +4,7 @@ import { Card, Table, Button, Badge, Modal, Input, Select, Switch, ConfirmDialog
 import { Plus, Edit2, Trash2, Search, RotateCcw, Briefcase, Download, Settings } from 'lucide-react';
 import { MOCK_POSTS } from '../constants';
 import { Post } from '../types';
+import { showAppToast } from '../components/AppFeedback';
 
 export const PostManager: React.FC = () => {
   const [data, setData] = useState<Post[]>(MOCK_POSTS);
@@ -80,7 +81,7 @@ export const PostManager: React.FC = () => {
 
   const handleSave = () => {
       if (!currentPost.name || !currentPost.code) {
-          alert("请完善岗位信息");
+          showAppToast('请完善岗位信息。', { tone: 'warning' });
           return;
       }
       if (currentPost.id) {

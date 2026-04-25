@@ -69,5 +69,5 @@ export const FAQ_ITEMS: FaqItem[] = [
   { id: 'faq_12', q: '机房扩容流程', conclusion: '需先容量评估再走审批实施。', explanation: '建议附带容量预测与风险评估。', sourceId: 'idc_4' },
   { id: 'faq_13', q: '密钥异常怎么恢复', conclusion: '先排查QKD链路，再执行策略降级。', explanation: '恢复后需补充复盘并优化阈值。', sourceId: 'sdwan_4' },
   { id: 'faq_14', q: 'gpu利用率太低', conclusion: '建议合并低负载任务并开启弹性缩容。', explanation: '可显著降低成本浪费。', sourceId: 'aic_3' },
-  { id: 'faq_15', q: '自动诊断支持哪些业务', conclusion: '支持专线、5G、IDC、量子+SD-WAN、智算五类业务。', explanation: '每类业务都提供标准化诊断主线。', suggestions: ['开始业务体检'] },
+  { id: 'faq_15', q: '自动诊断支持哪些业务', conclusion: '支持专线、5G、IDC、量子+SD-WAN、智算五类业务。', explanation: '每类业务都提供标准化诊断主线。', suggestions: ['开始业务诊断'] },
 ];

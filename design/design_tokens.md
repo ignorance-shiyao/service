@@ -4,10 +4,8 @@
 
 ## 1. 基准与来源
 
-1. 主基准：`/Users/ignorance/Downloads/东信软件/2024RD01_Managed_YWGJ_LinkSight_AHv1/5Design/界面设计/设计稿` 及其 `页面标注`。
-2. 辅助基准：当前项目已实现页面的可用性与一致性。
-3. 结构分层：`reference -> system -> components -> business`。
-4. 页面与组件禁止直接硬编码色值，统一走 token。
+1. 结构分层：`reference -> system -> components -> business`。
+2. 页面与组件禁止直接硬编码色值，统一走 token。
 
 ---
 

@@ -27,6 +27,12 @@ interface BusinessQueryCardProps {
 
 const PAGE_SIZE = 14;
 const STREAM_STEP = 1;
+const TEXT_STREAM_PACE = {
+  punctuationMin: 180,
+  punctuationSpan: 80,
+  normalMin: 72,
+  normalSpan: 48,
+};
 type QueryFlowPhase = 'boot' | 'summary' | 'types' | 'list' | 'done';
 type QueryFlowStatus = 'running' | 'done';
 type QueryFlowLog = { time: string; text: string };
@@ -76,6 +82,7 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
   const [streamedCount, setStreamedCount] = useState(0);
 
   const [overviewText, setOverviewText] = useState('');
+  const [countText, setCountText] = useState('');
   const [typeText, setTypeText] = useState('');
   const [regionText, setRegionText] = useState('');
   const [chipVisibleCount, setChipVisibleCount] = useState(0);
@@ -122,8 +129,8 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
       .join('、');
 
     return {
-      overview: `已为您检索到 ${categories.length} 类业务，共 ${totalCount} 条。`,
-      typeLine: `类型分布：${typeLines}`,
+      typeLine: `您名下当前开通的业务类型包括：${categories.map((c) => c.label).join('、')}。`,
+      countLine: `数量统计：${typeLines}，合计 ${totalCount} 条。`,
       regionLine: `主要区域：${topRegions || '暂无'}`,
     };
   }, [categories, totalCount]);
@@ -136,7 +143,9 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
         if (cancelled) return;
         current += ch;
         setter(`${current}▌`);
-        const wait = /[，。；、]/.test(ch) ? 115 : 36 + Math.floor(Math.random() * 22);
+        const wait = /[，。；、]/.test(ch)
+          ? TEXT_STREAM_PACE.punctuationMin + Math.floor(Math.random() * TEXT_STREAM_PACE.punctuationSpan)
+          : TEXT_STREAM_PACE.normalMin + Math.floor(Math.random() * TEXT_STREAM_PACE.normalSpan);
         await sleep(wait);
       }
       if (!cancelled) setter(full);
@@ -149,6 +158,7 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
         logs: [{ time: nowFlowTime(), text: '开始执行业务清单查询' }],
       });
       setOverviewText('');
+      setCountText('');
       setTypeText('');
       setRegionText('');
       setChipVisibleCount(0);
@@ -157,35 +167,37 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
       setShowListSection(false);
       setStreamedCount(0);
 
-      appendFlowLog('进入摘要生成阶段', { phase: 'summary' });
-      await runText(summary.overview, setOverviewText);
-      if (cancelled) return;
-      await sleep(140);
+      appendFlowLog('进入类型识别阶段', { phase: 'types' });
       await runText(summary.typeLine, setTypeText);
       if (cancelled) return;
-      await sleep(120);
-      await runText(summary.regionLine, setRegionText);
+      await sleep(320);
+      await runText(summary.countLine, setCountText);
       if (cancelled) return;
+      await sleep(280);
       appendFlowLog('摘要生成完成，进入类型分布阶段', { phase: 'types' });
       setShowTypeSection(true);
 
       for (let i = 1; i <= categories.length; i += 1) {
         setChipVisibleCount(i);
-        await sleep(85 + Math.floor(Math.random() * 50));
+        await sleep(190 + Math.floor(Math.random() * 110));
         if (cancelled) return;
       }
 
       setShowListSection(true);
       setListEnabled(true);
+      await sleep(260);
       setStreamedCount(STREAM_STEP);
       appendFlowLog('业务清单加载开始', { phase: 'list' });
+      await sleep(320);
+      if (cancelled) return;
+      await runText(summary.regionLine, setRegionText);
     };
 
     boot();
     return () => {
       cancelled = true;
     };
-  }, [categories, summary.overview, summary.regionLine, summary.typeLine]);
+  }, [categories, summary.countLine, summary.regionLine, summary.typeLine]);
 
   useEffect(() => {
     if (!listEnabled) return;
@@ -206,7 +218,7 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
 
     const timer = window.setTimeout(() => {
       setStreamedCount((prev) => Math.min(prev + STREAM_STEP, targetItems.length));
-    }, 170 + Math.floor(Math.random() * 130));
+    }, 280 + Math.floor(Math.random() * 220));
 
     return () => window.clearTimeout(timer);
   }, [listEnabled, streamedCount, targetItems.length]);
@@ -243,11 +255,11 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
         </span>
       </header>
       <div className="mb-2 rounded-xl border border-[#2f679d] bg-[#0f3358] p-2">
-        <div className="mb-1 text-[11px] text-[#90bce0]">查询总结</div>
+        <div className="mb-1 text-[11px] text-[#90bce0]">业务类型与数量</div>
         <div className="space-y-0.5 text-[11px] leading-5 text-[#cfe5fa]">
-          <div>{overviewText || '▌'}</div>
-          <div>{typeText || (overviewText ? '▌' : '')}</div>
-          <div>{regionText || (typeText ? '▌' : '')}</div>
+          <div>{typeText || '▌'}</div>
+          <div>{countText || (typeText ? '▌' : '')}</div>
+          <div>{regionText || (showListSection ? '▌' : '')}</div>
         </div>
       </div>
       <CardActionBar
@@ -255,7 +267,7 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
           {
             key: 'copy',
             label: '复制总结',
-            onClick: () => onCopy?.([summary.overview, summary.typeLine, summary.regionLine].join('\n')),
+            onClick: () => onCopy?.([summary.typeLine, summary.countLine, summary.regionLine].join('\n')),
           },
           {
             key: 'ask-overview',

@@ -25,7 +25,7 @@ export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initial
         { 
             id: 's1', title: '专线丢包故障诊断', lastMessage: '已定位至物理层异常。', timestamp: '10:20 AM', 
             messages: [
-                { id: 'm1-1', role: 'assistant', content: '您好！检测到您管理的“合肥-南京专线”近期出现丢包波动。建议执行深度体检。', timestamp: '10:15 AM' },
+                { id: 'm1-1', role: 'assistant', content: '您好！检测到您管理的“合肥-南京专线”近期出现丢包波动。建议执行深度诊断。', timestamp: '10:15 AM' },
                 { id: 'm1-2', role: 'user', content: '现在的探测结果如何？', timestamp: '10:18 AM' },
                 { id: 'm1-3', role: 'assistant', content: '当前链路仍有亚健康波动，通过分层探测已定位至 B 端的物理接口异常。', timestamp: '10:20 AM' }
             ]
@@ -89,7 +89,7 @@ export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initial
     };
 
     const SERVICE_MATRIX = [
-        { id: '1', name: '一键体检', icon: Zap, color: 'text-amber-400', bg: 'bg-amber-400/10', action: 'diagnosis' },
+        { id: '1', name: '一键诊断', icon: Zap, color: 'text-amber-400', bg: 'bg-amber-400/10', action: 'diagnosis' },
         { id: '2', name: 'CPE 核查', icon: Wifi, color: 'text-blue-400', bg: 'bg-blue-400/10', action: 'msg:帮我查一下名下离线的CPE' },
         { id: '3', name: '专线快照', icon: Activity, color: 'text-emerald-400', bg: 'bg-emerald-400/10', action: 'msg:查看当前专线运行快照' },
         { id: '4', name: '算力申请', icon: Cpu, color: 'text-purple-400', bg: 'bg-purple-400/10', action: 'msg:我想申请算力扩容' },

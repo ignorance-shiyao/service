@@ -15,6 +15,7 @@ import { CloudNetworkOverview } from './pages/CloudNetworkOverview';
 import { QuantumSDWANOverview } from './pages/QuantumSDWANOverview';
 import { NotificationMatrix } from './Assistant/NotificationMatrix';
 import { AiDock } from './pages/agent/ai-dock';
+import { AppFeedbackHost } from './components/AppFeedback';
 
 // --- Lazy Load Pages ---
 const DomainManager = lazy(() => import('./pages/DomainManager').then(module => ({ default: module.DomainManager })));
@@ -768,6 +769,7 @@ const App: React.FC = () => {
           animation: bounce-slow 4s infinite ease-in-out;
         }
       `}</style>
+      <AppFeedbackHost />
     </div>
     </GlobalContext.Provider>
   );

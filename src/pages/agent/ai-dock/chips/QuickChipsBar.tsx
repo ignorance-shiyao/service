@@ -20,32 +20,32 @@ export const QuickChipsBar: React.FC<QuickChipsBarProps> = ({ chips, onClick, cl
   };
   const styleMap: Record<string, { chip: string; icon: string }> = {
     chip_health: {
-      chip: 'border-[#3f8fb6] bg-[#175f7a] hover:border-[#71d2ff] hover:shadow-[0_8px_18px_rgba(9,66,96,0.38)]',
-      icon: 'text-[#9fe6ff]',
+      chip: 'border-[#49b7df] bg-[#0c7ea3] hover:border-[#9dedff] hover:shadow-[0_10px_20px_rgba(7,106,140,0.45)]',
+      icon: 'text-[#cbf4ff]',
     },
     chip_business: {
-      chip: 'border-[#5689b9] bg-[#2a5b8f] hover:border-[#8fc1f5] hover:shadow-[0_8px_18px_rgba(24,66,112,0.36)]',
-      icon: 'text-[#bfe0ff]',
+      chip: 'border-[#59a9ea] bg-[#1b6dad] hover:border-[#b9e1ff] hover:shadow-[0_10px_20px_rgba(20,89,145,0.45)]',
+      icon: 'text-[#dbf0ff]',
     },
     chip_report: {
-      chip: 'border-[#4a7fbc] bg-[#285a98] hover:border-[#86beff] hover:shadow-[0_8px_18px_rgba(21,58,108,0.38)]',
-      icon: 'text-[#b4d6ff]',
+      chip: 'border-[#6a88ea] bg-[#2a5fc7] hover:border-[#c5d4ff] hover:shadow-[0_10px_20px_rgba(33,74,160,0.46)]',
+      icon: 'text-[#e0e8ff]',
     },
     chip_knowledge: {
-      chip: 'border-[#5a75c0] bg-[#374f9b] hover:border-[#9fb1ff] hover:shadow-[0_8px_18px_rgba(41,58,126,0.4)]',
-      icon: 'text-[#c6d0ff]',
+      chip: 'border-[#9585ed] bg-[#5c56cb] hover:border-[#d3c7ff] hover:shadow-[0_10px_20px_rgba(77,72,166,0.48)]',
+      icon: 'text-[#ece8ff]',
     },
     chip_ticket: {
-      chip: 'border-[#5b7bc5] bg-[#3154a4] hover:border-[#9bc0ff] hover:shadow-[0_8px_18px_rgba(35,62,130,0.38)]',
-      icon: 'text-[#b9d2ff]',
+      chip: 'border-[#7d84e4] bg-[#4553bf] hover:border-[#c3c8ff] hover:shadow-[0_10px_20px_rgba(54,71,156,0.48)]',
+      icon: 'text-[#dde3ff]',
     },
     chip_fault: {
-      chip: 'border-[#a26f46] bg-[#875426] hover:border-[#ffbe70] hover:shadow-[0_8px_18px_rgba(118,71,23,0.4)]',
-      icon: 'text-[#ffd59d]',
+      chip: 'border-[#d18a41] bg-[#b86a1e] hover:border-[#ffd299] hover:shadow-[0_10px_20px_rgba(154,91,28,0.48)]',
+      icon: 'text-[#ffe4c2]',
     },
     chip_manager: {
-      chip: 'border-[#4b8a6f] bg-[#2a7c5a] hover:border-[#88efc4] hover:shadow-[0_8px_18px_rgba(23,103,72,0.4)]',
-      icon: 'text-[#a9ffd8]',
+      chip: 'border-[#43ae82] bg-[#1f9064] hover:border-[#9bf8cf] hover:shadow-[0_10px_20px_rgba(20,118,81,0.48)]',
+      icon: 'text-[#d4ffe9]',
     },
   };
 
@@ -57,7 +57,7 @@ export const QuickChipsBar: React.FC<QuickChipsBarProps> = ({ chips, onClick, cl
             key={chip.id}
             type="button"
             onClick={() => onClick(chip)}
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium text-[#e7f4ff] transition hover:-translate-y-[1px] ${styleMap[chip.id]?.chip || 'border-[#3b7ebb] bg-[#1b5a99] hover:border-[#69beff]'}`}
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-[#f4fbff] shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] transition hover:-translate-y-[1px] ${styleMap[chip.id]?.chip || 'border-[#3b7ebb] bg-[#1b5a99] hover:border-[#69beff]'}`}
           >
             <span className={styleMap[chip.id]?.icon || 'text-[#9fd7ff]'}>{iconMap[chip.id]}</span>
             {chip.label}

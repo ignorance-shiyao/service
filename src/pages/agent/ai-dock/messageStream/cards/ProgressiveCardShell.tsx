@@ -18,6 +18,18 @@ const PHASE_MAP: Partial<Record<AiMessage['kind'], string[]>> = {
   fallback: ['理解输入问题', '检索可用信息', '生成兜底建议'],
 };
 
+const TIMELINE_MAP: Partial<Record<AiMessage['kind'], [number, number, number]>> = {
+  businessQuery: [560, 1680, 3380],
+  reportCard: [520, 1520, 3120],
+  qa: [460, 1350, 2740],
+  knowledgeCard: [460, 1340, 2720],
+  diagnosisSelect: [520, 1480, 2980],
+  diagnosisReport: [560, 1600, 3240],
+  ticketCard: [500, 1420, 2860],
+  faultForm: [500, 1460, 2920],
+  fallback: [420, 1200, 2480],
+};
+
 const hashMs = (id: string, base: number, span: number) => {
   let h = 0;
   for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) % 100000;
@@ -26,19 +38,20 @@ const hashMs = (id: string, base: number, span: number) => {
 
 export const ProgressiveCardShell: React.FC<ProgressiveCardShellProps> = ({ message, children }) => {
   const phases = useMemo(() => PHASE_MAP[message.kind] || ['理解问题上下文', '检索关联数据', '整理输出结构'], [message.kind]);
+  const timeline = useMemo(() => TIMELINE_MAP[message.kind] || [500, 1400, 2860], [message.kind]);
   const [stage, setStage] = useState(0);
 
   useEffect(() => {
     setStage(0);
-    const t1 = window.setTimeout(() => setStage(1), hashMs(message.id, 180, 120));
-    const t2 = window.setTimeout(() => setStage(2), hashMs(message.id, 420, 180));
-    const t3 = window.setTimeout(() => setStage(3), hashMs(message.id, 760, 220));
+    const t1 = window.setTimeout(() => setStage(1), hashMs(message.id, timeline[0], 210));
+    const t2 = window.setTimeout(() => setStage(2), hashMs(message.id, timeline[1], 280));
+    const t3 = window.setTimeout(() => setStage(3), hashMs(message.id, timeline[2], 420));
     return () => {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
       window.clearTimeout(t3);
     };
-  }, [message.id]);
+  }, [message.id, timeline]);
 
   if (stage >= 3) {
     return <div className="ai-dock-card-reveal">{children}</div>;

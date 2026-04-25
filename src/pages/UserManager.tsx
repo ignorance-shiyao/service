@@ -5,6 +5,7 @@ import { MOCK_USERS, MOCK_ROLES, MOCK_DOMAINS, MOCK_MENUS, REGIONS, BUSINESS_TYP
 import { User, Domain, Role, Menu, Department } from '../types';
 import { useGlobalContext } from '../GlobalContext';
 import { useNavigate, useMatch } from 'react-router-dom';
+import { showAppToast } from '../components/AppFeedback';
 
 // Unified Node Type for the Sidebar
 type MixedNode = {
@@ -367,7 +368,7 @@ export const UserManager: React.FC = () => {
              navigate('/system/user/add');
              return;
           }
-          alert("请先选择左侧组织机构(域)");
+          showAppToast('请先选择左侧组织机构(域)。', { tone: 'warning' });
           return;
       }
       navigate('/system/user/add');
@@ -375,7 +376,7 @@ export const UserManager: React.FC = () => {
 
   const handleSave = () => {
       if (!currentUser.username || !currentUser.realName || !currentUser.baseDomainId) {
-          alert("请完善基本信息");
+          showAppToast('请完善基本信息。', { tone: 'warning' });
           return;
       }
 

@@ -85,7 +85,7 @@ type PersistedAiDockSessions = {
 };
 
 const quickChips: QuickChip[] = [
-  { id: 'chip_health', label: '业务体检', prompt: '帮我做一次业务体检' },
+  { id: 'chip_health', label: '业务诊断', prompt: '帮我做一次业务诊断' },
   { id: 'chip_business', label: '业务查询', prompt: '帮我查一下我名下都有哪些业务' },
   { id: 'chip_report', label: '运行月报', prompt: '生成本月运行报告' },
   { id: 'chip_knowledge', label: '知识库', prompt: '量子加密保护是什么' },
@@ -113,6 +113,16 @@ const pickDiagnosis = (input: string): DiagnosisTemplate | undefined => {
   if (input.includes('sdwan') || input.includes('量子')) return DIAGNOSIS_TEMPLATES.find((i) => i.id === 'SDWAN');
   if (input.includes('智算')) return DIAGNOSIS_TEMPLATES.find((i) => i.id === 'AIC');
   return undefined;
+};
+
+const STREAM_PACE = {
+  initialDelay: 260,
+  punctuationPause: 210,
+  lineBreakPause: 260,
+  introMin: 86,
+  introSpan: 40,
+  normalMin: 68,
+  normalSpan: 52,
 };
 
 type BusinessQueryItem = {
@@ -229,6 +239,8 @@ const CUSTOMER_POOL: CustomerContext[] = [
 ];
 
 const pick = <T,>(arr: T[], seed: number) => arr[seed % arr.length];
+
+const hashText = (text: string) => text.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
 
 const randomCustomerContext = (seed?: number): CustomerContext => {
   const index = typeof seed === 'number' ? seed % CUSTOMER_POOL.length : Math.floor(Math.random() * CUSTOMER_POOL.length);
@@ -370,8 +382,14 @@ const buildBusinessQueryData = (customer: CustomerContext): BusinessQueryCategor
     SDWAN: '量子+SD-WAN',
     AIC: '智算中心',
   };
-  return MANAGED_BUSINESSES.map((biz, idx) => {
-    const count = 28 + idx * 9;
+  const seed = hashText(`${customer.name}-${customer.code}`);
+  const selectedBusinesses = MANAGED_BUSINESSES.filter((_, idx) => ((seed + idx * 7) % 5 !== 0) || idx === 0);
+  const finalBusinesses = selectedBusinesses.length >= 2 ? selectedBusinesses : MANAGED_BUSINESSES.slice(0, 3);
+
+  return finalBusinesses.map((biz, idx) => {
+    const base = biz.code === 'LINE' ? 18 : biz.code === '5G' ? 10 : biz.code === 'IDC' ? 6 : biz.code === 'SDWAN' ? 8 : 4;
+    const variance = (seed + idx * 13) % (biz.code === 'LINE' ? 34 : biz.code === '5G' ? 24 : biz.code === 'IDC' ? 18 : 20);
+    const count = Math.max(3, base + variance);
     const items: BusinessQueryItem[] = Array.from({ length: count }).map((_, i) => {
       const n = i + 1;
       const addr = ANHUI_ADDRESS_POOL[(idx * 7 + n * 3) % ANHUI_ADDRESS_POOL.length];
@@ -482,7 +500,7 @@ const buildBusinessDiagnosisReport = (targets: BusinessDiagnosisTarget[]): Busin
         `业务安装点「${target.item.site}」最近一次资料更新时间为 ${target.item.updatedAt}`,
       ],
       suggestions: [
-        level === '异常' ? '建议立即发起报障并关联本次体检结果' : '建议保持当前巡检策略并持续观察趋势',
+        level === '异常' ? '建议立即发起报障并关联本次诊断结果' : '建议保持当前巡检策略并持续观察趋势',
         level === '健康' ? '可纳入低频巡检清单' : '建议提高该业务未来7天巡检频次',
         '如需进一步定位，可继续发起单业务深度诊断',
       ],
@@ -495,16 +513,16 @@ const buildBusinessDiagnosisReport = (targets: BusinessDiagnosisTarget[]): Busin
   const typeSummary = Array.from(new Set(results.map((item) => item.type))).join('、') || '业务';
 
   return {
-    title: '业务体检报告',
+    title: '业务诊断报告',
     generatedAt: new Date().toLocaleString('zh-CN', { hour12: false }),
     total: results.length,
     averageScore,
-    summary: `本次共体检 ${results.length} 条业务，覆盖 ${typeSummary}。平均健康评分 ${averageScore} 分，${abnormalCount} 条异常，${warningCount} 条需要关注。`,
+    summary: `本次共诊断 ${results.length} 条业务，覆盖 ${typeSummary}。平均健康评分 ${averageScore} 分，${abnormalCount} 条异常，${warningCount} 条需要关注。`,
     results,
     nextActions: [
-      abnormalCount > 0 ? '优先处理异常业务，建议直接发起报障并附带体检结果。' : '当前未发现严重异常，可保持日常巡检节奏。',
+      abnormalCount > 0 ? '优先处理异常业务，建议直接发起报障并附带诊断结果。' : '当前未发现严重异常，可保持日常巡检节奏。',
       warningCount > 0 ? '对关注业务设置未来7天重点观察，跟踪时延、丢包和可用率变化。' : '关注业务数量较少，可按现有服务等级继续运营。',
-      '如客户需要汇报材料，可基于本次体检结果继续生成运行说明。',
+      '如客户需要汇报材料，可基于本次诊断结果继续生成运行说明。',
     ],
   };
 };
@@ -564,11 +582,11 @@ const buildSessionSnapshotTags = (messages: AiMessage[]): Array<{ label: string;
     }
     if (message.kind === 'businessDiagnosisReport') {
       const score = typeof message.data?.averageScore === 'number' ? ` ${message.data.averageScore}分` : '';
-      pushTag('health_check', `体检完成${score}`, 'cyan');
+      pushTag('health_check', `诊断完成${score}`, 'cyan');
       continue;
     }
     if (message.kind === 'businessDiagnosisSelect') {
-      pushTag('health_select', '业务体检', 'cyan');
+      pushTag('health_select', '业务诊断', 'cyan');
       continue;
     }
     if (message.kind === 'reportCard') {
@@ -796,7 +814,7 @@ export const useAiDock = () => {
       kind: 'text',
       text: '▌',
     });
-    await delay(180);
+    await delay(STREAM_PACE.initialDelay);
 
     let current = '';
     let index = 0;
@@ -813,19 +831,20 @@ export const useAiDock = () => {
       updateMessageText(messageId, hasMore ? `${current}▌` : current);
       const wait =
         /[，。！？；,.!?：:]/.test(ch)
-          ? 145
+          ? STREAM_PACE.punctuationPause
           : ch === '\n'
-            ? 180
+            ? STREAM_PACE.lineBreakPause
             : current.length < 8
-              ? 56
-              : 42 + Math.floor(Math.random() * 24);
+              ? STREAM_PACE.introMin + Math.floor(Math.random() * STREAM_PACE.introSpan)
+              : STREAM_PACE.normalMin + Math.floor(Math.random() * STREAM_PACE.normalSpan);
       await delay(wait);
     }
   }, [appendMessage, updateMessageText]);
 
-  const appendCardWithThinking = useCallback(async (appendCard: () => void | Promise<void>, ms = 380) => {
+  const appendCardWithThinking = useCallback(async (appendCard: () => void | Promise<void>, ms = 760) => {
     if (stopRespondingRef.current) return;
-    await delay(ms);
+    const jitter = Math.floor(Math.random() * 520);
+    await delay(ms + jitter);
     if (stopRespondingRef.current) return;
     await appendCard();
   }, []);
@@ -939,14 +958,14 @@ export const useAiDock = () => {
     const selectedText = targets.length > 6
       ? `${targets.slice(0, 6).map((target) => target.item.name).join('、')} 等 ${targets.length} 条业务`
       : targets.map((target) => target.item.name).join('、');
-    let logs: FlowLogEntry[] = appendFlowLog([], `已接收业务体检任务：${selectedText}`);
+    let logs: FlowLogEntry[] = appendFlowLog([], `已接收业务诊断任务：${selectedText}`);
 
     await delay(260);
     const progressId = appendMessage({
       role: 'assistant',
       kind: 'diagnosisProgress',
       data: {
-        title: '业务体检执行中',
+        title: '业务诊断执行中',
         progress: 0,
         step: '准备采集所选业务指标',
         running: true,
@@ -959,7 +978,7 @@ export const useAiDock = () => {
       '采集业务运行指标',
       '关联站点、链路和资源信息',
       '计算健康评分与风险等级',
-      '生成体检摘要、详情和后续建议',
+      '生成诊断摘要、详情和后续建议',
     ];
     for (let i = 0; i < steps.length; i += 1) {
       await delay(520);

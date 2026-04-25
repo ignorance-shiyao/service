@@ -7,6 +7,7 @@ import {
   ArrowRight, Link as LinkIcon, Check
 } from 'lucide-react';
 import { Button, Badge, SectionTitle, Input } from '../components/UI';
+import { showAppToast } from '../components/AppFeedback';
 import { AssetDiagnostic, AssetType, DiagnosticStatus } from './types';
 
 interface FaultReportingProps {
@@ -102,14 +103,19 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
 
   const handleGoToReport = (asset: AssetDiagnostic) => {
     setSelectedAsset(asset);
-    setTicketMemo(`【一键体检报障】检测到资产 ${asset.name} 存在 ${asset.overallStatus === 'fault' ? '严重故障' : '运行异常'}。系统建议：${asset.suggestion}`);
+    setTicketMemo(`【一键诊断报障】检测到资产 ${asset.name} 存在 ${asset.overallStatus === 'fault' ? '严重故障' : '运行异常'}。系统建议：${asset.suggestion}`);
     setStep('form');
   };
 
   const submitTicket = () => {
     setStep('scanning'); // 借用扫描态显示提交中
     setTimeout(() => {
-      alert(`故障工单提交成功！\n\n单号：TKT-${Date.now().toString().slice(-8)}\n已自动关联报告：https://ops-guardian.com/report/${selectedAsset?.uuid}\n关联资产UUID：${selectedAsset?.uuid}`);
+      const ticketId = `TKT-${Date.now().toString().slice(-8)}`;
+      showAppToast(`工单提交成功：${ticketId}，已自动关联资产 ${selectedAsset?.uuid || '-'}`, {
+        title: '报障已受理',
+        tone: 'success',
+        duration: 4200,
+      });
       onClose();
     }, 1500);
   };
@@ -140,7 +146,7 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
           <div className="p-2 bg-amber-600/20 rounded-lg">
             <ShieldAlert className="text-amber-500" size={20} />
           </div>
-          <h2 className="text-lg font-bold text-white tracking-tight">智能体检 & 一键报障</h2>
+          <h2 className="text-lg font-bold text-white tracking-tight">智能诊断 & 一键报障</h2>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={onToggleMode} className="p-2 hover:bg-slate-800 rounded-md text-slate-400 transition-colors">
@@ -188,7 +194,7 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
                 onClick={startDetection} 
                 className="bg-blue-600 hover:bg-blue-500 h-16 px-12 rounded-2xl font-black text-xl shadow-2xl shadow-blue-900/40 border-none group"
             >
-                开始一键体检
+                开始一键诊断
                 <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
