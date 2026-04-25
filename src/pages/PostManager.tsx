@@ -7,7 +7,7 @@ import { showAppToast } from '../components/AppFeedback';
 import { useAppData } from '../context/AppDataContext';
 
 export const PostManager: React.FC = () => {
-  const { posts } = useAppData();
+  const { posts, updatePosts } = useAppData();
   const [data, setData] = useState<Post[]>([]);
 
   useEffect(() => {
@@ -27,6 +27,11 @@ export const PostManager: React.FC = () => {
 
   // Column Config
   const [isColumnConfigOpen, setIsColumnConfigOpen] = useState(false);
+
+  const commitPosts = (next: Post[]) => {
+    setData(next);
+    updatePosts(next);
+  };
 
   const handleEdit = (post: Post) => {
       setCurrentPost({ ...post });
@@ -90,21 +95,21 @@ export const PostManager: React.FC = () => {
           return;
       }
       if (currentPost.id) {
-          setData(data.map(p => p.id === currentPost.id ? { ...p, ...currentPost } as Post : p));
+          commitPosts(data.map(p => p.id === currentPost.id ? { ...p, ...currentPost } as Post : p));
       } else {
           const newPost = {
               ...currentPost,
               id: Date.now().toString(),
               createTime: new Date().toLocaleDateString()
           } as Post;
-          setData([...data, newPost]);
+          commitPosts([...data, newPost]);
       }
       setIsModalOpen(false);
   };
 
   const confirmDelete = () => {
       if (deleteTargetId) {
-          setData(data.filter(p => p.id !== deleteTargetId));
+          commitPosts(data.filter(p => p.id !== deleteTargetId));
       }
       setDeleteConfirmOpen(false);
       setDeleteTargetId(null);

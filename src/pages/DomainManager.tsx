@@ -8,7 +8,7 @@ import { useAppData } from '../context/AppDataContext';
 
 export const DomainManager: React.FC = () => {
   const { mode, currentDomain } = useGlobalContext();
-  const { domains, customers } = useAppData();
+  const { domains, customers, updateDomains } = useAppData();
   const navigate = useNavigate();
   const [data, setData] = useState<Domain[]>([]);
 
@@ -44,6 +44,11 @@ export const DomainManager: React.FC = () => {
 
   // Column Config
   const [isColumnConfigOpen, setIsColumnConfigOpen] = useState(false);
+
+  const commitDomains = (next: Domain[]) => {
+    setData(next);
+    updateDomains(next);
+  };
 
   // Sync Modal State with Route
   useEffect(() => {
@@ -240,7 +245,7 @@ export const DomainManager: React.FC = () => {
 
   const confirmDelete = () => {
     if (deleteTarget) {
-        setData(data.filter(n => n.id !== deleteTarget.id));
+        commitDomains(data.filter(n => n.id !== deleteTarget.id));
     }
     setDeleteConfirmOpen(false);
     setDeleteTarget(null);
@@ -248,7 +253,7 @@ export const DomainManager: React.FC = () => {
 
   const confirmStatusChange = () => {
       if (targetStatusChange) {
-          setData(data.map(item => item.id === targetStatusChange.id ? { ...item, status: targetStatusChange.newStatus } : item));
+          commitDomains(data.map(item => item.id === targetStatusChange.id ? { ...item, status: targetStatusChange.newStatus } : item));
       }
       setConfirmOpen(false);
       setTargetStatusChange(null);
@@ -258,7 +263,7 @@ export const DomainManager: React.FC = () => {
       const timestamp = new Date().toLocaleString();
       if (currentEditDomain?.id) {
           // Update
-          setData(data.map(n => n.id === currentEditDomain.id ? { 
+          commitDomains(data.map(n => n.id === currentEditDomain.id ? { 
               ...n, 
               ...currentEditDomain,
               updateTime: timestamp,
@@ -275,7 +280,7 @@ export const DomainManager: React.FC = () => {
               updater: 'admin',
               parentId: null
           } as Domain;
-          setData([...data, newDomain]);
+          commitDomains([...data, newDomain]);
       }
       navigate('/system/domain');
   };

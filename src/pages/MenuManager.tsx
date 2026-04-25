@@ -7,7 +7,7 @@ import { showAppToast } from '../components/AppFeedback';
 import { useAppData } from '../context/AppDataContext';
 
 export const MenuManager: React.FC = () => {
-  const { menus } = useAppData();
+  const { menus, updateMenus } = useAppData();
   const [data, setData] = useState<Menu[]>([]);
 
   useEffect(() => {
@@ -30,6 +30,11 @@ export const MenuManager: React.FC = () => {
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+
+  const commitMenus = (next: Menu[]) => {
+    setData(next);
+    updateMenus(next);
+  };
 
   const initiateStatusChange = (menu: Menu, checked: boolean) => {
     setTargetStatusChange({ id: menu.id, newVisible: checked });
@@ -179,7 +184,7 @@ export const MenuManager: React.FC = () => {
                   return n;
               });
           };
-          setData(updateNode(data));
+          commitMenus(updateNode(data));
       } else {
           const newId = Date.now().toString();
           const newMenu = { 
@@ -204,9 +209,9 @@ export const MenuManager: React.FC = () => {
                       return n;
                   });
               };
-              setData(addNode(data));
+              commitMenus(addNode(data));
           } else {
-              setData([...data, newMenu]);
+              commitMenus([...data, newMenu]);
           }
       }
       setIsModalOpen(false);
@@ -220,7 +225,7 @@ export const MenuManager: React.FC = () => {
                   children: n.children ? removeNode(n.children) : []
               }));
           };
-          setData(removeNode(data));
+          commitMenus(removeNode(data));
       }
       setDeleteConfirmOpen(false);
       setDeleteTargetId(null);
@@ -239,7 +244,7 @@ export const MenuManager: React.FC = () => {
                  return item;
              });
          };
-         setData(updateVisible(data));
+         commitMenus(updateVisible(data));
      }
      setConfirmOpen(false);
      setTargetStatusChange(null);

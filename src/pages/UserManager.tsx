@@ -18,7 +18,7 @@ type MixedNode = {
 
 export const UserManager: React.FC = () => {
   const { mode, currentDomain } = useGlobalContext();
-  const { users, roles, domains, menus, regions, businessTypes, depts } = useAppData();
+  const { users, roles, domains, menus, regions, businessTypes, depts, updateUsers } = useAppData();
   const navigate = useNavigate();
   
   const [selectedNode, setSelectedNode] = useState<{ id: string, type: 'domain' | 'dept' } | null>(null);
@@ -49,6 +49,11 @@ export const UserManager: React.FC = () => {
 
   // Column Config
   const [isColumnConfigOpen, setIsColumnConfigOpen] = useState(false);
+
+  const commitUsers = (next: User[]) => {
+    setUserData(next);
+    updateUsers(next);
+  };
 
   useEffect(() => {
     setUserData(users);
@@ -397,7 +402,7 @@ export const UserManager: React.FC = () => {
       const timestamp = new Date().toLocaleString();
 
       if (currentUser.id) {
-          setUserData(userData.map(u => u.id === currentUser.id ? { 
+          commitUsers(userData.map(u => u.id === currentUser.id ? { 
               ...u, 
               ...currentUser, 
               roles: newRoles,
@@ -414,7 +419,7 @@ export const UserManager: React.FC = () => {
               updater: 'admin',
               roles: newRoles
           } as User;
-          setUserData([...userData, newUser]);
+          commitUsers([...userData, newUser]);
       }
       navigate('/system/user');
   };
@@ -425,7 +430,7 @@ export const UserManager: React.FC = () => {
 
   const confirmDelete = () => {
       if (deleteTargetId) {
-          setUserData(userData.filter(u => u.id !== deleteTargetId));
+          commitUsers(userData.filter(u => u.id !== deleteTargetId));
       }
       setDeleteConfirmOpen(false);
       setDeleteTargetId(null);
@@ -433,7 +438,7 @@ export const UserManager: React.FC = () => {
 
   const confirmStatusChange = () => {
     if (targetStatusChange) {
-        setUserData(userData.map(u => u.id === targetStatusChange.id ? { ...u, status: targetStatusChange.newStatus } : u));
+        commitUsers(userData.map(u => u.id === targetStatusChange.id ? { ...u, status: targetStatusChange.newStatus } : u));
     }
     setConfirmOpen(false);
     setTargetStatusChange(null);

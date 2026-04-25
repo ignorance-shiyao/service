@@ -18,7 +18,7 @@ type MixedNode = {
 
 export const DeptManager: React.FC = () => {
   const { mode, currentDomain } = useGlobalContext();
-  const { domains, depts } = useAppData();
+  const { domains, depts, updateDepts } = useAppData();
   
   // -- Selection State --
   const [selectedDomainId, setSelectedDomainId] = useState<string>('');
@@ -45,6 +45,11 @@ export const DeptManager: React.FC = () => {
 
   // Column Config
   const [isColumnConfigOpen, setIsColumnConfigOpen] = useState(false);
+
+  const commitDepts = (next: Department[]) => {
+    setDeptData(next);
+    updateDepts(next);
+  };
 
   useEffect(() => {
     setDeptData(depts);
@@ -332,7 +337,7 @@ export const DeptManager: React.FC = () => {
       };
 
       if (currentDept.id) {
-          setDeptData(updateInTree(deptData));
+          commitDepts(updateInTree(deptData));
       } else {
           const newDept = {
               ...deptToSave,
@@ -343,10 +348,10 @@ export const DeptManager: React.FC = () => {
           } as Department;
           
           if (newDept.parentId) {
-              setDeptData(addInTree(deptData, newDept));
+              commitDepts(addInTree(deptData, newDept));
               setExpandedTableKeys(new Set([...expandedTableKeys, newDept.parentId]));
           } else {
-              setDeptData([...deptData, newDept]);
+              commitDepts([...deptData, newDept]);
           }
       }
       setIsModalOpen(false);
@@ -360,7 +365,7 @@ export const DeptManager: React.FC = () => {
                   children: n.children ? removeNode(n.children) : undefined
               }));
           };
-          setDeptData(removeNode(deptData));
+          commitDepts(removeNode(deptData));
       }
       setDeleteConfirmOpen(false);
       setDeleteTargetId(null);
@@ -379,7 +384,7 @@ export const DeptManager: React.FC = () => {
                   return n;
               });
           };
-          setDeptData(updateStatus(deptData));
+          commitDepts(updateStatus(deptData));
       }
       setConfirmOpen(false);
       setTargetStatusChange(null);

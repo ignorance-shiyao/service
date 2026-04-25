@@ -19,9 +19,11 @@ import { ComponentEditor } from '../components/ComponentEditor';
 import { useNavigate, useMatch } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
 
+type CategoryOption = { code: string; name: string; remark?: string };
+
 export const ComponentManager: React.FC = () => {
   const { mode, currentDomain } = useGlobalContext();
-  const { components: sourceComponents, businessTypes } = useAppData();
+  const { components: sourceComponents, businessTypes, updateComponents, updateBusinessTypes } = useAppData();
   const navigate = useNavigate();
   
   // Data States
@@ -33,7 +35,7 @@ export const ComponentManager: React.FC = () => {
       }))
   );
   
-  const [categories, setCategories] = useState(businessTypes.map(b => ({ ...b, remark: '' })));
+  const [categories, setCategories] = useState<CategoryOption[]>(businessTypes.map(b => ({ ...b, remark: '' })));
   
   // Sidebar State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -56,6 +58,16 @@ export const ComponentManager: React.FC = () => {
   const [currentGroup, setCurrentGroup] = useState<{ name: string, code: string, remark: string, id?: string }>({ name: '', code: '', remark: '' });
   const [groupDeleteId, setGroupDeleteId] = useState<string | null>(null);
   const [groupDeleteWarning, setGroupDeleteWarning] = useState<string | null>(null);
+
+  const commitComponents = (next: any[]) => {
+    setComponents(next);
+    updateComponents(next);
+  };
+
+  const commitCategories = (next: CategoryOption[]) => {
+    setCategories(next);
+    updateBusinessTypes(next.map(({ code, name }) => ({ code, name })));
+  };
 
   useEffect(() => {
     setComponents(
@@ -178,11 +190,11 @@ export const ComponentManager: React.FC = () => {
   const handleSaveComponent = (savedComp: any) => {
       if (savedComp.id) {
           // Update
-          setComponents(prev => prev.map(c => c.id === savedComp.id ? savedComp : c));
+          commitComponents(components.map(c => c.id === savedComp.id ? savedComp : c));
       } else {
           // Add
           const newComp = { ...savedComp, id: `comp_${Date.now()}` };
-          setComponents(prev => [newComp, ...prev]);
+          commitComponents([newComp, ...components]);
       }
       setEditingComponent(null);
   };
@@ -210,7 +222,7 @@ export const ComponentManager: React.FC = () => {
 
   const confirmDeleteGroup = () => {
       if (groupDeleteId) {
-          setCategories(prev => prev.filter(c => c.code !== groupDeleteId));
+          commitCategories(categories.filter(c => c.code !== groupDeleteId));
           if (activeCategory === groupDeleteId) setActiveCategory('all');
       }
       setGroupDeleteId(null);
@@ -222,10 +234,10 @@ export const ComponentManager: React.FC = () => {
       const isEdit = !!currentGroup.id;
       
       if (isEdit) {
-          setCategories(prev => prev.map(c => c.code === currentGroup.id ? { ...c, name: currentGroup.name, remark: currentGroup.remark } : c));
+          commitCategories(categories.map(c => c.code === currentGroup.id ? { ...c, name: currentGroup.name, remark: currentGroup.remark } : c));
       } else {
           const newCode = `BIZ_${Date.now()}`;
-          setCategories(prev => [...prev, { name: currentGroup.name, code: newCode, remark: currentGroup.remark }]);
+          commitCategories([...categories, { name: currentGroup.name, code: newCode, remark: currentGroup.remark }]);
       }
       navigate('/config/component');
   };

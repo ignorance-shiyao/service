@@ -68,7 +68,7 @@ type TreeNode = {
 
 export const TemplateManager: React.FC = () => {
   const { mode, currentDomain } = useGlobalContext();
-  const { templates: sourceTemplates, businessTypes, customers, domains } = useAppData();
+  const { templates: sourceTemplates, businessTypes, customers, domains, updateTemplates } = useAppData();
   
   // -- Data State --
   const [templates, setTemplates] = useState(sourceTemplates);
@@ -90,6 +90,11 @@ export const TemplateManager: React.FC = () => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
   const [startInPreview, setStartInPreview] = useState(false);
+
+  const commitTemplates = (next: any[]) => {
+    setTemplates(next);
+    updateTemplates(next);
+  };
 
   useEffect(() => {
     setTemplates(sourceTemplates);
@@ -228,9 +233,9 @@ export const TemplateManager: React.FC = () => {
 
   const handleSaveTemplate = (savedTemplate: any) => {
       if (savedTemplate.id) {
-          setTemplates(prev => prev.map(t => t.id === savedTemplate.id ? savedTemplate : t));
+          commitTemplates(templates.map(t => t.id === savedTemplate.id ? savedTemplate : t));
       } else {
-          setTemplates(prev => [...prev, { ...savedTemplate, id: `t${Date.now()}` }]);
+          commitTemplates([...templates, { ...savedTemplate, id: `t${Date.now()}` }]);
       }
       setIsEditorOpen(false);
   };

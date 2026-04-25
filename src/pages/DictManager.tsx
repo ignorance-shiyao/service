@@ -6,7 +6,7 @@ import { DictType, DictData } from '../types';
 import { useAppData } from '../context/AppDataContext';
 
 export const DictManager: React.FC = () => {
-  const { dictTypes, dictData } = useAppData();
+  const { dictTypes, dictData, updateDictTypes, updateDictData } = useAppData();
   // Left: Type List State
   const [types, setTypes] = useState<DictType[]>([]);
   const [selectedTypeId, setSelectedTypeId] = useState<string>('');
@@ -21,6 +21,16 @@ export const DictManager: React.FC = () => {
   const [dataModalOpen, setDataModalOpen] = useState(false);
   const [currentType, setCurrentType] = useState<Partial<DictType>>({});
   const [currentData, setCurrentData] = useState<Partial<DictData>>({});
+
+  const commitDictTypes = (next: DictType[]) => {
+    setTypes(next);
+    updateDictTypes(next);
+  };
+
+  const commitDictData = (next: DictData[]) => {
+    setDatas(next);
+    updateDictData(next);
+  };
 
   useEffect(() => {
     setTypes(dictTypes);
@@ -46,9 +56,9 @@ export const DictManager: React.FC = () => {
   const handleSaveType = () => {
       if (!currentType.name || !currentType.type) return;
       if (currentType.id) {
-          setTypes(types.map(t => t.id === currentType.id ? { ...t, ...currentType } as DictType : t));
+          commitDictTypes(types.map(t => t.id === currentType.id ? { ...t, ...currentType } as DictType : t));
       } else {
-          setTypes([...types, { ...currentType, id: Date.now().toString(), createTime: new Date().toLocaleDateString() } as DictType]);
+          commitDictTypes([...types, { ...currentType, id: Date.now().toString(), createTime: new Date().toLocaleDateString() } as DictType]);
       }
       setTypeModalOpen(false);
   };
@@ -78,9 +88,9 @@ export const DictManager: React.FC = () => {
   const handleSaveData = () => {
       if (!currentData.label || !currentData.value) return;
       if (currentData.id) {
-          setDatas(datas.map(d => d.id === currentData.id ? { ...d, ...currentData } as DictData : d));
+          commitDictData(datas.map(d => d.id === currentData.id ? { ...d, ...currentData } as DictData : d));
       } else {
-          setDatas([...datas, { ...currentData, id: Date.now().toString() } as DictData]);
+          commitDictData([...datas, { ...currentData, id: Date.now().toString() } as DictData]);
       }
       setDataModalOpen(false);
   };
@@ -117,7 +127,7 @@ export const DictManager: React.FC = () => {
           accessor: (row: DictData) => (
               <div className="flex gap-2">
                   <Button size="sm" variant="ghost" className="!text-blue-500 hover:!text-blue-400" icon={<Edit2 size={12}/>} onClick={() => handleEditData(row)}>编辑</Button>
-                  <Button size="sm" variant="ghost" className="!text-red-500 hover:!text-red-400" icon={<Trash2 size={12}/>} onClick={() => setDatas(datas.filter(d => d.id !== row.id))}>删除</Button>
+                  <Button size="sm" variant="ghost" className="!text-red-500 hover:!text-red-400" icon={<Trash2 size={12}/>} onClick={() => commitDictData(datas.filter(d => d.id !== row.id))}>删除</Button>
               </div>
           )
       }

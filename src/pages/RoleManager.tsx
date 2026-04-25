@@ -18,7 +18,7 @@ type TreeNode = {
 
 export const RoleManager: React.FC = () => {
   const { mode, currentDomain } = useGlobalContext();
-  const { roles, regions, domains, menus, businessTypes } = useAppData();
+  const { roles, regions, domains, menus, businessTypes, updateRoles } = useAppData();
   
   // --- Sidebar State ---
   const [selectedDomainId, setSelectedDomainId] = useState<string>('');
@@ -56,6 +56,11 @@ export const RoleManager: React.FC = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isColumnConfigOpen, setIsColumnConfigOpen] = useState(false);
+
+  const commitRoles = (next: Role[]) => {
+    setRoleData(next);
+    updateRoles(next);
+  };
 
   useEffect(() => {
     setRoleData(roles);
@@ -186,7 +191,7 @@ export const RoleManager: React.FC = () => {
 
   const confirmDelete = () => {
       if (deleteId) {
-          setRoleData(roleData.filter(r => r.id !== deleteId));
+          commitRoles(roleData.filter(r => r.id !== deleteId));
       }
       setConfirmOpen(false);
       setDeleteId(null);
@@ -204,13 +209,13 @@ export const RoleManager: React.FC = () => {
       } as Role;
 
       if (roleToSave.id) {
-          setRoleData(roleData.map(r => r.id === roleToSave.id ? roleToSave : r));
+          commitRoles(roleData.map(r => r.id === roleToSave.id ? roleToSave : r));
       } else {
           const newRole = { 
               ...roleToSave, 
               id: Date.now().toString(),
           } as Role;
-          setRoleData([...roleData, newRole]);
+          commitRoles([...roleData, newRole]);
       }
       setIsModalOpen(false);
   };
