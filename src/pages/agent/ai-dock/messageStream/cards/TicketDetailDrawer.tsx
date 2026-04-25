@@ -1,5 +1,5 @@
 import React from 'react';
-import { TicketItem } from '../../mocks/tickets';
+import { TicketItem } from '../../../../../mock/assistant';
 
 interface TicketDetailDrawerProps {
   item: TicketItem;

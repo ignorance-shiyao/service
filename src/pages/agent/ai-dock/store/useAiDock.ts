@@ -1,10 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { KNOWLEDGE_ITEMS, KnowledgeItem } from '../mocks/knowledge';
-import { FAQ_ITEMS, FaqItem } from '../mocks/faq';
-import { REPORTS, ReportItem } from '../mocks/reports';
-import { DIAGNOSIS_STEPS, DIAGNOSIS_TEMPLATES, DiagnosisTemplate } from '../mocks/diagnosis';
-import { TICKETS, TicketItem } from '../mocks/tickets';
-import { MANAGED_BUSINESSES, ManagedBusiness } from '../mocks/businesses';
+import {
+  KNOWLEDGE_ITEMS,
+  KnowledgeItem,
+  FAQ_ITEMS,
+  FaqItem,
+  REPORTS,
+  ReportItem,
+  DIAGNOSIS_STEPS,
+  DIAGNOSIS_TEMPLATES,
+  DiagnosisTemplate,
+  TICKETS,
+  TicketItem,
+  MANAGED_BUSINESSES,
+  ManagedBusiness,
+} from '../../../../mock/assistant';
 import { createId } from '../utils/id';
 import { delay } from '../utils/delay';
 import { detectIntent, IntentType } from './mockIntent';

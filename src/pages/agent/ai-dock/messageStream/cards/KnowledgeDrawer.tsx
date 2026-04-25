@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ThumbsDown, ThumbsUp } from 'lucide-react';
-import { KnowledgeItem, KNOWLEDGE_ITEMS } from '../../mocks/knowledge';
+import { KnowledgeItem, KNOWLEDGE_ITEMS } from '../../../../../mock/assistant';
 
 interface KnowledgeDrawerProps {
   item: KnowledgeItem;

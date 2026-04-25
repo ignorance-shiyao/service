@@ -35,12 +35,16 @@ service/
 ├─ src/
 │  ├─ index.tsx
 │  ├─ App.tsx
+│  ├─ mock/
+│  │  ├─ bootstrap.defaults.ts             # 全局默认 mock 数据（唯一源）
+│  │  ├─ assistant/                        # 智能体(ai-dock)专属 mock 数据
+│  │  └─ index.ts                          # mock 统一导出入口
 │  ├─ context/
-│  │  └─ AppDataContext.tsx                # 全局数据上下文（含持久化更新方法）
+│  │  └─ AppDataContext.tsx                # 全局数据上下文（统一更新/防抖持久化）
 │  ├─ services/
 │  │  └─ data-gateway/
 │  │     ├─ index.ts                       # 统一数据网关（load/save）
-│  │     └─ mockDataSource.ts              # 默认 mock 数据模板
+│  │     └─ mockDataSource.ts              # mock 数据装配层
 │  ├─ pages/                               # 系统管理、配置管理、大屏页面
 │  ├─ components/                          # 通用组件、编辑器、预览组件
 │  ├─ Assistant/
@@ -62,7 +66,14 @@ service/
 
 - 启动时 `loadBootstrapData()` 拉取一份完整数据集
 - 页面增删改通过 `update*` 方法回写上下文
-- 上下文自动调用 `saveBootstrapData()` 持久化
+- 上下文通过统一的 `updateSlice` 管理更新模式（各模块一致）
+- 持久化采用防抖写入（250ms）降低频繁 IO 和重渲染带来的性能影响
+
+### 4.1.1 Mock 目录统一规范
+
+- 全局默认 mock 仅维护在 `src/mock/`
+- 运行态持久化数据仅维护在 `mock/mock-db.json`
+- 业务页面禁止再直接定义全局 mock 常量，避免耦合
 
 ### 4.2 本地 JSON 持久化机制
 
@@ -140,3 +151,10 @@ service/
 
 这样可以做到“页面基本不动，仅替换网关实现”。
 
+## 9. 一致性与低耦合原则（当前已执行）
+
+1. **单一 mock 源**：`src/mock/`  
+2. **单一持久化出口**：`saveBootstrapData`  
+3. **单一更新模式**：`updateSlice -> update*`  
+4. **防抖落盘**：减少高频编辑时的写盘压力  
+5. **页面只关心本模块数据**：通过 context 方法更新，避免模块间直接依赖

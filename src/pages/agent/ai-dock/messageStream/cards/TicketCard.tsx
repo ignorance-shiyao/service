@@ -1,6 +1,6 @@
 import React from 'react';
 import { Ticket } from 'lucide-react';
-import { TicketItem } from '../../mocks/tickets';
+import { TicketItem } from '../../../../../mock/assistant';
 import { CardActionBar } from './CardActionBar';
 
 interface TicketCardProps {

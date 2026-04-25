@@ -13,7 +13,7 @@ import {
   MOCK_DICT_TYPES,
   MOCK_DICT_DATA,
   MOCK_LOGS,
-} from '../../constants';
+} from '../../mock';
 import {
   Customer,
   Department,

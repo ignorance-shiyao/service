@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShieldCheck } from 'lucide-react';
-import { DiagnosisTemplate } from '../../mocks/diagnosis';
+import { DiagnosisTemplate } from '../../../../../mock/assistant';
 import { CardActionBar } from './CardActionBar';
 
 interface DiagnosisReportCardProps {

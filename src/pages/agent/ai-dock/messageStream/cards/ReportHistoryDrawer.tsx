@@ -1,5 +1,5 @@
 import React from 'react';
-import { ReportItem } from '../../mocks/reports';
+import { ReportItem } from '../../../../../mock/assistant';
 
 interface ReportHistoryDrawerProps {
   list: ReportItem[];

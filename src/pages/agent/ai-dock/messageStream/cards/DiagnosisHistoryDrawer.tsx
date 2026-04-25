@@ -1,5 +1,5 @@
 import React from 'react';
-import { DiagnosisTemplate } from '../../mocks/diagnosis';
+import { DiagnosisTemplate } from '../../../../../mock/assistant';
 
 interface DiagnosisHistoryDrawerProps {
   list: DiagnosisTemplate[];

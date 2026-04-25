@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { loadBootstrapData, saveBootstrapData } from '../services/data-gateway';
 import { AppBootstrapData } from '../services/data-gateway/mockDataSource';
 
@@ -60,6 +60,8 @@ const AppDataContext = createContext<AppDataContextType>({
 export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [data, setData] = useState<AppBootstrapData>(EMPTY_DATA);
   const [isLoading, setIsLoading] = useState(true);
+  const persistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingSnapshotRef = useRef<AppBootstrapData | null>(null);
 
   const persistData = useCallback(async (next: AppBootstrapData) => {
     try {
@@ -69,15 +71,33 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
+  const schedulePersist = useCallback(
+    (next: AppBootstrapData) => {
+      pendingSnapshotRef.current = next;
+      if (persistTimerRef.current) {
+        clearTimeout(persistTimerRef.current);
+      }
+      persistTimerRef.current = setTimeout(() => {
+        const snapshot = pendingSnapshotRef.current;
+        if (snapshot) {
+          void persistData(snapshot);
+          pendingSnapshotRef.current = null;
+        }
+        persistTimerRef.current = null;
+      }, 250);
+    },
+    [persistData]
+  );
+
   const updateSlice = useCallback(
     <K extends keyof AppBootstrapData>(key: K, value: AppBootstrapData[K]) => {
       setData((prev) => {
         const next = { ...prev, [key]: value };
-        void persistData(next);
+        schedulePersist(next);
         return next;
       });
     },
-    [persistData]
+    [schedulePersist]
   );
 
   const refresh = useCallback(async () => {
@@ -93,6 +113,17 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    return () => {
+      if (persistTimerRef.current) {
+        clearTimeout(persistTimerRef.current);
+      }
+      if (pendingSnapshotRef.current) {
+        void persistData(pendingSnapshotRef.current);
+      }
+    };
+  }, [persistData]);
 
   const value = useMemo(
     () => ({

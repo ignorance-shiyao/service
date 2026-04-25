@@ -1,6 +1,6 @@
 import React from 'react';
 import { BookOpen } from 'lucide-react';
-import { KnowledgeItem } from '../../mocks/knowledge';
+import { KnowledgeItem } from '../../../../../mock/assistant';
 import { CardActionBar } from './CardActionBar';
 
 interface KnowledgeCardProps {

@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { BaseChart } from '../../../../../components/BaseChart';
-import { ReportItem } from '../../mocks/reports';
-import { ManagedBusiness } from '../../mocks/businesses';
+import { ReportItem, ManagedBusiness } from '../../../../../mock/assistant';
 import { BarChart3 } from 'lucide-react';
 import { CardActionBar } from './CardActionBar';
 

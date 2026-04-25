@@ -1,5 +1,4 @@
-import { Domain, Menu, User, Role, Customer, Department, Post, DictType, DictData, OperLog } from './types';
-import { LayoutDashboard, Settings, Shield, Users, Map, Globe, Database, Layout } from 'lucide-react';
+import { Domain, Menu, User, Role, Customer, Department, Post, DictType, DictData, OperLog } from '../types';
 
 export const BUSINESS_TYPES = [
   { code: 'BIZ_AIC', name: '智算中心' },
