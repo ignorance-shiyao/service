@@ -173,29 +173,29 @@ export const BaseChart: React.FC<BaseChartProps> = ({ option, className, style }
   const defaultTooltip = {
     trigger: 'axis',
     backgroundColor: 'rgba(6, 20, 40, 0.96)',
-    borderColor: '#0d3060',
+    borderColor: '#2f5e93',
     textStyle: {
-      color: '#d4eeff',
+      color: '#e6f2ff',
       fontSize: 12,
     },
   };
 
   const defaultXAxis = {
-    axisLine: { lineStyle: { color: 'rgba(74, 111, 165, 0.65)' } },
-    axisLabel: { color: '#90c4e8', fontSize: 10 },
-    nameTextStyle: { color: '#d4eeff', fontSize: 10, fontWeight: 500, padding: [0, 0, 0, 0] },
+    axisLine: { lineStyle: { color: 'rgba(95, 134, 186, 0.78)' } },
+    axisLabel: { color: '#b9d4f2', fontSize: 10 },
+    nameTextStyle: { color: '#dcecff', fontSize: 10, fontWeight: 500, padding: [0, 0, 0, 0] },
     axisTick: { show: false },
     splitLine: { show: false },
   };
 
   const defaultYAxis = {
     axisLine: { show: false },
-    axisLabel: { color: '#90c4e8', fontSize: 10 },
-    nameTextStyle: { color: '#d4eeff', fontSize: 10, fontWeight: 500, padding: [0, 0, 0, 0] },
+    axisLabel: { color: '#b9d4f2', fontSize: 10 },
+    nameTextStyle: { color: '#dcecff', fontSize: 10, fontWeight: 500, padding: [0, 0, 0, 0] },
     axisTick: { show: false },
     splitLine: { 
       show: true, 
-      lineStyle: { color: 'rgba(74, 111, 165, 0.5)', type: 'dashed' } 
+      lineStyle: { color: 'rgba(88, 125, 174, 0.62)', type: 'dashed' } 
     },
   };
 

@@ -264,7 +264,7 @@ export const DiagnosisAgent: React.FC<DiagnosisAgentProps> = ({ onTransfer, embe
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {evidence.map((ev, i) => (
-                        <div key={i} className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4 hover:border-slate-700 transition-all group relative overflow-hidden animate-in fade-in slide-in-from-left-4">
+                        <div key={i} className="bg-[var(--sys-surface-muted)] border border-[var(--sys-border-primary)] rounded-2xl p-4 hover:border-slate-700 transition-all group relative overflow-hidden animate-in fade-in slide-in-from-left-4">
                             <div className="text-[9px] text-slate-500 font-black uppercase mb-1 tracking-widest">{ev.label}</div>
                             <div className="text-xs text-slate-200 leading-relaxed font-medium">{ev.value}</div>
                         </div>
@@ -290,13 +290,13 @@ export const DiagnosisAgent: React.FC<DiagnosisAgentProps> = ({ onTransfer, embe
                         
                         <div className="flex gap-4">
                             {evidenceValues.ping && (
-                                <div className="bg-black/40 px-4 py-3 rounded-xl border border-slate-800">
+                                <div className="bg-[var(--sys-overlay-2)] px-4 py-3 rounded-xl border border-[var(--sys-border-primary)]/80">
                                     <div className="text-[9px] text-slate-500 uppercase font-black mb-0.5">PING 丢包</div>
                                     <div className="text-base font-black text-red-400 font-mono">{evidenceValues.ping}</div>
                                 </div>
                             )}
                             {evidenceValues.sip && (
-                                <div className="bg-black/40 px-4 py-3 rounded-xl border border-slate-800">
+                                <div className="bg-[var(--sys-overlay-2)] px-4 py-3 rounded-xl border border-[var(--sys-border-primary)]/80">
                                     <div className="text-[9px] text-slate-500 uppercase font-black mb-0.5">SIP 状态</div>
                                     <div className="text-base font-black text-red-400 font-mono">{evidenceValues.sip}</div>
                                 </div>

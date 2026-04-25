@@ -70,7 +70,7 @@ export const BizAICPreview: React.FC<{ comp: any }> = ({ comp }) => {
                 visibleMin: 300,
                 label: { show: true, formatter: '{b}', fontSize: 10 },
                 upperLabel: { show: true, height: 20, textStyle: { color: '#fff', fontSize: 10 } },
-                itemStyle: { borderColor: '#020617', borderWidth: 2, gapWidth: 1 },
+                itemStyle: { borderColor: '#102a4d', borderWidth: 2, gapWidth: 1 },
                 breadcrumb: { show: false },
                 data: [
                     {

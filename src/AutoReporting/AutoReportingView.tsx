@@ -324,7 +324,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
                  <div 
                     key={rpt.id} 
                     onClick={() => { setSelectedReport(rpt); setView('detail'); }}
-                    className="bg-[#1e293b]/40 border border-slate-800 rounded-2xl p-6 hover:bg-[#1e293b]/70 hover:border-indigo-500/50 cursor-pointer transition-all flex justify-between items-center group"
+                    className="bg-[var(--sys-surface-muted)] border border-[var(--sys-border-primary)] rounded-2xl p-6 hover:bg-[var(--sys-surface-strong)] hover:border-indigo-500/50 cursor-pointer transition-all flex justify-between items-center group"
                  >
                     <div className="flex items-center gap-6">
                         <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-inner">
@@ -441,7 +441,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
                    {/* Highlights Grid */}
                    <div className="grid grid-cols-4 gap-6">
                        {selectedReport.highlights.map((item, idx) => (
-                           <div key={idx} className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 relative overflow-hidden group hover:border-indigo-500/30 transition-all">
+                           <div key={idx} className="bg-[var(--sys-surface-muted)] border border-[var(--sys-border-primary)] rounded-3xl p-6 relative overflow-hidden group hover:border-indigo-500/30 transition-all">
                                 <div className="text-xs text-slate-500 font-medium mb-3 uppercase tracking-wider">{item.label}</div>
                                 <div className="flex items-baseline gap-1 mb-2">
                                     <span className="text-2xl font-black text-white">{item.value}</span>
@@ -478,7 +478,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
                                 
                                 <div className="grid grid-cols-2 gap-4">
                                     {selectedReport.recommendations.map((rec, i) => (
-                                        <div key={i} className="bg-black/20 border border-slate-700/50 rounded-2xl p-5 hover:bg-black/40 transition-colors">
+                                        <div key={i} className="bg-[var(--sys-overlay-1)] border border-[var(--sys-border-primary)]/70 rounded-2xl p-5 hover:bg-[var(--sys-overlay-2)] transition-colors">
                                             <div className="flex items-center gap-2 mb-2">
                                                 {getRecIcon(rec.type)}
                                                 <span className="text-sm font-bold text-slate-100">{rec.title}</span>
@@ -532,8 +532,8 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
                             <SectionTitle title="指标排行" />
                             <div className="space-y-4">
                                 {selectedReport.data.map((biz, idx) => (
-                                    <div key={idx} className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden">
-                                        <div className="px-5 py-4 bg-slate-800/40 border-b border-slate-800 flex items-center gap-3">
+                                    <div key={idx} className="bg-[var(--sys-surface-muted)] border border-[var(--sys-border-primary)] rounded-3xl overflow-hidden">
+                                        <div className="px-5 py-4 bg-[var(--sys-overlay-1)] border-b border-[var(--sys-border-primary)] flex items-center gap-3">
                                             {biz.businessType.includes('专线') ? <Network size={16} className="text-blue-400"/> : <Signal size={16} className="text-emerald-400"/>}
                                             <span className="text-sm font-bold text-slate-200">{biz.businessType}</span>
                                         </div>
@@ -575,7 +575,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
                             <button onClick={() => setDrillDownMetric(null)} className="p-2 hover:bg-slate-800 rounded-full text-slate-500"><X size={20}/></button>
                             </div>
                             
-                            <div className="h-[250px] bg-slate-950/50 rounded-2xl border border-slate-800 p-4">
+                            <div className="h-[250px] bg-[var(--sys-overlay-1)] rounded-2xl border border-[var(--sys-border-primary)] p-4">
                             <BaseChart 
                                 option={{
                                     xAxis: { type: 'category', data: ['01', '03', '05', '07', '09', '11', '13', '15', '17', '19', '21', '23', '25', '27', '28'] },

@@ -145,7 +145,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[rgba(7,24,44,0.74)] backdrop-blur-sm animate-in fade-in duration-200">
       <div className={`flex flex-col bg-[var(--sys-bg-page)] border border-slate-700 shadow-2xl transition-all duration-300 overflow-hidden ${isFullscreen ? 'w-full h-full rounded-none' : 'w-[80vw] h-[85vh] rounded-lg'}`}>
       
       {/* Header */}
@@ -169,8 +169,8 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
 
       <div className="flex-1 flex overflow-hidden">
           {/* Left Sidebar: Properties / Developer Config */}
-          <div className="w-80 bg-[#1e293b]/50 border-r border-slate-800 flex flex-col">
-              <div className="h-10 flex items-center px-4 bg-slate-800/50 border-b border-slate-700">
+          <div className="w-80 bg-[var(--sys-surface-muted)] border-r border-[var(--sys-border-primary)] flex flex-col">
+              <div className="h-10 flex items-center px-4 bg-[var(--sys-surface-strong)] border-b border-[var(--sys-border-primary)]">
                   <span className="text-sm font-medium text-slate-200">{isAddMode ? '开发配置' : '属性设置'}</span>
               </div>
               <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -338,7 +338,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
                               type="text" 
                               value={compMeta.name} 
                               onChange={e => setCompMeta({...compMeta, name: e.target.value})}
-                              className="bg-[#1e293b] border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 w-full focus:ring-1 focus:ring-blue-500 outline-none transition-all hover:border-slate-600"
+                              className="bg-[var(--sys-surface-strong)] border border-[var(--sys-border-primary)] rounded px-2 py-1.5 text-sm text-slate-200 w-full focus:ring-1 focus:ring-blue-500 outline-none transition-all hover:border-slate-600"
                           />
                       </div>
                       
@@ -348,7 +348,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
                               <select 
                                   value={compMeta.pluginType}
                                   onChange={e => setCompMeta({...compMeta, pluginType: e.target.value})}
-                                  className="w-full bg-[#1e293b] border border-slate-700 rounded px-2 py-1.5 text-sm text-blue-400 appearance-none focus:ring-1 focus:ring-blue-500 outline-none hover:border-slate-600 font-medium"
+                                  className="w-full bg-[var(--sys-surface-strong)] border border-[var(--sys-border-primary)] rounded px-2 py-1.5 text-sm text-blue-400 appearance-none focus:ring-1 focus:ring-blue-500 outline-none hover:border-slate-600 font-medium"
                               >
                                   {PLUGIN_TYPES.map(type => (
                                       <option key={type} value={type}>{type}</option>
@@ -364,7 +364,7 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({ component, onC
                               <select 
                                   value={compMeta.category}
                                   onChange={e => setCompMeta({...compMeta, category: e.target.value})}
-                                  className="w-full bg-[#1e293b] border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 appearance-none focus:ring-1 focus:ring-blue-500 outline-none hover:border-slate-600"
+                                  className="w-full bg-[var(--sys-surface-strong)] border border-[var(--sys-border-primary)] rounded px-2 py-1.5 text-sm text-slate-200 appearance-none focus:ring-1 focus:ring-blue-500 outline-none hover:border-slate-600"
                               >
                                       {businessTypes.map(bt => (
                                       <option key={bt.code} value={bt.code}>{bt.name}</option>

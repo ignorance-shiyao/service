@@ -475,21 +475,21 @@ export const ComponentManager: React.FC = () => {
                       
                       {/* Status Badge */}
                       <div className={`absolute z-10 ${viewMode === 'list' ? 'top-1 left-1' : 'top-2 left-2'}`}>
-                        <Badge color={comp.status === 'published' ? 'green' : 'yellow'} className="bg-black/50 backdrop-blur-sm border-0 text-[10px] scale-90">
+                        <Badge color={comp.status === 'published' ? 'green' : 'yellow'} className="bg-[var(--sys-overlay-2)] backdrop-blur-sm border border-[var(--sys-border-primary)]/60 text-[10px] scale-90">
                             {comp.status === 'published' ? '已发布' : '草稿'}
                         </Badge>
                       </div>
 
                       {/* Hover Overlay - ONLY SHOW IN GRID MODE */}
                       {viewMode !== 'list' && (
-                          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-20">
+                          <div className="absolute inset-0 bg-[var(--sys-overlay-1)] backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-20">
                                <Button size="sm" variant="primary" className="h-7 text-xs" icon={<Edit2 size={12}/>} onClick={(e) => { e.stopPropagation(); setEditingComponent(comp); }}>编辑</Button>
                           </div>
                       )}
 
                       {/* Type Badge */}
                       <div className={`absolute z-10 ${viewMode === 'list' ? 'hidden' : 'top-2 right-2'}`}>
-                        <Badge color="gray" className="bg-black/50 backdrop-blur-sm border-0 text-[10px] scale-90 opacity-60 group-hover:opacity-100">{comp.type}</Badge>
+                        <Badge color="gray" className="bg-[var(--sys-overlay-2)] backdrop-blur-sm border border-[var(--sys-border-primary)]/60 text-[10px] scale-90 opacity-60 group-hover:opacity-100">{comp.type}</Badge>
                       </div>
                   </div>
 

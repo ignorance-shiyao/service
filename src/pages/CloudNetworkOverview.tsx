@@ -142,7 +142,7 @@ const objectStoreOption = {
 
 export const CloudNetworkOverview: React.FC = () => {
   return (
-    <div className="h-full w-full overflow-auto rounded-lg border border-[#0c3d75] bg-[#031737] p-1.5">
+    <div className="h-full w-full overflow-auto rounded-lg border border-[#0c3d75] bg-[var(--sys-bg-page)] p-1.5">
       <div className="grid grid-cols-12 gap-1.5 xl:h-full xl:auto-rows-fr xl:grid-rows-[0.95fr_1.12fr_1fr]">
         <div className={`col-span-12 xl:col-span-3 ${panelClass}`}>
           {sectionTitle('客户业务概况')}
@@ -163,11 +163,11 @@ export const CloudNetworkOverview: React.FC = () => {
             </div>
           </div>
           <div className="mt-1.5 rounded border border-[var(--comp-panel-border)] bg-[#0c3468]/65 p-2">
-            <div className="grid grid-cols-2 text-[11px] text-[#a6cefa]">
+            <div className="grid grid-cols-2 text-[11px] text-[#bedaf8]">
               <div>业务名称</div>
               <div className="text-right">云主机实例数</div>
             </div>
-            <div className="mt-1.5 space-y-1 text-xs text-[#d3e9ff]">
+            <div className="mt-1.5 space-y-1 text-xs text-[#e3f0ff]">
               {customerRows.map((row) => (
                 <div key={row.name} className="grid grid-cols-2">
                   <div className="truncate">{row.name}</div>

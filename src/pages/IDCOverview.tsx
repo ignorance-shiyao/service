@@ -91,7 +91,7 @@ const cameraCards = [
 
 export const IDCOverview: React.FC = () => {
   return (
-    <div className="h-full w-full overflow-auto rounded-lg border border-[#0c3d75] bg-[#031737] p-1.5">
+    <div className="h-full w-full overflow-auto rounded-lg border border-[#0c3d75] bg-[var(--sys-bg-page)] p-1.5">
       <div className="grid grid-cols-12 gap-1.5 xl:h-full xl:auto-rows-fr xl:grid-rows-[1.06fr_1fr_1fr]">
         <div className={`col-span-12 xl:col-span-3 ${panelClass}`}>
           {sectionTitle('IDC设备在线情况')}
@@ -112,14 +112,14 @@ export const IDCOverview: React.FC = () => {
             </div>
           </div>
           <div className="mt-1.5 rounded border border-[var(--comp-panel-border)] bg-[#0c3468]/65 p-2">
-            <div className="grid grid-cols-3 text-[11px] text-[#a6cefa]">
+            <div className="grid grid-cols-3 text-[11px] text-[#bedaf8]">
               <div>设备类型</div>
               <div className="text-center">在线数</div>
               <div className="text-right">离线数</div>
             </div>
             <div className="mt-1.5 space-y-1 text-xs">
               {deviceTableRows.map((row) => (
-                <div key={row.name} className="grid grid-cols-3 text-[#d3e9ff]">
+                <div key={row.name} className="grid grid-cols-3 text-[#e3f0ff]">
                   <div>{row.name}</div>
                   <div className="text-center text-[#6ce09a]">{row.online}</div>
                   <div className="text-right text-[#ff8a7a]">{row.offline}</div>

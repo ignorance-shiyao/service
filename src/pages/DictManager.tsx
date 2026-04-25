@@ -142,25 +142,25 @@ export const DictManager: React.FC = () => {
                   <Button size="sm" icon={<Plus size={14}/>} onClick={handleAddType}></Button>
               </div>
               <div className="flex-1 overflow-auto border border-[var(--sys-border-primary)] rounded">
-                  <table className="w-full text-sm text-left text-slate-300">
-                      <thead className="bg-slate-800 text-xs text-slate-400">
+                  <table className="w-full text-sm text-left text-[var(--sys-text-secondary)]">
+                      <thead className="border-b border-[var(--sys-border-primary)] bg-[var(--sys-surface-strong)] text-xs text-[var(--sys-text-muted)]">
                           <tr>
                               <th className="px-3 py-2">名称</th>
                               <th className="px-3 py-2">类型</th>
                               <th className="px-3 py-2 w-10"></th>
                           </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800">
+                      <tbody className="divide-y divide-[var(--sys-border-primary)]">
                           {filteredTypes.map(t => (
                               <tr 
                                 key={t.id} 
-                                className={`cursor-pointer hover:bg-slate-800/50 transition-colors ${selectedTypeId === t.id ? 'bg-blue-900/20' : ''}`}
+                                className={`cursor-pointer transition-colors ${selectedTypeId === t.id ? 'bg-[var(--comp-panel-tab-active-bg)]' : 'hover:bg-[var(--sys-overlay-1)]'}`}
                                 onClick={() => setSelectedTypeId(t.id)}
                               >
                                   <td className="px-3 py-2">{t.name}</td>
-                                  <td className="px-3 py-2 text-slate-500 text-xs" title={t.type}>{t.type}</td>
+                                  <td className="px-3 py-2 text-[var(--sys-text-muted)] text-xs" title={t.type}>{t.type}</td>
                                   <td className="px-3 py-2">
-                                      <Edit2 size={12} className="text-slate-500 hover:text-blue-400" onClick={(e) => {e.stopPropagation(); handleEditType(t)}}/>
+                                      <Edit2 size={12} className="text-[var(--sys-text-disabled)] hover:text-blue-400" onClick={(e) => {e.stopPropagation(); handleEditType(t)}}/>
                                   </td>
                               </tr>
                           ))}
@@ -178,7 +178,7 @@ export const DictManager: React.FC = () => {
                               <Book size={16} className="text-blue-500"/>
                               {selectedTypeObj ? selectedTypeObj.name : '请选择字典'}
                           </span>
-                          <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded">{selectedTypeObj?.type}</span>
+                          <span className="rounded border border-[var(--sys-border-primary)] bg-[var(--sys-surface-strong)] px-2 py-0.5 text-xs text-[var(--sys-text-muted)]">{selectedTypeObj?.type}</span>
                       </div>
                       <div className="flex gap-2">
                           <Input placeholder="数据标签" value={searchLabel} onChange={e => setSearchLabel(e.target.value)} className="w-40 h-8 text-xs" />

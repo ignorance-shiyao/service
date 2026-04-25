@@ -47,7 +47,7 @@ export const BizIdcPreview: React.FC<{ comp: any }> = ({ comp }) => {
                     radius: ['40%', '70%'],
                     center: ['50%', '45%'],
                     avoidLabelOverlap: false,
-                    itemStyle: { borderRadius: 4, borderColor: '#020617', borderWidth: 2 },
+                    itemStyle: { borderRadius: 4, borderColor: '#102a4d', borderWidth: 2 },
                     label: { show: false },
                     labelLine: { show: false },
                     data: [
@@ -159,9 +159,9 @@ export const BizIdcPreview: React.FC<{ comp: any }> = ({ comp }) => {
                                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]"></div>
                              </div>
                              <div className="flex-1 relative bg-[var(--sys-bg-header)] flex items-center justify-center">
-                                 <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-black opacity-50"></div>
+                                 <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-[#102948] opacity-50"></div>
                                  <Video size={20} className="text-slate-600 opacity-50 group-hover:text-blue-500 group-hover:opacity-100 transition-all" />
-                                 <div className="absolute bottom-1 right-1 text-[8px] text-slate-500 bg-black/50 px-1 rounded font-mono">
+                                 <div className="absolute bottom-1 right-1 text-[8px] text-slate-500 bg-[var(--sys-overlay-2)] px-1 rounded font-mono">
                                      REC
                                  </div>
                              </div>

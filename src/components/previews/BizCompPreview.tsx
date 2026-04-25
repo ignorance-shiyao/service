@@ -106,7 +106,7 @@ export const BizCompPreview: React.FC<{ comp: any }> = ({ comp }) => {
                     avoidLabelOverlap: false,
                     itemStyle: {
                         borderRadius: 5,
-                        borderColor: '#020617',
+                        borderColor: '#102a4d',
                         borderWidth: 2
                     },
                     label: {

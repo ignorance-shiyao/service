@@ -237,7 +237,7 @@ export const GenericPreview: React.FC<{ comp: any }> = ({ comp }) => {
         );
     case 'media': // New Media visual
         return (
-            <div className="w-full h-full flex items-center justify-center bg-black/20 relative">
+            <div className="w-full h-full flex items-center justify-center bg-[var(--sys-overlay-1)] relative">
                 {comp.name.includes('天气') ? (
                     <div className="flex flex-col items-center gap-1">
                         <CloudSun className="text-yellow-400" size={32} />
@@ -257,7 +257,7 @@ export const GenericPreview: React.FC<{ comp: any }> = ({ comp }) => {
     case 'util':
         return (
            <div className="w-full h-full flex items-center justify-center">
-              <div className="w-20 h-8 border border-slate-600 rounded bg-black text-green-500 font-mono text-sm flex items-center justify-center shadow-[0_0_10px_rgba(34,197,94,0.1)]">
+              <div className="w-20 h-8 border border-slate-500 rounded bg-[rgba(10,28,52,0.86)] text-emerald-400 font-mono text-sm flex items-center justify-center shadow-[0_0_10px_rgba(34,197,94,0.1)]">
                  12:45:09
               </div>
            </div>

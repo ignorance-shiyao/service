@@ -387,7 +387,7 @@ export const TemplateManager: React.FC = () => {
                             {/* Status Badge (Overlay for Grid) */}
                             {viewMode !== 'list' && (
                                 <div className="absolute top-2 right-2 z-10">
-                                    <Badge color={temp.status === 'published' ? 'green' : 'yellow'} className="bg-black/60 backdrop-blur border-0 scale-90">
+                                    <Badge color={temp.status === 'published' ? 'green' : 'yellow'} className="bg-[var(--sys-overlay-2)] backdrop-blur border border-[var(--sys-border-primary)]/60 scale-90">
                                         {temp.status === 'published' ? '已发布' : '草稿'}
                                     </Badge>
                                 </div>
