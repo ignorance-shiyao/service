@@ -11,29 +11,60 @@ interface AiDockProps {
 export const AiDock: React.FC<AiDockProps> = ({ onOpenStateChange }) => {
   const store = useAiDock();
   const [dragging, setDragging] = useState(false);
+  const [bubblePosition, setBubblePosition] = useState(() => {
+    if (typeof window === 'undefined') return { x: 0, y: 0 };
+    return { x: window.innerWidth - 84, y: window.innerHeight - 94 };
+  });
   const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
+  const justDraggedRef = useRef(false);
 
   useEffect(() => {
     onOpenStateChange?.(store.open);
   }, [onOpenStateChange, store.open]);
+
+  const clampToViewport = (x: number, y: number) => {
+    if (typeof window === 'undefined') return { x, y };
+    const size = 66;
+    const padding = 8;
+    const maxX = Math.max(padding, window.innerWidth - size - padding);
+    const maxY = Math.max(padding, window.innerHeight - size - padding);
+    return {
+      x: Math.min(Math.max(x, padding), maxX),
+      y: Math.min(Math.max(y, padding), maxY),
+    };
+  };
+
+  useEffect(() => {
+    const onResize = () => {
+      setBubblePosition((prev) => clampToViewport(prev.x, prev.y));
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const startDrag = (e: React.MouseEvent) => {
     e.preventDefault();
     dragRef.current = {
       x: e.clientX,
       y: e.clientY,
-      px: store.position.x || window.innerWidth - 80,
-      py: store.position.y || window.innerHeight - 80,
+      px: bubblePosition.x,
+      py: bubblePosition.y,
     };
+    justDraggedRef.current = false;
     setDragging(true);
   };
 
   useEffect(() => {
     const move = (e: MouseEvent) => {
       if (!dragging || !dragRef.current) return;
-      const x = dragRef.current.px + (e.clientX - dragRef.current.x);
-      const y = dragRef.current.py + (e.clientY - dragRef.current.y);
-      store.setPosition({ x, y });
+      const dx = e.clientX - dragRef.current.x;
+      const dy = e.clientY - dragRef.current.y;
+      const moved = Math.abs(dx) > 3 || Math.abs(dy) > 3;
+      if (moved) {
+        justDraggedRef.current = true;
+      }
+      const next = clampToViewport(dragRef.current.px + dx, dragRef.current.py + dy);
+      setBubblePosition(next);
     };
     const up = () => setDragging(false);
     if (dragging) {
@@ -44,7 +75,7 @@ export const AiDock: React.FC<AiDockProps> = ({ onOpenStateChange }) => {
       window.removeEventListener('mousemove', move);
       window.removeEventListener('mouseup', up);
     };
-  }, [dragging, store]);
+  }, [bubblePosition.x, bubblePosition.y, dragging]);
 
   const collapsed = !store.open || store.minimized;
 
@@ -53,15 +84,21 @@ export const AiDock: React.FC<AiDockProps> = ({ onOpenStateChange }) => {
       {collapsed && (
         <div
           style={{
-            left: `${store.position.x || window.innerWidth - 84}px`,
-            top: `${store.position.y || window.innerHeight - 94}px`,
+            left: `${bubblePosition.x}px`,
+            top: `${bubblePosition.y}px`,
           }}
           className={`fixed z-[230] ${dragging ? 'cursor-grabbing' : ''}`}
         >
           <button
             type="button"
             onMouseDown={startDrag}
-            onClick={store.restoreWindow}
+            onClick={() => {
+              if (justDraggedRef.current) {
+                justDraggedRef.current = false;
+                return;
+              }
+              store.restoreWindow();
+            }}
             className="group relative flex h-[66px] w-[66px] items-center justify-center rounded-full border border-cyan-300/40 bg-[radial-gradient(circle_at_30%_28%,#56e6ff_0%,#1f7dd6_46%,#0e2b67_100%)] text-white shadow-[0_14px_30px_rgba(8,18,38,0.52),0_0_16px_rgba(34,211,238,0.34)] transition-all duration-250 hover:scale-[1.05] hover:shadow-[0_20px_38px_rgba(14,165,233,0.44)]"
           >
             <span className="ai-dock-entry-halo" />

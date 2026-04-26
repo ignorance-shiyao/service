@@ -17,11 +17,12 @@ interface AiDockWindowProps {
 }
 
 export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) => {
-  type SizeMode = 'small' | 'medium' | 'max';
+  type SizeMode = 'medium' | 'max';
   type ResizeMode = 'left' | 'right' | 'top' | 'bottom' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | null;
-  const PRESET: Record<'small' | 'medium', { width: number; height: number }> = {
-    small: { width: 420, height: 560 },
-    medium: { width: 520, height: 760 },
+  const getMediumPreset = () => {
+    const width = Math.min(1120, Math.max(760, Math.round(window.innerWidth * 0.58)));
+    const height = Math.min(window.innerHeight - 16, Math.max(560, Math.round(window.innerHeight * 0.74)));
+    return { width, height };
   };
 
   const [input, setInput] = useState('');
@@ -29,8 +30,11 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [resizeMode, setResizeMode] = useState<ResizeMode>(null);
-  const [sizeMode, setSizeMode] = useState<SizeMode>('small');
-  const [mediumFromMax, setMediumFromMax] = useState(false);
+  const [sizeMode, setSizeMode] = useState<SizeMode>('medium');
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window === 'undefined' ? 1440 : window.innerWidth,
+    height: typeof window === 'undefined' ? 900 : window.innerHeight,
+  }));
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [heroTipIndex, setHeroTipIndex] = useState(0);
   const [historyFilter, setHistoryFilter] = useState<'all' | 'diagnosis' | 'ticket' | 'report' | 'business'>('all');
@@ -92,15 +96,20 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   }, [input]);
 
   useEffect(() => {
-    if (sizeMode !== 'max') return;
-    const syncFull = () => {
-      store.setPosition({ x: 8, y: 8 });
-      store.setWindowSize({ width: Math.max(360, window.innerWidth - 16), height: Math.max(420, window.innerHeight - 16) });
-    };
-    syncFull();
-    window.addEventListener('resize', syncFull);
-    return () => window.removeEventListener('resize', syncFull);
-  }, [sizeMode, store]);
+    const onResize = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const fullSize = useMemo(
+    () => ({
+      width: Math.max(360, viewport.width - 16),
+      height: Math.max(420, viewport.height - 16),
+    }),
+    [viewport.height, viewport.width]
+  );
+
+  const renderSize = sizeMode === 'max' ? fullSize : store.windowSize;
 
   const style = useMemo(() => {
     if (sizeMode === 'max') return { left: 8, top: 8 };
@@ -137,13 +146,11 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   const applySizeMode = (nextMode: SizeMode) => {
     setSizeMode(nextMode);
     if (nextMode === 'max') {
-      setMediumFromMax(false);
-      store.setPosition({ x: 8, y: 8 });
-      store.setWindowSize({ width: Math.max(360, window.innerWidth - 16), height: Math.max(420, window.innerHeight - 16) });
       return;
     }
-    const width = Math.min(window.innerWidth - 16, PRESET[nextMode].width);
-    const height = Math.min(window.innerHeight - 16, PRESET[nextMode].height);
+    const preset = getMediumPreset();
+    const width = Math.min(window.innerWidth - 16, preset.width);
+    const height = Math.min(window.innerHeight - 16, preset.height);
     store.setWindowSize({ width, height });
     store.setPosition(centerPosition(width, height));
   };
@@ -233,7 +240,6 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
     setIsResizing(true);
     setResizeMode(mode);
     setSizeMode('medium');
-    setMediumFromMax(false);
   };
 
   const submit = async () => {
@@ -255,32 +261,11 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   };
 
   const cycleSizeMode = () => {
-    if (sizeMode === 'small') {
-      setMediumFromMax(false);
-      applySizeMode('medium');
-      return;
-    }
-    if (sizeMode === 'medium' && mediumFromMax) {
-      setMediumFromMax(false);
-      applySizeMode('small');
-      return;
-    }
-    if (sizeMode === 'medium') {
-      applySizeMode('max');
-      return;
-    }
-    setMediumFromMax(true);
-    applySizeMode('medium');
+    applySizeMode(sizeMode === 'max' ? 'medium' : 'max');
   };
 
-  const cycleLabel =
-    sizeMode === 'small'
-      ? '切换到中等窗口'
-      : sizeMode === 'medium'
-        ? '切换到最大窗口'
-        : '恢复到中等窗口';
-
-  const cycleIcon = sizeMode === 'small' ? <Maximize2 size={13} /> : sizeMode === 'medium' ? <Maximize2 size={13} /> : <Minimize2 size={13} />;
+  const cycleLabel = sizeMode === 'medium' ? '切换到全屏窗口' : '恢复到半屏窗口';
+  const cycleIcon = sizeMode === 'medium' ? <Maximize2 size={13} /> : <Minimize2 size={13} />;
   const contentWrapClass = sizeMode === 'max' ? 'mx-auto w-full max-w-[1160px] px-3' : 'w-full';
 
   const onHeaderDoubleClick = () => {
@@ -362,7 +347,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   return (
     <div
       ref={wrapRef}
-      style={{ ...style, width: store.windowSize.width, height: store.windowSize.height }}
+      style={{ ...style, width: renderSize.width, height: renderSize.height }}
       className={`ai-dock-surface fixed z-[220] flex flex-col overflow-hidden rounded-[16px] border border-[#2e6aa9] ${isDragging ? 'cursor-grabbing' : ''}`}
     >
       <span className="ai-dock-ambient ai-dock-ambient-a" />
@@ -382,11 +367,33 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <button type="button" className="ai-dock-icon-button rounded-full p-1.5" onClick={store.clearConversation} title="清空会话"><RotateCcw size={13} /></button>
-          <button type="button" className="ai-dock-icon-button rounded-full p-1.5" onClick={cycleSizeMode} title={cycleLabel}>
+          <button
+            type="button"
+            className="ai-dock-icon-button rounded-full p-1.5"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={store.clearConversation}
+            title="清空会话"
+          >
+            <RotateCcw size={13} />
+          </button>
+          <button
+            type="button"
+            className="ai-dock-icon-button rounded-full p-1.5"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={cycleSizeMode}
+            title={cycleLabel}
+          >
             {cycleIcon}
           </button>
-          <button type="button" className="ai-dock-icon-button rounded-full p-1.5" onClick={onClose} title="关闭"><X size={13} /></button>
+          <button
+            type="button"
+            className="ai-dock-icon-button rounded-full p-1.5"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={onClose}
+            title="关闭"
+          >
+            <X size={13} />
+          </button>
         </div>
       </div>
 

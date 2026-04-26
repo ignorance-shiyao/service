@@ -686,11 +686,30 @@ const loadPersistedSessions = (): PersistedAiDockSessions => {
 };
 
 export const useAiDock = () => {
+  const getMediumSize = () => {
+    if (typeof window === 'undefined') return { width: 860, height: 640 };
+    return {
+      width: Math.min(1120, Math.max(760, Math.round(window.innerWidth * 0.58))),
+      height: Math.min(window.innerHeight - 16, Math.max(560, Math.round(window.innerHeight * 0.74))),
+    };
+  };
+
+  const getCenteredPosition = (width: number, height: number) => {
+    if (typeof window === 'undefined') return { x: 8, y: 8 };
+    return {
+      x: Math.min(Math.max(8, Math.round((window.innerWidth - width) / 2)), Math.max(8, window.innerWidth - width - 8)),
+      y: Math.min(Math.max(8, Math.round((window.innerHeight - height) / 2)), Math.max(8, window.innerHeight - height - 8)),
+    };
+  };
+
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [unread, setUnread] = useState(0);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [windowSize, setWindowSize] = useState({ width: 480, height: 720 });
+  const [windowSize, setWindowSize] = useState(() => getMediumSize());
+  const [position, setPosition] = useState(() => {
+    const size = getMediumSize();
+    return getCenteredPosition(size.width, size.height);
+  });
   const [initialPersisted] = useState<PersistedAiDockSessions>(() => loadPersistedSessions());
   const [sessions, setSessions] = useState<AiConversationSession[]>(() => initialPersisted.sessions);
   const [activeSessionId, setActiveSessionId] = useState<string>(() => initialPersisted.activeSessionId);
@@ -859,6 +878,9 @@ export const useAiDock = () => {
   }, []);
 
   const openWindow = useCallback(() => {
+    const size = getMediumSize();
+    setWindowSize(size);
+    setPosition(getCenteredPosition(size.width, size.height));
     setOpen(true);
     setMinimized(false);
     setUnread(0);
@@ -874,6 +896,9 @@ export const useAiDock = () => {
   }, []);
 
   const restoreWindow = useCallback(() => {
+    const size = getMediumSize();
+    setWindowSize(size);
+    setPosition(getCenteredPosition(size.width, size.height));
     setOpen(true);
     setMinimized(false);
     setUnread(0);
