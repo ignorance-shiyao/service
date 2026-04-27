@@ -134,33 +134,33 @@ export const DictManager: React.FC = () => {
   ];
 
   return (
-      <div className="h-full flex gap-4">
+      <div className="dict-manager-page h-full flex gap-4">
           {/* Left: Types */}
           <Card className="w-1/3 flex flex-col" title="字典类型" bodyClassName="p-3">
               <div className="flex gap-2 mb-3">
                   <Input placeholder="字典名称/类型" value={searchType} onChange={e => setSearchType(e.target.value)} className="flex-1 text-xs h-8" />
                   <Button size="sm" icon={<Plus size={14}/>} onClick={handleAddType}></Button>
               </div>
-              <div className="flex-1 overflow-auto border border-[var(--sys-border-primary)] rounded">
+              <div className="flex-1 overflow-auto rounded border border-[#2f6ca9]/80 bg-[linear-gradient(180deg,rgba(13,51,98,0.5)_0%,rgba(10,42,82,0.42)_100%)]">
                   <table className="w-full text-sm text-left text-[var(--sys-text-secondary)]">
-                      <thead className="border-b border-[var(--sys-border-primary)] bg-[var(--sys-surface-strong)] text-xs text-[var(--sys-text-muted)]">
+                      <thead className="border-b border-[#2f6ca9] bg-[linear-gradient(180deg,rgba(34,81,133,0.96)_0%,rgba(27,68,116,0.92)_100%)] text-xs text-[#b7d8fb]">
                           <tr>
                               <th className="px-3 py-2">名称</th>
                               <th className="px-3 py-2">类型</th>
                               <th className="px-3 py-2 w-10"></th>
                           </tr>
                       </thead>
-                      <tbody className="divide-y divide-[var(--sys-border-primary)]">
+                      <tbody className="divide-y divide-[#255f98]">
                           {filteredTypes.map(t => (
                               <tr 
                                 key={t.id} 
-                                className={`cursor-pointer transition-colors ${selectedTypeId === t.id ? 'bg-[var(--comp-panel-tab-active-bg)]' : 'hover:bg-[var(--sys-overlay-1)]'}`}
+                                className={`cursor-pointer transition-colors ${selectedTypeId === t.id ? 'bg-[#2f7fd8]/22' : 'hover:bg-[#225d9f]/22'}`}
                                 onClick={() => setSelectedTypeId(t.id)}
                               >
-                                  <td className="px-3 py-2">{t.name}</td>
-                                  <td className="px-3 py-2 text-[var(--sys-text-muted)] text-xs" title={t.type}>{t.type}</td>
+                                  <td className="px-3 py-2 text-[#d9ecff]">{t.name}</td>
+                                  <td className="px-3 py-2 text-[#8fb5db] text-xs" title={t.type}>{t.type}</td>
                                   <td className="px-3 py-2">
-                                      <Edit2 size={12} className="text-[var(--sys-text-disabled)] hover:text-blue-400" onClick={(e) => {e.stopPropagation(); handleEditType(t)}}/>
+                                      <Edit2 size={12} className="text-[#84add6] hover:text-blue-300" onClick={(e) => {e.stopPropagation(); handleEditType(t)}}/>
                                   </td>
                               </tr>
                           ))}
@@ -174,11 +174,11 @@ export const DictManager: React.FC = () => {
               <Card className="shrink-0" bodyClassName="p-3">
                   <div className="flex justify-between items-center">
                       <div className="flex gap-4 items-center">
-                          <span className="text-sm font-bold text-slate-200 flex items-center gap-2">
+                          <span className="text-sm font-bold text-[#d9ecff] flex items-center gap-2">
                               <Book size={16} className="text-blue-500"/>
                               {selectedTypeObj ? selectedTypeObj.name : '请选择字典'}
                           </span>
-                          <span className="rounded border border-[var(--sys-border-primary)] bg-[var(--sys-surface-strong)] px-2 py-0.5 text-xs text-[var(--sys-text-muted)]">{selectedTypeObj?.type}</span>
+                          <span className="rounded border border-[#3c77b1]/85 bg-[linear-gradient(180deg,rgba(45,86,134,0.92)_0%,rgba(30,67,111,0.92)_100%)] px-2 py-0.5 text-xs font-semibold text-[#9dc4ec]">{selectedTypeObj?.type}</span>
                       </div>
                       <div className="flex gap-2">
                           <Input placeholder="数据标签" value={searchLabel} onChange={e => setSearchLabel(e.target.value)} className="w-40 h-8 text-xs" />

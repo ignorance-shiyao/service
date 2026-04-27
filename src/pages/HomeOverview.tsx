@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -16,22 +16,25 @@ import {
 import { BaseChart } from '../components/BaseChart';
 
 const panelClass =
-  'bg-[#072654]/96 border border-[#16508f] rounded-md p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] h-full flex flex-col';
+  'bg-[linear-gradient(180deg,rgba(13,59,114,0.95)_0%,rgba(8,44,90,0.94)_56%,rgba(7,37,77,0.94)_100%)] border border-[#2a6fb2]/90 rounded-md p-2 shadow-[inset_0_1px_0_rgba(220,241,255,0.12),0_8px_22px_rgba(3,24,54,0.26)] h-full flex flex-col';
 
-const sectionTitle = (title: string) => (
-  <div className="mb-1 flex items-center border-b border-[#1f5b9b] pb-0.5 text-slate-200 shrink-0">
-    <span className="mr-2 text-[#4fb6ff]">|</span>
-    <span className="text-xs font-semibold tracking-wide">{title}</span>
+const sectionTitle = (title: string, action?: React.ReactNode) => (
+  <div className="mb-1 flex items-center justify-between border-b border-[#2d6fb3] pb-0.5 text-[#d7ebff] shrink-0">
+    <div className="flex items-center">
+      <span className="mr-2 text-[#4fb6ff]">|</span>
+      <span className="text-xs font-semibold tracking-wide">{title}</span>
+    </div>
+    {action ? <div className="ml-2">{action}</div> : null}
   </div>
 );
 
 const metricCard = (label: string, value: string, icon: React.ReactNode) => (
-  <div className="flex min-h-[56px] items-center justify-between rounded bg-[#0e3e7e]/70 p-2">
+  <div className="flex min-h-[56px] items-center justify-between rounded border border-[#3e7fbe]/55 bg-[linear-gradient(180deg,rgba(29,86,152,0.82)_0%,rgba(19,63,121,0.85)_100%)] p-2">
     <div>
-      <div className="mb-0.5 text-[11px] text-[#8bc4ff]">{label}</div>
+      <div className="mb-0.5 text-[11px] text-[#a9d5ff]">{label}</div>
       <div className="font-mono text-[32px] font-black leading-none tracking-wide text-[#d8f1ff]">{value}</div>
     </div>
-    <div className="rounded-full bg-[#2f78d4]/40 p-1.5 text-[#8fd3ff]">{icon}</div>
+    <div className="rounded-full border border-[#77beff]/45 bg-[#2f78d4]/35 p-1.5 text-[#b7e4ff]">{icon}</div>
   </div>
 );
 
@@ -341,11 +344,16 @@ const mapBubbleBase = [
   { name: '铜陵', x: 57, y: 75, n: 2 },
 ];
 
+const panelSelect = (value: string) => (
+  <div className="inline-flex h-5 min-w-[68px] items-center justify-between gap-1 rounded border border-[#3b79ba] bg-[linear-gradient(180deg,rgba(27,84,149,0.85)_0%,rgba(19,62,116,0.92)_100%)] px-1.5 text-[10px] font-medium text-[#c9e6ff]">
+    <span>{value}</span>
+    <span className="text-[#83c4ff]">▼</span>
+  </div>
+);
+
 export const HomeOverview: React.FC = () => {
   const [mapSvgMarkup, setMapSvgMarkup] = useState('');
   const [hoveredCity, setHoveredCity] = useState<string | null>(null);
-  const [cityAnchors, setCityAnchors] = useState<Array<{ name: string; xPct: number; yPct: number }>>([]);
-  const mapSvgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let canceled = false;
@@ -353,173 +361,33 @@ export const HomeOverview: React.FC = () => {
       .then((res) => res.text())
       .then((text) => {
         if (canceled) return;
-        // Preprocess SVG colors before first paint to avoid flashing original colors.
         const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
         const svg = doc.querySelector('svg');
-        if (svg) {
-          svg.setAttribute('width', '100%');
-          svg.setAttribute('height', '100%');
-          svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-          svg.style.overflow = 'hidden';
-          const cityGroups = Array.from(svg.querySelectorAll('g[id$="市"]')) as SVGGElement[];
-          cityGroups.forEach((g) => g.classList.add('ah-city'));
-          const styleNode = doc.createElement('style');
-          styleNode.textContent = `
-            @keyframes homeCityGlow {
-              0% { filter: drop-shadow(0 0 5px rgba(130,190,255,0.3)); }
-              50% { filter: drop-shadow(0 0 11px rgba(130,190,255,0.95)); }
-              100% { filter: drop-shadow(0 0 5px rgba(130,190,255,0.3)); }
-            }
-            .ah-city path, .ah-city polygon, .ah-city polyline {
-              transition: fill 180ms ease, stroke 180ms ease, filter 180ms ease, stroke-width 180ms ease, opacity 180ms ease;
-              pointer-events: all;
-            }
-          `;
-          svg.prepend(styleNode);
-          const shapes = Array.from(svg.querySelectorAll('path, polygon, polyline')) as SVGElement[];
-          shapes.forEach((shape) => {
-            shape.style.fill = '#2756B5';
-            shape.style.stroke = '#A9D7FF';
-            shape.style.strokeWidth = '1.2';
-            shape.style.strokeOpacity = '0.92';
-            shape.style.transition =
-              'fill 180ms ease, stroke 180ms ease, filter 180ms ease, stroke-width 180ms ease';
-            shape.style.cursor = 'pointer';
-          });
-          setMapSvgMarkup(svg.outerHTML);
+        if (!svg) {
+          setMapSvgMarkup('');
           return;
         }
-        setMapSvgMarkup(text);
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+        svg.style.overflow = 'hidden';
+        const shapes = Array.from(svg.querySelectorAll('path, polygon, polyline')) as SVGElement[];
+        shapes.forEach((shape) => {
+          shape.style.fill = '#2a60b8';
+          shape.style.stroke = '#a8d7ff';
+          shape.style.strokeWidth = '1.15';
+          shape.style.strokeOpacity = '0.9';
+        });
+        setMapSvgMarkup(svg.outerHTML);
       })
       .catch(() => {
         if (!canceled) setMapSvgMarkup('');
       });
+
     return () => {
       canceled = true;
     };
   }, []);
-
-  useEffect(() => {
-    if (!mapSvgRef.current || !mapSvgMarkup) return;
-    const svgRoot = mapSvgRef.current.querySelector('svg');
-    if (!svgRoot) return;
-
-    const shapes = Array.from(svgRoot.querySelectorAll('path, polygon, polyline')) as SVGElement[];
-    if (shapes.length === 0) return;
-
-    svgRoot.setAttribute('width', '100%');
-    svgRoot.setAttribute('height', '100%');
-    svgRoot.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-    svgRoot.style.overflow = 'hidden';
-
-    shapes.forEach((shape) => {
-      shape.style.fill = '#2756B5';
-      shape.style.stroke = '#A9D7FF';
-      shape.style.strokeWidth = '1.2';
-      shape.style.strokeOpacity = '0.92';
-      shape.style.transition = 'fill 180ms ease, stroke 180ms ease, filter 180ms ease, stroke-width 180ms ease';
-      shape.style.cursor = 'pointer';
-    });
-
-    const cityGroups = Array.from(svgRoot.querySelectorAll('g.ah-city, g[id$="市"]')) as SVGGElement[];
-    cityGroups.forEach((group) => {
-      group.style.transition = 'opacity 180ms ease, transform 180ms ease';
-    });
-    const syncHoverStyles = (activeCity: string | null) => {
-      cityGroups.forEach((group) => {
-        const city = group.id.replace(/市$/, '');
-        const active = !!activeCity && activeCity === city;
-        const dimmed = !!activeCity && activeCity !== city;
-        const shapesInGroup = Array.from(group.querySelectorAll('path, polygon, polyline')) as SVGElement[];
-        group.style.opacity = dimmed ? '0.3' : '1';
-        group.style.transformOrigin = 'center center';
-        group.style.transformBox = 'fill-box';
-        group.style.transform = active ? 'scale(1.01)' : 'scale(1)';
-        shapesInGroup.forEach((shape) => {
-          shape.style.fill = active ? '#5b8ff0' : '#2756B5';
-          shape.style.stroke = active ? '#74BEFF' : '#8EBEE8';
-          shape.style.strokeWidth = active ? '2.35' : '1.2';
-          shape.style.animation = active ? 'homeCityGlow 1.25s ease-in-out infinite' : 'none';
-          shape.style.filter = active
-            ? 'drop-shadow(0 0 18px rgba(168,222,255,0.96)) brightness(1.12)'
-            : dimmed
-              ? 'brightness(0.72)'
-              : 'none';
-        });
-      });
-    };
-
-    const handlePointerMove = (event: Event) => {
-      const pe = event as PointerEvent;
-      const target = document.elementFromPoint(pe.clientX, pe.clientY) as Element | null;
-      const group = target?.closest?.('g.ah-city, g[id$="市"]') as SVGGElement | null;
-      const city = group ? group.id.replace(/市$/, '') : null;
-      setHoveredCity(city);
-      syncHoverStyles(city);
-    };
-
-    const handlePointerLeave = () => {
-      setHoveredCity(null);
-      syncHoverStyles(null);
-    };
-
-    const calcAnchors = () => {
-      const hostRect = mapSvgRef.current?.getBoundingClientRect();
-      if (!hostRect || hostRect.width <= 0 || hostRect.height <= 0) return;
-      const ctm = svgRoot.getScreenCTM();
-      if (!ctm) return;
-      const anchors = cityGroups
-        .map((group) => {
-          const box = group.getBBox();
-          if (!Number.isFinite(box.width) || !Number.isFinite(box.height) || box.width < 1 || box.height < 1) {
-            return null;
-          }
-          const p = svgRoot.createSVGPoint();
-          p.x = box.x + box.width / 2;
-          p.y = box.y + box.height / 2;
-          const sp = p.matrixTransform(ctm);
-          const xPct = ((sp.x - hostRect.left) / hostRect.width) * 100;
-          const yPct = ((sp.y - hostRect.top) / hostRect.height) * 100;
-          return { name: group.id.replace(/市$/, ''), xPct, yPct };
-        })
-        .filter(
-          (a): a is { name: string; xPct: number; yPct: number } =>
-            !!a &&
-            Number.isFinite(a.xPct) &&
-            Number.isFinite(a.yPct) &&
-            a.xPct > 1 &&
-            a.xPct < 99 &&
-            a.yPct > 1 &&
-            a.yPct < 99
-        );
-      // 只要有有效锚点就更新；单个异常点不会影响全部地市
-      if (anchors.length > 0) setCityAnchors(anchors);
-    };
-    calcAnchors();
-    const rafId = window.requestAnimationFrame(calcAnchors);
-    const resizeObserver = new ResizeObserver(calcAnchors);
-    resizeObserver.observe(svgRoot);
-
-    const host = mapSvgRef.current;
-    if (host) {
-      host.addEventListener('pointermove', handlePointerMove);
-      host.addEventListener('pointerleave', handlePointerLeave);
-    } else {
-      svgRoot.addEventListener('pointermove', handlePointerMove);
-      svgRoot.addEventListener('pointerleave', handlePointerLeave);
-    }
-    return () => {
-      window.cancelAnimationFrame(rafId);
-      resizeObserver.disconnect();
-      if (host) {
-        host.removeEventListener('pointermove', handlePointerMove);
-        host.removeEventListener('pointerleave', handlePointerLeave);
-      } else {
-        svgRoot.removeEventListener('pointermove', handlePointerMove);
-        svgRoot.removeEventListener('pointerleave', handlePointerLeave);
-      }
-    };
-  }, [mapSvgMarkup]);
 
   const mapBubble = useMemo(
     () =>
@@ -536,7 +404,7 @@ export const HomeOverview: React.FC = () => {
   );
 
   return (
-    <div className="h-full w-full overflow-auto rounded-lg border border-[#0c3d75] bg-[#031737] p-1.5">
+    <div className="h-full w-full overflow-auto rounded-lg border border-[#1f5f9f] bg-[linear-gradient(180deg,#06264e_0%,#042144_46%,#031d3b_100%)] p-1.5">
       <div className="grid grid-cols-12 gap-1.5 xl:h-full xl:auto-rows-fr xl:grid-rows-[minmax(168px,0.72fr)_minmax(232px,1fr)_minmax(210px,0.92fr)]">
         <div className={`col-span-12 xl:col-span-3 xl:max-h-[238px] ${panelClass}`}>
           {sectionTitle('内网资源概览')}
@@ -546,12 +414,12 @@ export const HomeOverview: React.FC = () => {
             {metricCard('端口数量(个)', '157', <Package size={16} />)}
             {metricCard('平均故障历时(小时)', '0', <AlertTriangle size={16} />)}
           </div>
-          <div className="mt-1 rounded bg-[#0a3268] px-2 py-1 text-xs text-[#9bc8ff]">
+          <div className="mt-1 rounded border border-[#2f6ca9]/60 bg-[linear-gradient(180deg,rgba(20,77,139,0.78)_0%,rgba(12,58,109,0.84)_100%)] px-2 py-1 text-xs text-[#b6d9ff]">
             <div className="mb-0.5 flex items-center justify-between">
               <span>业务可用率</span>
               <span className="font-bold text-white">100%</span>
             </div>
-            <div className="h-2 rounded-full bg-[#123d74]">
+            <div className="h-2 rounded-full bg-[#184d8b]">
               <div className="h-2 w-full rounded-full bg-gradient-to-r from-[#3d88ff] to-[#7ac7ff]" />
             </div>
           </div>
@@ -572,7 +440,7 @@ export const HomeOverview: React.FC = () => {
         </div>
 
         <div className={`col-span-12 xl:col-span-3 xl:max-h-[238px] ${panelClass}`}>
-          {sectionTitle('站点流速')}
+          {sectionTitle('站点流速', panelSelect('流入'))}
           <div className="flex-1 min-h-[128px] xl:min-h-0">
             <BaseChart option={flowOption} />
           </div>
@@ -581,24 +449,31 @@ export const HomeOverview: React.FC = () => {
         <div className={`col-span-12 xl:col-span-3 xl:row-span-2 ${panelClass}`}>
           {sectionTitle('设备分布')}
           <div className="relative flex-1 min-h-[320px] xl:min-h-0 overflow-hidden rounded border border-[var(--comp-panel-border)] bg-[radial-gradient(circle_at_50%_50%,#123f7f_0%,#0d3369_46%,#08284f_72%,#061e40_100%)]">
-            <div className="absolute inset-0 p-2">
+            {mapSvgMarkup ? (
               <div
-                ref={mapSvgRef}
-                className="h-full w-full overflow-hidden [&>svg]:h-full [&>svg]:w-full"
+                className="pointer-events-none absolute inset-0 h-full w-full p-2 [&>svg]:h-full [&>svg]:w-full"
                 dangerouslySetInnerHTML={{ __html: mapSvgMarkup }}
               />
-            </div>
-            {(cityAnchors.length > 0 ? cityAnchors : mapBubble.map((item) => ({ name: item.name, xPct: item.x, yPct: item.y }))).map((city) => {
+            ) : (
+              <img
+                src="/ah_map.svg"
+                alt="安徽地图"
+                className="pointer-events-none absolute inset-0 h-full w-full object-contain p-2 opacity-[0.88] [filter:brightness(0.9)_saturate(0.8)]"
+              />
+            )}
+            {mapBubble.map((city) => {
               const site = mapBubbleByCity.get(city.name);
               const isHovered = hoveredCity === city.name;
               const hasSite = !!site;
-              const left = `${city.xPct}%`;
-              const top = `${city.yPct}%`;
+              const left = `${city.x}%`;
+              const top = `${city.y}%`;
               return (
                 <div
                   key={city.name}
-                  className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+                  className="absolute -translate-x-1/2 -translate-y-1/2"
                   style={{ left, top }}
+                  onMouseEnter={() => setHoveredCity(city.name)}
+                  onMouseLeave={() => setHoveredCity(null)}
                 >
                   {hasSite && (
                     <div
@@ -650,7 +525,7 @@ export const HomeOverview: React.FC = () => {
         </div>
 
         <div className={`col-span-12 md:col-span-6 xl:col-span-3 ${panelClass}`}>
-          {sectionTitle('设备带宽利用率')}
+          {sectionTitle('设备带宽利用率', panelSelect('流入'))}
           <div className="flex-1 min-h-[160px] xl:min-h-0">
             <BaseChart option={bandwidthTrendOption('11楼02机房3号路由器', '3楼08机房4号路由器', '4楼05机房3号路由器')} />
           </div>

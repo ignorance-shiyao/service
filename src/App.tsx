@@ -348,7 +348,7 @@ const App: React.FC = () => {
       {/* Top Header Navigation */}
       {!isFocusMode && (
       <header className="bg-[var(--sys-bg-header)] border-b border-[var(--sys-border-primary)] shrink-0 z-50 shadow-md">
-        <div className="h-12 flex items-center justify-between px-3.5">
+        <div className="h-12 flex items-center justify-between px-3.5 bg-[url('/screens/top-nav-banner.svg')] bg-cover bg-center bg-no-repeat">
          <div className="flex items-center">
             <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
                 <Cpu className="text-blue-400 mr-2" size={18} />

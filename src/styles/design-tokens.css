@@ -1,20 +1,20 @@
 :root {
-  --ref-color-brand-500: #3f8cff;
-  --ref-color-bg-950: #071a33;
-  --ref-color-bg-900: #0b2545;
-  --ref-color-bg-850: #12315a;
-  --ref-color-bg-800: #173d6d;
-  --ref-color-bg-780: #1d4a80;
-  --ref-color-bg-760: #255792;
-  --ref-color-bg-740: #2e66a6;
+  --ref-color-brand-500: #3080ff;
+  --ref-color-bg-950: #031a36;
+  --ref-color-bg-900: #082a5a;
+  --ref-color-bg-850: #0d345f;
+  --ref-color-bg-800: #12457a;
+  --ref-color-bg-780: #1a54aa;
+  --ref-color-bg-760: #2b60a9;
+  --ref-color-bg-740: #2c8aff;
 
-  --ref-color-border-700: #2f5e93;
-  --ref-color-border-650: #3d70a8;
-  --ref-color-border-brand-soft: rgba(63, 140, 255, 0.25);
+  --ref-color-border-700: #1e4980;
+  --ref-color-border-650: #2b60a9;
+  --ref-color-border-brand-soft: rgba(48, 128, 255, 0.25);
 
-  --ref-color-text-100: #d9e6f8;
-  --ref-color-text-200: #b4c8e6;
-  --ref-color-text-300: rgba(198, 212, 236, 0.86);
+  --ref-color-text-100: #daedff;
+  --ref-color-text-200: #aecaf5;
+  --ref-color-text-300: rgba(198, 222, 250, 0.9);
   --ref-color-text-500: #6f84a6;
   --ref-color-text-inverse: #ffffff;
   --ref-color-text-600: #839abc;
@@ -45,17 +45,17 @@
   --sys-state-info: #24c8ff;
   --sys-state-quantum: #a855f7;
 
-  --comp-panel-background: #113864;
-  --comp-panel-border: #3b6ea8;
+  --comp-panel-background: #0d345f;
+  --comp-panel-border: #1e4980;
   --comp-panel-title: #e1f0ff;
   --comp-panel-title-accent: #24c8ff;
   --comp-panel-tab-text: #9fc4ea;
   --comp-panel-tab-active-bg: rgba(36, 200, 255, 0.15);
 
-  --sys-overlay-1: rgba(10, 32, 60, 0.58);
-  --sys-overlay-2: rgba(13, 39, 72, 0.78);
-  --sys-surface-muted: rgba(19, 49, 87, 0.62);
-  --sys-surface-strong: rgba(15, 42, 78, 0.85);
+  --sys-overlay-1: rgba(15, 52, 95, 0.54);
+  --sys-overlay-2: rgba(26, 84, 170, 0.38);
+  --sys-surface-muted: rgba(22, 67, 117, 0.62);
+  --sys-surface-strong: rgba(19, 72, 131, 0.72);
 
   --comp-control-height: 32px;
   --comp-radius-sm: 3px;
