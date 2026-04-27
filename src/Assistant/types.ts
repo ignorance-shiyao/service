@@ -38,5 +38,8 @@ export interface DiagnosisStep {
   name: string;
   status: 'pending' | 'processing' | 'success' | 'error';
   result?: string;
-  evidence?: any;
+  evidence?: {
+    label: string;
+    value: string;
+  }[];
 }

@@ -1,17 +1,39 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-    Send, Loader2, Bot, User, Headset, Sparkles, AlertCircle, 
-    ArrowRight, History as HistoryIcon, Paperclip, Share2, Plus, MessageSquare,
-    Trash2, ChevronLeft, Menu, ShieldCheck, Database, Activity, 
-    Radio, Zap, Megaphone, Trash, BarChart3, Fingerprint, Map, 
-    ClipboardList, Info, Cpu, Globe, FileText, LayoutGrid, Clock, RotateCcw,
-    ZapOff, Wifi, HardDrive, PhoneCall, Gauge, BarChart, Settings2, Brain
-} from 'lucide-react';
-import { Button, Badge } from '../components/UI';
+import { Send, Loader2, Bot, User, Headset, History as HistoryIcon, Paperclip, Plus, MessageSquare, ChevronLeft, Activity, Zap, ClipboardList, Cpu, FileText, Wifi, Gauge, Settings2, Brain } from 'lucide-react';
+import { Button } from '../components/UI';
 import { GoogleGenAI } from "@google/genai";
 import { ChatMessage, ChatSession } from './types';
 import { DiagnosisAgent } from './DiagnosisAgent';
+import { DEFAULT_CHAT_SESSIONS, KNOWLEDGE_ITEMS, REPORTS, TICKETS } from '../mock/assistant';
+
+const SESSION_STORAGE_KEY = 'assistant_chat_sessions_v1';
+
+const nowText = () => new Date().toLocaleTimeString();
+const createMessage = (role: ChatMessage['role'], content: string): ChatMessage => ({
+    id: `${Date.now()}_${Math.random().toString(16).slice(2, 6)}`,
+    role,
+    content,
+    timestamp: nowText(),
+});
+
+const resolveMockReply = (input: string): string | null => {
+    const text = input.toLowerCase();
+    if (text.includes('工单')) {
+        const latest = TICKETS[0];
+        return latest ? `最近工单：${latest.title}，状态：${latest.status}，责任人：${latest.owner}。` : '当前暂无工单数据。';
+    }
+    if (text.includes('报告') || text.includes('月报') || text.includes('周报')) {
+        const latest = REPORTS[0];
+        if (!latest) return '当前暂无报告数据。';
+        return `${latest.title}：${latest.summary} 关键指标：${latest.metrics.map(m => `${m.label}${m.value}`).join('，')}。`;
+    }
+    if (text.includes('知识') || text.includes('切片') || text.includes('量子')) {
+        const hit = KNOWLEDGE_ITEMS.find(k => text.includes(k.title.toLowerCase()) || k.tags.some(t => text.includes(t.toLowerCase()))) || KNOWLEDGE_ITEMS[0];
+        return hit ? `知识库命中：${hit.title}。${hit.summary}` : '当前暂无可匹配的知识条目。';
+    }
+    return null;
+};
 
 export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initialIsHuman }) => {
     const [isHuman, setIsHuman] = useState(initialIsHuman);
@@ -21,28 +43,16 @@ export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initial
     const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
     
     // Mock Sessions
-    const [sessions, setSessions] = useState<ChatSession[]>([
-        { 
-            id: 's1', title: '专线丢包故障诊断', lastMessage: '已定位至物理层异常。', timestamp: '10:20 AM', 
-            messages: [
-                { id: 'm1-1', role: 'assistant', content: '您好！检测到您管理的“合肥-南京专线”近期出现丢包波动。建议执行深度诊断。', timestamp: '10:15 AM' },
-                { id: 'm1-2', role: 'user', content: '现在的探测结果如何？', timestamp: '10:18 AM' },
-                { id: 'm1-3', role: 'assistant', content: '当前链路仍有亚健康波动，通过分层探测已定位至 B 端的物理接口异常。', timestamp: '10:20 AM' }
-            ]
-        },
-        { 
-            id: 's2', title: '5G CPE 在线态核查', lastMessage: 'UUID: 5G-CPE-002', timestamp: 'Yesterday 14:20', 
-            messages: [
-                { id: 'm2-1', role: 'assistant', content: '查询完成。目前 5G-CPE-002 处于离线态。', timestamp: 'Yesterday 14:00' }
-            ]
-        },
-        { 
-            id: 's3', title: '智算中心 PUE 咨询', lastMessage: '能效指标已恢复正常。', timestamp: 'Mar 12, 2025', 
-            messages: [
-                { id: 'm3-1', role: 'assistant', content: '关于智算中心 Q1 季度的能效简报已生成。平均 PUE 为 1.25。', timestamp: 'Mar 12 09:30' }
-            ]
-        },
-    ]);
+    const [sessions, setSessions] = useState<ChatSession[]>(() => {
+        try {
+            const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+            if (!raw) return DEFAULT_CHAT_SESSIONS;
+            const parsed = JSON.parse(raw) as ChatSession[];
+            return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_CHAT_SESSIONS;
+        } catch {
+            return DEFAULT_CHAT_SESSIONS;
+        }
+    });
 
     const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0];
     const [messages, setMessages] = useState<ChatMessage[]>(activeSession.messages);
@@ -50,27 +60,59 @@ export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initial
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => { setMessages(activeSession.messages); }, [activeSessionId]);
+    useEffect(() => { setMessages(activeSession.messages); }, [activeSessionId, activeSession.messages]);
     useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages, isLoading, activeDiagnosis]);
+    useEffect(() => { localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessions)); }, [sessions]);
+
+    const appendToSession = (sessionId: string, msg: ChatMessage) => {
+        setSessions(prev => prev.map(s => {
+            if (s.id !== sessionId) return s;
+            const nextMessages = [...s.messages, msg];
+            const nextTitle = s.title === '新咨询' && msg.role === 'user'
+                ? msg.content.slice(0, 14)
+                : s.title;
+            return { ...s, title: nextTitle, messages: nextMessages, lastMessage: msg.content, timestamp: msg.timestamp };
+        }));
+    };
 
     const handleAction = (type: string) => {
         if (type === 'diagnosis') {
             setActiveDiagnosis(true);
-            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'system', content: '正在调起一键探测流水线...', timestamp: new Date().toLocaleTimeString() }]);
+            const msg = createMessage('system', '正在调起一键探测流水线...');
+            setMessages(prev => [...prev, msg]);
+            appendToSession(activeSessionId, msg);
         } else if (type === 'human') {
             setIsHuman(true);
-            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: '正在为您呼叫省公司二线专家。', timestamp: new Date().toLocaleTimeString() }]);
+            const msg = createMessage('assistant', '正在为您呼叫省公司二线专家。');
+            setMessages(prev => [...prev, msg]);
+            appendToSession(activeSessionId, msg);
         }
     };
 
-    const handleSend = async () => {
-        if (!inputValue.trim() || isLoading) return;
-        const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', content: inputValue, timestamp: new Date().toLocaleTimeString() };
+    const handleSend = async (draft?: string) => {
+        const content = (draft ?? inputValue).trim();
+        if (!content || isLoading) return;
+        const userMsg: ChatMessage = createMessage('user', content);
         setMessages(prev => [...prev, userMsg]);
-        setInputValue('');
+        appendToSession(activeSessionId, userMsg);
+        if (!draft) setInputValue('');
         setIsLoading(true);
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const mockReply = resolveMockReply(content);
+            if (mockReply) {
+                const answer = createMessage('assistant', mockReply);
+                setMessages(prev => [...prev, answer]);
+                appendToSession(activeSessionId, answer);
+                return;
+            }
+            const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+            if (!apiKey) {
+                const noKeyMsg = createMessage('assistant', 'AI Key 未配置，请联系管理员在环境变量中设置后重试。');
+                setMessages(prev => [...prev, noKeyMsg]);
+                appendToSession(activeSessionId, noKeyMsg);
+                return;
+            }
+            const ai = new GoogleGenAI({ apiKey });
             
             const generateConfig: any = {};
             if (isThinkingEnabled) {
@@ -79,13 +121,20 @@ export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initial
 
             const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
-                contents: `你是一个政企运维助手。当前话题: "${activeSession.title}"。用户问题: "${inputValue}"。请给出专业简练的建议。`,
+                contents: `你是一个政企运维助手。当前话题: "${activeSession.title}"。用户问题: "${content}"。请给出专业简练的建议。`,
                 config: generateConfig
             });
             
-            setMessages(prev => [...prev, { id: (Date.now()+1).toString(), role: 'assistant', content: response.text || '暂无法处理。', timestamp: new Date().toLocaleTimeString() }]);
+            const answer = createMessage('assistant', response.text || '暂无法处理。');
+            setMessages(prev => [...prev, answer]);
+            appendToSession(activeSessionId, answer);
+        } catch (error) {
+            const err = createMessage('assistant', `请求失败，请稍后重试。${error instanceof Error ? ` (${error.message})` : ''}`);
+            setMessages(prev => [...prev, err]);
+            appendToSession(activeSessionId, err);
+        } finally {
             setIsLoading(false);
-        } catch (error) { setIsLoading(false); }
+        }
     };
 
     const SERVICE_MATRIX = [
@@ -103,10 +152,27 @@ export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initial
         if (action.startsWith('msg:')) {
             const cmd = action.replace('msg:', '');
             setInputValue(cmd);
-            setTimeout(() => handleSend(), 100);
+            void handleSend(cmd);
         } else {
             handleAction(action);
         }
+    };
+
+    const handleCreateSession = () => {
+        const id = `s_${Date.now()}`;
+        const newSession: ChatSession = {
+            id,
+            title: '新咨询',
+            lastMessage: '请描述您的问题',
+            timestamp: nowText(),
+            messages: [createMessage('assistant', '你好，我已为你创建新会话。请描述需要处理的问题。')],
+        };
+        setSessions(prev => [newSession, ...prev]);
+        setActiveSessionId(id);
+        setMessages(newSession.messages);
+        setActiveDiagnosis(false);
+        setIsHuman(initialIsHuman);
+        setInputValue('');
     };
 
     return (
@@ -121,7 +187,10 @@ export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initial
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-4 min-w-[384px]">
-                    <button className="w-full flex items-center justify-center gap-2 p-2.5 mb-2 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all text-xs font-bold shadow-sm">
+                    <button
+                        onClick={handleCreateSession}
+                        className="w-full flex items-center justify-center gap-2 p-2.5 mb-2 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all text-xs font-bold shadow-sm"
+                    >
                         <Plus size={14}/> 发起新咨询
                     </button>
                     

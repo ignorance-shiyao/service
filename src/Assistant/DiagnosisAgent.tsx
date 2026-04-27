@@ -21,7 +21,12 @@ export const DiagnosisAgent: React.FC<DiagnosisAgentProps> = ({ onTransfer, embe
   const [simMode, setSimMode] = useState<'normal' | 'cut' | 'voice' | 'quality'>('normal');
   const [currentStepIdx, setCurrentStepIdx] = useState(-1);
   const [userInput, setUserInput] = useState('');
-  const [context, setContext] = useState<any>({
+  const [context, setContext] = useState<{
+    customer: string;
+    bizType: string;
+    instanceId: string;
+    sourceInput?: string;
+  }>({
     customer: '安徽省电力公司',
     bizType: '互联网专线',
     instanceId: 'AH-POWER-INET-001',
@@ -38,6 +43,18 @@ export const DiagnosisAgent: React.FC<DiagnosisAgentProps> = ({ onTransfer, embe
   const [conclusion, setConclusion] = useState<string>('');
   const [evidenceValues, setEvidenceValues] = useState<any>({});
 
+  const buildContextFromInput = (mode: 'normal' | 'cut' | 'voice' | 'quality', input: string) => {
+    const text = input.trim();
+    const instanceMatch = text.match(/[A-Z]{2,}-[A-Z]{2,}-[A-Z]+-\d{3}/);
+    const customer = text || (mode === 'voice' ? '江淮汽车集团' : '安徽省电力公司');
+    return {
+      customer,
+      bizType: mode === 'voice' ? '语音专线' : '互联网专线',
+      instanceId: instanceMatch?.[0] || (mode === 'voice' ? 'JAC-VOICE-102' : 'AH-POWER-INET-001'),
+      sourceInput: text || undefined,
+    };
+  };
+
   // 核心控制逻辑
   useEffect(() => {
     let timer: any;
@@ -48,6 +65,17 @@ export const DiagnosisAgent: React.FC<DiagnosisAgentProps> = ({ onTransfer, embe
     }
     return () => clearTimeout(timer);
   }, [stage, isPaused, currentStepIdx]);
+
+  useEffect(() => {
+    if (stage !== 'jump') return;
+    const timer = setTimeout(() => {
+      const jumpConclusion = '已完成证据同步，建议进入互联网业务多维定界平台继续分析。';
+      onTransfer({ context, evidence, conclusion: jumpConclusion, action: 'jumpToBoundary' });
+      setConclusion(jumpConclusion);
+      setStage('conclusion');
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [stage, context, evidence, onTransfer]);
 
   const executeNextStep = async () => {
       const idx = currentStepIdx === -1 ? 0 : currentStepIdx;
@@ -103,11 +131,7 @@ export const DiagnosisAgent: React.FC<DiagnosisAgentProps> = ({ onTransfer, embe
 
   const handleStart = (mode: 'normal' | 'cut' | 'voice' | 'quality') => {
     setSimMode(mode);
-    setContext({
-        customer: mode === 'voice' ? '江淮汽车集团' : '安徽省电力公司',
-        bizType: mode === 'voice' ? '语音专线' : '互联网专线',
-        instanceId: mode === 'voice' ? 'JAC-VOICE-102' : 'AH-POWER-INET-001'
-    });
+    setContext(buildContextFromInput(mode, userInput));
     setSteps(prev => prev.map(s => ({ ...s, status: 'pending', result: undefined })));
     setEvidence([]);
     setEvidenceValues({});
@@ -116,7 +140,7 @@ export const DiagnosisAgent: React.FC<DiagnosisAgentProps> = ({ onTransfer, embe
     setIsPaused(false);
   };
 
-  const updateStep = (id: string, status: any, result?: string) => {
+  const updateStep = (id: string, status: DiagnosisStep['status'], result?: string) => {
     setSteps(prev => prev.map(s => s.id === id ? { ...s, status, result } : s));
   };
 

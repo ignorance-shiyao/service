@@ -1,11 +1,10 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { 
-  Bot, Maximize2, Minimize2, X, MessageSquare
+  Bot, Maximize2, Minimize2, X
 } from 'lucide-react';
 import { Badge } from '../components/UI';
 import { ChatInterface } from './ChatInterface';
-import { AssistantTab } from './types';
 
 interface AssistantProps {
   mode: 'full' | 'half';
@@ -14,9 +13,6 @@ interface AssistantProps {
 }
 
 export const AssistantView: React.FC<AssistantProps> = ({ mode, onToggleMode, onClose }) => {
-  // 默认进入 AI 聊天模式，移除侧边栏切换逻辑
-  const [activeTab] = useState<AssistantTab>('ai-chat');
-
   return (
     <div className="flex h-full bg-[var(--sys-bg-page)] text-slate-200 overflow-hidden flex-col font-sans">
       {/* Header */}

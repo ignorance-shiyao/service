@@ -16,3 +16,4 @@ export type { TicketItem } from './tickets';
 export { MANAGED_BUSINESSES } from './businesses';
 export type { ManagedBusiness } from './businesses';
 
+export { DEFAULT_CHAT_SESSIONS } from './chatSessions';

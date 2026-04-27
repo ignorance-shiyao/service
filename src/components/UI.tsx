@@ -259,12 +259,12 @@ export const Select: React.FC<SelectProps> = ({ label, options, className, value
           type="button"
           disabled={disabled}
           onClick={() => !disabled && setOpen((v) => !v)}
-          className={`w-full px-3 py-2 bg-[var(--sys-bg-card)] border border-[var(--sys-border-secondary)] rounded-[var(--comp-radius-sm)] text-left text-[var(--sys-text-primary)] transition-all text-sm hover:border-[var(--sys-border-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--sys-border-focus)] focus:border-[var(--sys-border-focus)] ${disabled ? 'opacity-60 cursor-not-allowed' : ''} ${className || ''}`}
+          className={`relative box-border inline-flex h-7 w-full items-center rounded-[var(--comp-radius-sm)] border border-[var(--sys-border-secondary)] bg-[var(--sys-bg-card)] px-2.5 pr-7 text-left text-[13px] leading-none text-[var(--sys-text-primary)] transition-all hover:border-[var(--sys-border-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--sys-border-focus)] focus:border-[var(--sys-border-focus)] ${disabled ? 'opacity-60 cursor-not-allowed' : ''} ${className || ''}`}
           {...props}
         >
-          <span className={currentOption ? 'text-[var(--sys-text-primary)]' : 'text-[var(--sys-text-disabled)]'}>{displayLabel}</span>
-          <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[var(--sys-text-disabled)] transition-transform ${open ? 'rotate-180' : ''}`}>
-            <ChevronDown size={14} />
+          <span className={`block min-w-0 flex-1 truncate ${currentOption ? 'text-[var(--sys-text-primary)]' : 'text-[var(--sys-text-disabled)]'}`}>{displayLabel}</span>
+          <span className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[var(--sys-text-disabled)] transition-transform ${open ? 'rotate-180' : ''}`}>
+            <ChevronDown size={13} />
           </span>
         </button>
 
