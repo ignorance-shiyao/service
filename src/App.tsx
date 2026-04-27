@@ -299,6 +299,7 @@ const App: React.FC = () => {
   const selectedBigScreen =
     BIG_SCREENS.find(screen => screen.id === selectedBigScreenId) ?? BIG_SCREENS[0];
   const currentBigScreen = BIG_SCREENS.find(screen => location.pathname.startsWith(screen.path));
+  const isBigScreenPage = Boolean(currentBigScreen) || location.pathname === '/';
   const appTitle = currentBigScreen
     ? `政企业务智慧运维管家-${currentBigScreen.name}`
     : '政企业务智慧运维管家';
@@ -309,16 +310,26 @@ const App: React.FC = () => {
   };
 
   const toggleFocusMode = async () => {
+    // 聚焦模式以页面布局切换为主，浏览器全屏仅做增强，避免因权限/策略导致“点了没反应”。
+    if (!isFocusMode) {
+      setIsFocusMode(true);
+      try {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch {
+        // ignore: keep focus mode enabled even if fullscreen request is blocked
+      }
+      return;
+    }
+
+    setIsFocusMode(false);
     try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
-        setIsFocusMode(true);
-      } else {
+      if (document.fullscreenElement) {
         await document.exitFullscreen();
-        setIsFocusMode(false);
       }
     } catch {
-      setIsFocusMode((prev) => !prev);
+      // ignore
     }
   };
 
@@ -517,19 +528,21 @@ const App: React.FC = () => {
                     业务类型限制生效中
                  </div>
                )}
-               <button
-                 type="button"
-                 onClick={() => {
-                   setBigScreenKeyword('');
-                   setBigScreenView('preview');
-                   setSelectedBigScreenId(findBigScreenByPath(location.pathname).id);
-                   setIsBigScreenOpen(true);
-                 }}
-	                 className="inline-flex h-7 items-center gap-1.5 rounded border border-[#2d6ab1] bg-[#0b2f61] px-2.5 text-[11px] font-semibold text-[#bde3ff] transition hover:border-[#4ea4ff] hover:bg-[#12407e] hover:text-white"
-               >
-	                 <LayoutGrid size={12} />
-                 大屏切换
-               </button>
+               {isBigScreenPage && (
+                 <button
+                   type="button"
+                   onClick={() => {
+                     setBigScreenKeyword('');
+                     setBigScreenView('preview');
+                     setSelectedBigScreenId(findBigScreenByPath(location.pathname).id);
+                     setIsBigScreenOpen(true);
+                   }}
+		                   className="inline-flex h-7 items-center gap-1.5 rounded border border-[#2d6ab1] bg-[#0b2f61] px-2.5 text-[11px] font-semibold text-[#bde3ff] transition hover:border-[#4ea4ff] hover:bg-[#12407e] hover:text-white"
+                 >
+		                   <LayoutGrid size={12} />
+                   大屏切换
+                 </button>
+               )}
                <button
                  type="button"
                  onClick={toggleFocusMode}
