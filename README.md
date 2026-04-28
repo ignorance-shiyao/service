@@ -53,6 +53,9 @@ service/
 │  └─ AutoReporting/
 ├─ mock/
 │  └─ mock-db.json                         # 本地持久化 JSON（运行后自动生成/更新）
+├─ docs/
+│  ├─ system-architecture.drawio           # 系统架构图（可编辑源文件）
+│  └─ system-architecture.drawio.png       # 系统架构图（导出图）
 ├─ public/
 ├─ vite.config.ts                          # 含 /mock-api/bootstrap 本地读写接口
 └─ package.json
@@ -81,6 +84,8 @@ service/
 
 - `GET /mock-api/bootstrap`：读取 `mock/mock-db.json`
 - `PUT /mock-api/bootstrap`：覆盖写入 `mock/mock-db.json`
+- `GET /mock-api/ai-dock-sessions`：读取 `mock/ai-dock-sessions.json`
+- `PUT /mock-api/ai-dock-sessions`：覆盖写入 `mock/ai-dock-sessions.json`
 
 首次运行若 JSON 不存在：
 
@@ -158,3 +163,102 @@ service/
 3. **单一更新模式**：`updateSlice -> update*`  
 4. **防抖落盘**：减少高频编辑时的写盘压力  
 5. **页面只关心本模块数据**：通过 context 方法更新，避免模块间直接依赖
+
+## 10. 近期更新（2026-04）
+
+### 10.1 智能体模块优化（`src/Assistant`）
+
+- `ChatInterface.tsx`
+  - 增加发送失败消息态（不再静默吞错）
+  - 增加 API key 缺失防御提示
+  - “发起新咨询”按钮已实现（新建并切换会话）
+  - 修复 `setTimeout(handleSend, 100)` 状态竞态
+  - 清理未使用图标导入
+  - 增加对 `mock/assistant` 的知识/报告/工单快速命中回复
+- `DiagnosisAgent.tsx`
+  - 输入框 `userInput` 参与上下文构建
+  - `status: any` 收窄为 `DiagnosisStep['status']`
+  - `jump` 阶段增加超时后续动作（不再仅 loading）
+- `AssistantView.tsx`
+  - 清理未使用的 `activeTab` 相关死代码
+- `NotificationMatrix.tsx`
+  - 通道开关状态增加 `localStorage` 持久化
+- `types.ts`
+  - `DiagnosisStep.evidence` 从 `any` 改为结构化类型
+
+### 10.2 智能体 mock 数据统一
+
+- 原 `src/pages/agent/ai-dock/mocks/*` 已迁移至 `src/mock/assistant/*`
+- 统一从 `src/mock/assistant/index.ts` 导出，减少组件对具体文件路径的耦合
+- 新增 `src/mock/assistant/chatSessions.ts`，用于会话默认数据管理
+
+### 10.3 全局 Select 组件样式修正
+
+- 调整 `src/components/UI.tsx` 中全局 `Select`：
+  - 统一按钮盒模型与箭头占位，修复窄宽度场景布局变形
+  - 全局缩小一档尺寸（高度/字号/内边距）以匹配大屏按钮视觉比例
+
+### 10.4 智能体业务诊断结果链路增强（`src/pages/agent/ai-dock`）
+
+- 诊断结果卡样式强化（重点摘要 + 风险分布 + 优先建议）：
+  - 在 `BusinessDiagnosisReportCard.tsx` 中新增“异常/关注/健康”数量徽标
+  - 增加重点风险业务提示与建议分级展示，突出可直接执行项
+- “生成汇报说明”改为真实实现：
+  - 新增 `generateBusinessDiagnosisBrief(report)`，不再只发送问答文本
+  - 生成过程通过系统通知流展示进度，完成后输出可直接对客沟通的话术说明
+- “发起报障”支持多业务多选：
+  - 诊断结果卡支持勾选多个业务后统一发起报障
+  - 报障表单 `FaultFormCard.tsx` 改为可多选业务（批量提交）
+  - `submitFaultTicket` 支持批量创建工单并统一展示状态流转
+- 状态管理统一：
+  - 会话态新增 `faultContexts` 批量上下文
+  - `setFaultContext / setFaultContexts` 统一维护单业务与多业务场景
+
+### 10.5 智能体会话持久化一致性修复（跨浏览器）
+
+- `useAiDock` 会话存储已从“仅 localStorage”升级为“`mock/ai-dock-sessions.json` + localStorage 降级”。
+- 启动时优先读取 `/mock-api/ai-dock-sessions`，不可用时回退浏览器本地缓存。
+- 会话变更后会同时写入 JSON 与 localStorage，保证同一项目在不同浏览器刷新后看到一致会话数据。
+
+### 10.6 智能体语义配色一致性与健康度策略修正
+
+- 新增 `src/pages/agent/ai-dock/store/metricSemantics.ts`，统一指标语义判级（normal/warning/danger）：
+  - 可用率：`>=99.8 normal`，`>=99.5 warning`，其余 `danger`
+  - 时延：`<=25 normal`，`<=45 warning`，其余 `danger`
+  - 丢包：`<=0.1 normal`，`<=0.3 warning`，其余 `danger`
+  - 健康评分：`>=88 normal`，`>=78 warning`，其余 `danger`
+- `BusinessDiagnosisReport` 与 `ReportCard` 均改为基于统一规则计算颜色状态，避免“语义与配色不一致”。
+- 历史会话中的诊断报告在加载时会自动做一次状态归一化，修正旧数据错色。
+- 业务诊断数据分布调整为“健康为主、关注少量、异常极少”，更贴近真实生产运营观感。
+
+## 11. 系统架构图（docs）
+
+已提供完整系统架构图：
+
+- 可编辑源文件：`docs/system-architecture.drawio`
+- 导出预览图：`docs/system-architecture.drawio.png`
+
+架构图覆盖：
+
+1. 浏览器接入层与路由入口
+2. 应用层（大屏/系统管理/配置管理/服务台/智能体）
+3. 状态与数据访问层（`AppDataContext` / `useAiDock` / `data-gateway`）
+4. 开发态持久化层（Vite middleware + `mock/*.json`）
+5. 未来替换真实后端 API 的演进路径
+
+## 12. 运维与演示建议
+
+1. 做演示前建议先确认这两个文件存在且可读：
+   - `mock/mock-db.json`
+   - `mock/ai-dock-sessions.json`
+2. 若你改了 `vite.config.ts`（mock API 路由），请重启 dev server。
+3. 若要重置演示数据，可备份后删除上述 JSON，重启后会按默认 mock 重建。
+
+## 13. 当前运行说明
+
+- 常用开发地址：
+  - `http://localhost:3000/`
+  - `http://localhost:3001/`（并行调试端口）
+- 常用业务入口：
+  - `#/screen/sdwan`
+  - `#/service/desk/knowledge`

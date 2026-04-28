@@ -13,21 +13,22 @@ interface TicketCardProps {
 export const TicketCard: React.FC<TicketCardProps> = ({ ticket, onOpen, onCopy, onAsk }) => {
   const statusTone = ticket.status.includes('待')
     ? {
-        badge: 'border-[#b0824f] bg-[#8b5c2d] text-[#ffe7c7]',
-        card: 'border-[#9b7a4b] bg-[#6f4b2f]',
+        badge: 'border-[#cc9d66] bg-[rgba(124,86,42,0.55)] text-[#ffe8cc]',
+        stripe: 'bg-[#d0a469]',
       }
     : ticket.status.includes('完成') || ticket.status.includes('已')
       ? {
-          badge: 'border-[#4f9a82] bg-[#2d7a62] text-[#dffff4]',
-          card: 'border-[#4b9a87] bg-[#275f61]',
+          badge: 'border-[#5fbf98] bg-[rgba(25,106,84,0.55)] text-[#dcfff3]',
+          stripe: 'bg-[#63d3a8]',
         }
       : {
-          badge: 'border-[#5d7dc8] bg-[#3a5da9] text-[#e8edff]',
-          card: 'border-[#5b7ec6] bg-[#2f4e88]',
+          badge: 'border-[#7aa5f2] bg-[rgba(49,86,154,0.6)] text-[#eaf0ff]',
+          stripe: 'bg-[#5f93ee]',
         };
 
   return (
-    <div className={`rounded-xl border p-3 shadow-[0_10px_20px_rgba(7,31,67,0.28)] ${statusTone.card}`}>
+    <div className="relative overflow-hidden rounded-xl border border-[#3f77ab] bg-[linear-gradient(180deg,#123a66_0%,#11345f_100%)] p-3 shadow-[0_10px_20px_rgba(7,31,67,0.28)]">
+      <div className={`absolute left-0 top-0 h-full w-1 ${statusTone.stripe}`} />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-sm font-semibold text-[#eef6ff]">
           <Ticket size={14} className="text-[#a8dbff]" />
@@ -35,8 +36,9 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, onOpen, onCopy, 
         </div>
         <span className={`rounded-full border px-2 py-0.5 text-[10px] ${statusTone.badge}`}>{ticket.status}</span>
       </div>
-      <div className="mt-1 text-xs text-[#d6e9f8]">{ticket.title}</div>
-      <div className="mt-1 text-[11px] text-[#b8daf4]">业务：{ticket.business} · 责任人：{ticket.owner}</div>
+      <div className="mt-1 text-sm font-semibold text-[#dff1ff]">{ticket.title}</div>
+      <div className="mt-1 text-[11px] text-[#b8daf4]">业务：{ticket.business}</div>
+      <div className="mt-0.5 text-[11px] text-[#9ec8ea]">责任人：{ticket.owner}</div>
       <CardActionBar
         actions={[
           {

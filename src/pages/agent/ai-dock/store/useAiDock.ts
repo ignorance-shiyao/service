@@ -17,6 +17,14 @@ import {
 import { createId } from '../utils/id';
 import { delay } from '../utils/delay';
 import { detectIntent, IntentType } from './mockIntent';
+import {
+  getAvailabilityStatus,
+  getLatencyStatus,
+  getLevelByScore,
+  getLossStatus,
+  getManagedBusinessStatus,
+  getScoreStatus,
+} from './metricSemantics';
 
 export type MessageRole = 'assistant' | 'user' | 'system';
 export type MessageKind =
@@ -76,6 +84,7 @@ export type AiConversationSession = {
   activeReportId: string;
   ticketDraftFromDiagnosis: DiagnosisTemplate | null;
   faultContext: FaultContext | null;
+  faultContexts: FaultContext[];
 };
 
 export type AiConversationSessionMeta = {
@@ -113,6 +122,47 @@ const matchKnowledge = (input: string): KnowledgeItem => {
     (k) => input.includes(k.title.toLowerCase()) || k.tags.some((tag) => input.includes(tag.toLowerCase()))
   );
   return hit || KNOWLEDGE_ITEMS[0];
+};
+
+const businessKeywordMap: Array<{ business: KnowledgeItem['business']; keywords: string[] }> = [
+  { business: 'LINE', keywords: ['专线', '政企专线', '双链路'] },
+  { business: '5G', keywords: ['5g', '专网', '切片', '终端接入'] },
+  { business: 'IDC', keywords: ['idc', '机房', '动环', 'pdu'] },
+  { business: 'SDWAN', keywords: ['sdwan', '量子', '密钥', '选路'] },
+  { business: 'AIC', keywords: ['智算', 'gpu', '训练任务', '算力'] },
+];
+
+const normalizeText = (text: string) => text.toLowerCase().trim();
+
+const searchKnowledge = (rawInput: string, limit = 3): KnowledgeItem[] => {
+  const input = normalizeText(rawInput);
+  const requestedBusinesses = businessKeywordMap
+    .filter((item) => item.keywords.some((kw) => input.includes(kw)))
+    .map((item) => item.business);
+
+  const scored = KNOWLEDGE_ITEMS.map((item) => {
+    let score = 0;
+    const title = normalizeText(item.title);
+    const summary = normalizeText(item.summary);
+    const content = normalizeText(item.content);
+    const tags = item.tags.map((tag) => normalizeText(tag));
+
+    if (title.includes(input)) score += 18;
+    if (summary.includes(input)) score += 10;
+    if (content.includes(input)) score += 6;
+    if (tags.some((tag) => input.includes(tag) || tag.includes(input))) score += 9;
+    if (requestedBusinesses.includes(item.business)) score += 7;
+    if (input.includes('知识库') || input.includes('知识')) score += 2;
+
+    return { item, score };
+  })
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || b.item.updatedAt.localeCompare(a.item.updatedAt));
+
+  if (scored.length === 0) {
+    return KNOWLEDGE_ITEMS.slice(0, limit);
+  }
+  return scored.slice(0, limit).map((entry) => entry.item);
 };
 
 const pickDiagnosis = (input: string): DiagnosisTemplate | undefined => {
@@ -476,11 +526,44 @@ const buildBusinessQueryData = (customer: CustomerContext): BusinessQueryCategor
 const buildBusinessDiagnosisReport = (targets: BusinessDiagnosisTarget[]): BusinessDiagnosisReportPayload => {
   const results: BusinessDiagnosisResult[] = targets.map((target, index) => {
     const seed = target.item.id.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0) + index * 7;
-    const score = Math.max(68, Math.min(98, 96 - (seed % 27)));
-    const level: BusinessDiagnosisResult['level'] = score >= 88 ? '健康' : score >= 78 ? '关注' : '异常';
-    const latency = 8 + (seed % 34);
-    const loss = Number(((seed % 48) / 100).toFixed(2));
-    const availability = Number((99.96 - (seed % 42) / 100).toFixed(2));
+    const riskSeed = seed % 40;
+    const level: BusinessDiagnosisResult['level'] =
+      riskSeed < 1 ? '异常' : riskSeed < 7 ? '关注' : '健康';
+
+    const score =
+      level === '健康'
+        ? 89 + (seed % 9)
+        : level === '关注'
+          ? 80 + (seed % 8)
+          : 72 + (seed % 6);
+
+    const latency =
+      level === '健康'
+        ? 12 + (seed % 13)
+        : level === '关注'
+          ? 26 + (seed % 17)
+          : 46 + (seed % 27);
+
+    const loss = Number(
+      (
+        level === '健康'
+          ? 0.03 + (seed % 10) / 100
+          : level === '关注'
+            ? 0.12 + (seed % 17) / 100
+            : 0.32 + (seed % 27) / 100
+      ).toFixed(2)
+    );
+
+    const availability = Number(
+      (
+        level === '健康'
+          ? 99.82 + (seed % 15) / 100
+          : level === '关注'
+            ? 99.55 + (seed % 25) / 100
+            : 99.2 + (seed % 35) / 100
+      ).toFixed(2)
+    );
+
     const riskText =
       level === '健康'
         ? '核心指标稳定，当前未发现明显风险。'
@@ -498,10 +581,10 @@ const buildBusinessDiagnosisReport = (targets: BusinessDiagnosisTarget[]): Busin
       level,
       summary: `${target.label}「${target.item.name}」诊断完成，${riskText}`,
       metrics: [
-        { label: '可用率', value: `${availability}%`, status: availability >= 99.7 ? 'normal' : availability >= 99.4 ? 'warning' : 'danger' },
-        { label: '时延', value: `${latency}ms`, status: latency <= 22 ? 'normal' : latency <= 32 ? 'warning' : 'danger' },
-        { label: '丢包', value: `${loss}%`, status: loss <= 0.18 ? 'normal' : loss <= 0.35 ? 'warning' : 'danger' },
-        { label: '健康评分', value: `${score}`, status: level === '健康' ? 'normal' : level === '关注' ? 'warning' : 'danger' },
+        { label: '可用率', value: `${availability}%`, status: getAvailabilityStatus(availability) },
+        { label: '时延', value: `${latency}ms`, status: getLatencyStatus(latency) },
+        { label: '丢包', value: `${loss}%`, status: getLossStatus(loss) },
+        { label: '健康评分', value: `${score}`, status: getScoreStatus(score) },
       ],
       findings: [
         level === '健康' ? '近24小时关键指标处于稳定区间' : '近24小时存在指标波动，峰值集中在业务高峰时段',
@@ -549,6 +632,7 @@ const createSession = (title?: string): AiConversationSession => {
     activeReportId: REPORTS[0].id,
     ticketDraftFromDiagnosis: null,
     faultContext: null,
+    faultContexts: [],
   };
 };
 
@@ -639,6 +723,42 @@ const buildSessionSnapshotTags = (messages: AiMessage[]): Array<{ label: string;
 };
 
 const AI_DOCK_SESSION_STORAGE_KEY = 'ai_dock_sessions_json_v1';
+const AI_DOCK_SESSION_ENDPOINT = '/mock-api/ai-dock-sessions';
+
+const parseMetricNumber = (raw: unknown): number => {
+  if (typeof raw === 'number') return raw;
+  if (typeof raw !== 'string') return Number.NaN;
+  const normalized = raw.replace(/[^\d.-]/g, '');
+  return Number.parseFloat(normalized);
+};
+
+const normalizeBusinessDiagnosisReportPayload = (payload: any) => {
+  if (!payload || typeof payload !== 'object' || !Array.isArray(payload.results)) return payload;
+  const results = payload.results.map((item: any) => {
+    const score = typeof item?.score === 'number' ? item.score : parseMetricNumber(item?.score);
+    const normalizedLevel = Number.isFinite(score) ? getLevelByScore(score) : item?.level;
+    const normalizedMetrics = Array.isArray(item?.metrics)
+      ? item.metrics.map((metric: any) => {
+          const value = parseMetricNumber(metric?.value);
+          if (!Number.isFinite(value) || typeof metric?.label !== 'string') return metric;
+          if (metric.label === '可用率') return { ...metric, status: getAvailabilityStatus(value) };
+          if (metric.label === '时延') return { ...metric, status: getLatencyStatus(value) };
+          if (metric.label === '丢包') return { ...metric, status: getLossStatus(value) };
+          if (metric.label === '健康评分') return { ...metric, status: getScoreStatus(value) };
+          return metric;
+        })
+      : item?.metrics;
+    return {
+      ...item,
+      level: normalizedLevel,
+      metrics: normalizedMetrics,
+    };
+  });
+  return {
+    ...payload,
+    results,
+  };
+};
 
 const toValidSession = (value: any): AiConversationSession | null => {
   if (!value || typeof value !== 'object') return null;
@@ -648,17 +768,25 @@ const toValidSession = (value: any): AiConversationSession | null => {
   const customer = value.customer && typeof value.customer.name === 'string' && typeof value.customer.code === 'string'
     ? (value.customer as CustomerContext)
     : randomCustomerContext(typeof value.createdAt === 'number' ? value.createdAt : Date.now());
+  const normalizedMessages = (value.messages as AiMessage[]).map((message) => {
+    if (message.kind !== 'businessDiagnosisReport') return message;
+    return {
+      ...message,
+      data: normalizeBusinessDiagnosisReportPayload(message.data),
+    };
+  });
   return {
     id: value.id,
     title: value.title || '新会话',
     createdAt: typeof value.createdAt === 'number' ? value.createdAt : Date.now(),
     updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : Date.now(),
     customer,
-    messages: value.messages as AiMessage[],
+    messages: normalizedMessages,
     tickets: value.tickets as TicketItem[],
     activeReportId,
     ticketDraftFromDiagnosis: (value.ticketDraftFromDiagnosis as DiagnosisTemplate | null) || null,
     faultContext: (value.faultContext as FaultContext | null) || null,
+    faultContexts: Array.isArray(value.faultContexts) ? (value.faultContexts as FaultContext[]) : [],
   };
 };
 
@@ -667,21 +795,57 @@ const getDefaultPersistedState = (): PersistedAiDockSessions => {
   return { sessions: [first], activeSessionId: first.id };
 };
 
+const parsePersistedSessions = (parsed: unknown): PersistedAiDockSessions | null => {
+  if (!parsed || typeof parsed !== 'object' || !Array.isArray((parsed as PersistedAiDockSessions).sessions)) {
+    return null;
+  }
+  const candidate = parsed as PersistedAiDockSessions;
+  const sessions = candidate.sessions.map(toValidSession).filter(Boolean) as AiConversationSession[];
+  if (sessions.length === 0) return null;
+  const activeSessionId = sessions.some((s) => s.id === candidate.activeSessionId)
+    ? candidate.activeSessionId
+    : sessions[0].id;
+  return { sessions, activeSessionId };
+};
+
+const getPersistedStamp = (value: PersistedAiDockSessions): number => {
+  const latestSessionAt = value.sessions.reduce((max, item) => Math.max(max, item.updatedAt || item.createdAt || 0), 0);
+  const messageCount = value.sessions.reduce((sum, item) => sum + item.messages.length, 0);
+  return latestSessionAt * 1000 + messageCount;
+};
+
 const loadPersistedSessions = (): PersistedAiDockSessions => {
   if (typeof window === 'undefined') return getDefaultPersistedState();
   try {
     const raw = window.localStorage.getItem(AI_DOCK_SESSION_STORAGE_KEY);
     if (!raw) return getDefaultPersistedState();
-    const parsed = JSON.parse(raw) as PersistedAiDockSessions;
-    if (!parsed || !Array.isArray(parsed.sessions)) return getDefaultPersistedState();
-    const sessions = parsed.sessions.map(toValidSession).filter(Boolean) as AiConversationSession[];
-    if (sessions.length === 0) return getDefaultPersistedState();
-    const activeSessionId = sessions.some((s) => s.id === parsed.activeSessionId)
-      ? parsed.activeSessionId
-      : sessions[0].id;
-    return { sessions, activeSessionId };
+    const normalized = parsePersistedSessions(JSON.parse(raw));
+    return normalized || getDefaultPersistedState();
   } catch (_error) {
     return getDefaultPersistedState();
+  }
+};
+
+const loadPersistedSessionsFromServer = async (): Promise<PersistedAiDockSessions | null> => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const response = await fetch(AI_DOCK_SESSION_ENDPOINT, { cache: 'no-store' });
+    if (!response.ok) return null;
+    const parsed = await response.json();
+    return parsePersistedSessions(parsed);
+  } catch (_error) {
+    return null;
+  }
+};
+
+const savePersistedSessionsToServer = async (payload: PersistedAiDockSessions): Promise<void> => {
+  const response = await fetch(AI_DOCK_SESSION_ENDPOINT, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error(`Persist ai-dock sessions failed: ${response.status}`);
   }
 };
 
@@ -713,10 +877,31 @@ export const useAiDock = () => {
   const [initialPersisted] = useState<PersistedAiDockSessions>(() => loadPersistedSessions());
   const [sessions, setSessions] = useState<AiConversationSession[]>(() => initialPersisted.sessions);
   const [activeSessionId, setActiveSessionId] = useState<string>(() => initialPersisted.activeSessionId);
+  const [sessionHydrated, setSessionHydrated] = useState(false);
   const [isResponding, setIsResponding] = useState(false);
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const processingRef = useRef(false);
   const stopRespondingRef = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const hydrate = async () => {
+      const remote = await loadPersistedSessionsFromServer();
+      if (cancelled) return;
+      if (remote) {
+        const localStamp = getPersistedStamp(initialPersisted);
+        const remoteStamp = getPersistedStamp(remote);
+        const preferred = localStamp > remoteStamp ? initialPersisted : remote;
+        setSessions(preferred.sessions);
+        setActiveSessionId(preferred.activeSessionId);
+      }
+      setSessionHydrated(true);
+    };
+    void hydrate();
+    return () => {
+      cancelled = true;
+    };
+  }, [initialPersisted]);
 
   useEffect(() => {
     if (sessions.length === 0) {
@@ -731,13 +916,16 @@ export const useAiDock = () => {
   }, [activeSessionId, sessions]);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || sessions.length === 0) return;
+    if (typeof window === 'undefined' || !sessionHydrated || sessions.length === 0) return;
     const payload: PersistedAiDockSessions = {
       sessions,
       activeSessionId,
     };
     window.localStorage.setItem(AI_DOCK_SESSION_STORAGE_KEY, JSON.stringify(payload));
-  }, [activeSessionId, sessions]);
+    void savePersistedSessionsToServer(payload).catch(() => {
+      // keep local storage as fallback when mock-api endpoint is unavailable
+    });
+  }, [activeSessionId, sessionHydrated, sessions]);
 
   const activeSession = useMemo(
     () => sessions.find((s) => s.id === activeSessionId) || sessions[0],
@@ -749,12 +937,26 @@ export const useAiDock = () => {
   const activeReportId = activeSession?.activeReportId || REPORTS[0].id;
   const ticketDraftFromDiagnosis = activeSession?.ticketDraftFromDiagnosis || null;
   const faultContext = activeSession?.faultContext || null;
+  const faultContexts = activeSession?.faultContexts || [];
   const activeCustomer = activeSession?.customer || CUSTOMER_POOL[0];
 
   const activeReport = useMemo(
     () => REPORTS.find((r) => r.id === activeReportId) || REPORTS[0],
     [activeReportId]
   );
+
+  const normalizedManagedBusinesses = useMemo(() => {
+    return MANAGED_BUSINESSES.map((item) => {
+      const normalizedStatus = getManagedBusinessStatus(item);
+      if (import.meta.env.DEV && normalizedStatus !== item.status) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[ai-dock] managed business status mismatch: ${item.name}, input=${item.status}, normalized=${normalizedStatus}`
+        );
+      }
+      return { ...item, status: normalizedStatus };
+    });
+  }, []);
 
   const updateActiveSession = useCallback((updater: (session: AiConversationSession) => AiConversationSession) => {
     setSessions((prev) => prev.map((session) => (session.id === activeSessionId ? updater(session) : session)));
@@ -913,6 +1115,7 @@ export const useAiDock = () => {
       activeReportId: REPORTS[0].id,
       ticketDraftFromDiagnosis: null,
       faultContext: null,
+      faultContexts: [],
     }));
     setDrawer(null);
     setIsResponding(false);
@@ -1060,6 +1263,62 @@ export const useAiDock = () => {
     });
   }, [advanceSystemNoticeFlow, createSystemNoticeFlow]);
 
+  const generateBusinessDiagnosisBrief = useCallback(async (report: BusinessDiagnosisReportPayload) => {
+    const abnormal = report.results.filter((item) => item.level === '异常');
+    const warning = report.results.filter((item) => item.level === '关注');
+    const topRisk = report.results.slice().sort((a, b) => a.score - b.score).slice(0, 3);
+
+    const { id: noticeId, logs: initialLogs } = createSystemNoticeFlow('正在生成汇报说明...', '正在提取诊断结果中的关键结论', 20);
+    let logs = initialLogs;
+    await delay(320);
+    logs = advanceSystemNoticeFlow(noticeId, {
+      logs,
+      logText: '已完成风险业务聚类与优先级排序',
+      progress: 58,
+      title: '正在生成汇报说明...',
+    });
+    await delay(320);
+    logs = advanceSystemNoticeFlow(noticeId, {
+      logs,
+      logText: '已生成客户侧汇报话术与行动建议',
+      progress: 92,
+      title: '正在生成汇报说明...',
+    });
+    await delay(260);
+    advanceSystemNoticeFlow(noticeId, {
+      logs,
+      logText: '汇报说明已生成，可直接用于客户沟通',
+      progress: 100,
+      status: 'done',
+      title: '汇报说明生成完成',
+    });
+
+    const briefing = [
+      '【业务诊断汇报说明】',
+      `本次共诊断 ${report.total} 条业务，平均健康评分 ${report.averageScore} 分。`,
+      `风险分布：异常 ${abnormal.length} 条，关注 ${warning.length} 条，健康 ${report.total - abnormal.length - warning.length} 条。`,
+      '',
+      '【重点风险摘要】',
+      ...(topRisk.length > 0
+        ? topRisk.map((item, index) => `${index + 1}. ${item.name}（${item.type}，${item.region}）评分 ${item.score}：${item.summary}`)
+        : ['1. 当前未识别到高风险业务。']),
+      '',
+      '【后续操作建议】',
+      ...report.nextActions.map((item, index) => `${index + 1}. ${item}`),
+      '',
+      '【客户沟通建议】',
+      abnormal.length > 0
+        ? '建议优先沟通异常业务的影响范围与恢复时间，并同步已启动报障处理。'
+        : '建议向客户说明当前整体稳定，并承诺持续跟踪关键指标变化。',
+    ].join('\n');
+
+    appendMessage({
+      role: 'assistant',
+      kind: 'text',
+      text: briefing,
+    });
+  }, [advanceSystemNoticeFlow, appendMessage, createSystemNoticeFlow]);
+
   const handleIntent = useCallback(async (inputRaw: string, intent?: IntentType) => {
     if (stopRespondingRef.current) return;
     const input = inputRaw.toLowerCase();
@@ -1093,6 +1352,30 @@ export const useAiDock = () => {
         data: { title: '反馈已记录，产品团队将在 1 个工作日内回访。', progress: 100 },
       });
       await streamAssistantText('感谢反馈，若您愿意我可以继续引导您描述复现步骤。');
+      return;
+    }
+
+    if (input.includes('相关知识') || input.includes('知识列表') || input === '知识库' || input.includes('按业务类型筛')) {
+      const knowledgeList = searchKnowledge(inputRaw, 3);
+      const primary = knowledgeList[0] || KNOWLEDGE_ITEMS[0];
+      appendMessage({
+        role: 'assistant',
+        kind: 'qa',
+        data: {
+          conclusion: `已整理知识库内容，当前建议先看《${primary.title}》。`,
+          explanation: '我已按当前问题关联了可直接参考的知识来源，您可先查看原始内容，再继续追问具体操作步骤。',
+          sourceId: primary.id,
+          suggestions: ['查看完整知识来源', '给我该主题的操作步骤', '继续推荐相关知识'],
+          followups: ['这个知识的适用场景是什么？', '按这个知识给我一套排查流程', '有没有同类案例？'],
+        } as QaPayload,
+      });
+      knowledgeList.slice(0, 2).forEach((item) => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'knowledgeCard',
+          data: item,
+        });
+      });
       return;
     }
 
@@ -1132,17 +1415,22 @@ export const useAiDock = () => {
             region: item.region,
             site: item.site,
           })));
+        const defaultBusinesses = faultContexts.length > 0
+          ? Array.from(new Set(faultContexts.map((item) => item.business)))
+          : [faultContext?.business || ticketDraftFromDiagnosis?.name || businessOptions[0]?.value || '政企业务专网'];
         appendMessage({
           role: 'assistant',
           kind: 'faultForm',
           data: {
             defaultTitle: faultContext?.title || (ticketDraftFromDiagnosis ? `${ticketDraftFromDiagnosis.name}异常报障` : '业务异常报障'),
-            defaultBusiness: faultContext?.business || ticketDraftFromDiagnosis?.name || businessOptions[0]?.value || '政企业务专网',
+            defaultBusiness: defaultBusinesses[0],
+            defaultBusinesses,
             defaultDesc: faultContext?.desc || '',
             defaultSeverity: faultContext?.severity || '中',
             context: faultContext,
+            contexts: faultContexts,
             businessOptions,
-            fromDiagnosis: !!ticketDraftFromDiagnosis || !!faultContext,
+            fromDiagnosis: !!ticketDraftFromDiagnosis || !!faultContext || faultContexts.length > 0,
           },
         });
       }, 420);
@@ -1174,17 +1462,26 @@ export const useAiDock = () => {
     }
 
     if (resolvedIntent === 'knowledge') {
-      const knowledge = matchKnowledge(input);
+      const knowledgeList = searchKnowledge(inputRaw, 3);
+      const knowledge = knowledgeList[0] || matchKnowledge(input);
       await appendCardWithThinking(() => {
         appendMessage({
           role: 'assistant',
           kind: 'qa',
           data: {
-            conclusion: `已为您定位到知识条目：《${knowledge.title}》`,
-            explanation: '您可以先看摘要，若需完整内容可打开右侧知识详情。',
+            conclusion: `已为您匹配到 ${knowledgeList.length} 条相关知识，优先推荐《${knowledge.title}》。`,
+            explanation: '先给您结论，再附上可追溯的知识来源。您可以打开原始知识全文，也可以直接继续追问操作细节。',
             sourceId: knowledge.id,
-            followups: ['给我看完整内容', '还有相关知识吗？', '能生成一份说明吗？'],
+            suggestions: ['查看完整知识来源', '基于该知识生成操作建议', '继续推荐同类知识'],
+            followups: ['这个知识怎么落地执行？', '还有同类知识吗？', '给我相关问答'],
           } as QaPayload,
+        });
+        knowledgeList.slice(0, 2).forEach((item) => {
+          appendMessage({
+            role: 'assistant',
+            kind: 'knowledgeCard',
+            data: item,
+          });
         });
       }, 360);
       return;
@@ -1216,7 +1513,7 @@ export const useAiDock = () => {
         },
       });
     }, 360);
-  }, [activeCustomer, activeReport, appendCardWithThinking, appendMessage, faultContext, pushQa, runDiagnosisFlow, ticketDraftFromDiagnosis, tickets]);
+  }, [activeCustomer, activeReport, appendCardWithThinking, appendMessage, faultContext, faultContexts, pushQa, runDiagnosisFlow, ticketDraftFromDiagnosis, tickets]);
 
   const sendUserText = useCallback(async (text: string, forcedIntent?: IntentType) => {
     const trimmed = text.trim();
@@ -1280,49 +1577,65 @@ export const useAiDock = () => {
     if (item) setDrawer({ type: 'ticket', item });
   }, [tickets]);
 
-  const submitFaultTicket = useCallback(async (payload: { title: string; business: string; desc: string; severity: string }) => {
+  const submitFaultTicket = useCallback(async (payload: { title: string; business: string; businesses?: string[]; desc: string; severity: string }) => {
     setIsResponding(true);
-    const id = `TKT-${Date.now()}`;
-    const ticket: TicketItem = {
-      id,
-      title: payload.title,
-      business: payload.business,
-      status: '待受理',
-      owner: '自动分派中',
-      createdAt: new Date().toLocaleString(),
-      updatedAt: new Date().toLocaleString(),
-      detail: payload.desc,
-      timeline: [
-        { time: '刚刚', text: '工单已提交，等待运维人员受理。' },
-      ],
-    };
+    const selectedBusinesses = Array.from(new Set((payload.businesses && payload.businesses.length > 0 ? payload.businesses : [payload.business]).filter(Boolean)));
+    const baseTs = Date.now();
+    const createdTickets: TicketItem[] = selectedBusinesses.map((business, index) => {
+      const id = `TKT-${baseTs + index}`;
+      return {
+        id,
+        title: selectedBusinesses.length > 1 ? `${payload.title}（${business}）` : payload.title,
+        business,
+        status: '待受理',
+        owner: '自动分派中',
+        createdAt: new Date().toLocaleString(),
+        updatedAt: new Date().toLocaleString(),
+        detail: payload.desc,
+        timeline: [
+          { time: '刚刚', text: '工单已提交，等待运维人员受理。' },
+        ],
+      };
+    });
 
     await delay(420);
-    appendMessage({ role: 'assistant', kind: 'ticketCard', data: ticket });
+    appendMessage({ role: 'assistant', kind: 'ticketCard', data: createdTickets[0] });
+    if (selectedBusinesses.length > 1) {
+      appendMessage({
+        role: 'assistant',
+        kind: 'text',
+        text: `已批量提交 ${selectedBusinesses.length} 条报障工单，当前展示首条工单，剩余工单可在工单追踪中查看。`,
+      });
+    }
 
     updateActiveSession((session) => ({
       ...session,
       updatedAt: Date.now(),
-      tickets: [ticket, ...session.tickets],
+      tickets: [...createdTickets, ...session.tickets],
       ticketDraftFromDiagnosis: null,
       faultContext: null,
+      faultContexts: [],
     }));
 
-    const { id: noticeId, logs: initialLogs } = createSystemNoticeFlow(`工单 ${id} 状态流转中`, `工单 ${id} 已创建，等待系统分派`, 25);
+    const noticeTitle = selectedBusinesses.length > 1
+      ? `批量工单状态流转中（${createdTickets.length}条）`
+      : `工单 ${createdTickets[0].id} 状态流转中`;
+    const firstId = createdTickets[0].id;
+    const { id: noticeId, logs: initialLogs } = createSystemNoticeFlow(noticeTitle, `工单 ${firstId} 已创建，等待系统分派`, 25);
     let logs = initialLogs;
     await delay(360);
     logs = advanceSystemNoticeFlow(noticeId, {
       logs,
-      logText: '工单已自动分派到二线团队',
+      logText: selectedBusinesses.length > 1 ? '批量工单已自动分派到二线团队' : '工单已自动分派到二线团队',
       progress: 60,
-      title: `工单 ${id} 状态流转中`,
+      title: noticeTitle,
     });
     await delay(420);
     logs = advanceSystemNoticeFlow(noticeId, {
       logs,
-      logText: '责任人已确认受理，进入处理中',
+      logText: selectedBusinesses.length > 1 ? '责任人已批量确认受理，进入处理中' : '责任人已确认受理，进入处理中',
       progress: 85,
-      title: `工单 ${id} 状态流转中`,
+      title: noticeTitle,
     });
     await delay(360);
     advanceSystemNoticeFlow(noticeId, {
@@ -1330,7 +1643,7 @@ export const useAiDock = () => {
       logText: '状态已更新为处理中，可在工单详情追踪进展',
       progress: 100,
       status: 'done',
-      title: `工单 ${id} 状态更新：处理中`,
+      title: selectedBusinesses.length > 1 ? '批量工单状态更新：处理中' : `工单 ${firstId} 状态更新：处理中`,
     });
     setIsResponding(false);
   }, [advanceSystemNoticeFlow, appendMessage, createSystemNoticeFlow, updateActiveSession]);
@@ -1344,7 +1657,11 @@ export const useAiDock = () => {
   }, [updateActiveSession]);
 
   const setFaultContext = useCallback((context: FaultContext | null) => {
-    updateActiveSession((session) => ({ ...session, faultContext: context, updatedAt: Date.now() }));
+    updateActiveSession((session) => ({ ...session, faultContext: context, faultContexts: context ? [context] : [], updatedAt: Date.now() }));
+  }, [updateActiveSession]);
+
+  const setFaultContexts = useCallback((contexts: FaultContext[]) => {
+    updateActiveSession((session) => ({ ...session, faultContexts: contexts, updatedAt: Date.now() }));
   }, [updateActiveSession]);
 
   const createConversation = useCallback(() => {
@@ -1444,10 +1761,12 @@ export const useAiDock = () => {
     runReportExport,
     runDiagnosisFlow,
     runBusinessDiagnosisFlow,
+    generateBusinessDiagnosisBrief,
     setTicketDraftFromDiagnosis,
     setFaultContext,
+    setFaultContexts,
     submitFaultTicket,
-    managedBusinesses: MANAGED_BUSINESSES,
+    managedBusinesses: normalizedManagedBusinesses,
     activeSessionId,
     sessionMetas,
     createConversation,

@@ -3,6 +3,7 @@ import { BaseChart } from '../../../../../components/BaseChart';
 import { ReportItem, ManagedBusiness } from '../../../../../mock/assistant';
 import { BarChart3 } from 'lucide-react';
 import { CardActionBar } from './CardActionBar';
+import { getManagedBusinessStatus } from '../../store/metricSemantics';
 
 interface ReportCardProps {
   report: ReportItem;
@@ -86,22 +87,25 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, businesses, onOp
           <div>
             <div className="mb-1 text-[11px] text-[#bfe1ff]">业务运行情况</div>
             <div className="space-y-1.5">
-              {businesses.map((b) => (
-                <div key={b.id} className="rounded border border-[#4f7cb7] bg-[rgba(16,67,117,0.52)] px-2 py-1.5 text-[11px] text-[#d6ecff]">
-                  <div className="flex items-center justify-between">
-                    <span>{b.name}</span>
-                    <span className="inline-flex items-center gap-1">
-                      <i
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          b.status === 'danger' ? 'bg-[#ff6b7d]' : b.status === 'warning' ? 'bg-[#ffb347]' : 'bg-[#38d39f]'
-                        }`}
-                      />
-                      {b.onlineRate.toFixed(2)}%
-                    </span>
+              {businesses.map((b) => {
+                const status = getManagedBusinessStatus(b);
+                return (
+                  <div key={b.id} className="rounded border border-[#4f7cb7] bg-[rgba(16,67,117,0.52)] px-2 py-1.5 text-[11px] text-[#d6ecff]">
+                    <div className="flex items-center justify-between">
+                      <span>{b.name}</span>
+                      <span className="inline-flex items-center gap-1">
+                        <i
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            status === 'danger' ? 'bg-[#ff6b7d]' : status === 'warning' ? 'bg-[#ffb347]' : 'bg-[#38d39f]'
+                          }`}
+                        />
+                        {b.onlineRate.toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-[#acc9e4]">时延 {b.latency}ms · 丢包 {b.loss}%</div>
                   </div>
-                  <div className="mt-0.5 text-[10px] text-[#acc9e4]">时延 {b.latency}ms · 丢包 {b.loss}%</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
           <div>

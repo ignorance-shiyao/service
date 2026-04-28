@@ -28,6 +28,10 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({ item, onOpen, onCo
         </div>
         <span className="rounded-full border border-[rgba(179,228,255,0.45)] bg-[rgba(20,76,122,0.35)] px-1.5 py-0.5 text-[10px] text-[#b3daf3]">更新于 {item.updatedAt}</span>
       </div>
+      <div className="mb-1 flex items-center gap-1.5 text-[10px] text-[#b7daf4]">
+        <span className="rounded-full border border-[rgba(179,228,255,0.45)] bg-[rgba(20,76,122,0.35)] px-1.5 py-0.5">{item.business}</span>
+        <span>维护人：{item.owner}</span>
+      </div>
       <p className="line-clamp-2 text-xs text-[#cfe4f7]">{item.summary}</p>
       <div className="mt-3 flex items-center justify-between">
         <div className="flex gap-1.5">
@@ -48,7 +52,7 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({ item, onOpen, onCo
           {
             key: 'ask',
             label: '继续追问',
-            onClick: () => onAsk?.(`结合知识条目《${item.title}》，给我更详细的说明`),
+            onClick: () => onAsk?.(`结合知识条目《${item.title}》，给我更详细的说明和排查步骤`),
           },
           {
             key: 'open',

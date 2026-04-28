@@ -596,7 +596,12 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
                 )}
                 <MessageList messages={store.messages} store={store} />
                 {store.drawer?.type === 'knowledge' && (
-                  <KnowledgeDrawer item={store.drawer.item} onClose={() => store.setDrawer(null)} />
+                  <KnowledgeDrawer
+                    item={store.drawer.item}
+                    onOpenKnowledge={store.openKnowledgeDrawer}
+                    onAsk={store.sendUserText}
+                    onClose={() => store.setDrawer(null)}
+                  />
                 )}
                 {store.drawer?.type === 'reportHistory' && (
                   <ReportHistoryDrawer

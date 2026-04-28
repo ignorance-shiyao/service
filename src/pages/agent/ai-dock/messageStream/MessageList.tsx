@@ -211,10 +211,12 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                 <BusinessDiagnosisReportCard
                   data={message.data}
                   onCopy={copyMessage}
-                  onAsk={store.sendUserText}
-                  onFault={(context) => {
-                    store.setFaultContext(context);
-                    store.sendUserText(`${context.business}发起报障`, 'fault');
+                  onGenerateBrief={store.generateBusinessDiagnosisBrief}
+                  onFaultMany={(contexts) => {
+                    if (!contexts.length) return;
+                    store.setFaultContexts(contexts);
+                    store.setFaultContext(contexts[0]);
+                    store.sendUserText(`为 ${contexts.length} 条业务发起报障`, 'fault');
                   }}
                 />
               )
@@ -226,9 +228,11 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                 <FaultFormCard
                   defaultTitle={message.data.defaultTitle}
                   defaultBusiness={message.data.defaultBusiness}
+                  defaultBusinesses={message.data.defaultBusinesses}
                   defaultDesc={message.data.defaultDesc}
                   defaultSeverity={message.data.defaultSeverity}
                   context={message.data.context}
+                  contexts={message.data.contexts}
                   businessOptions={message.data.businessOptions}
                   fromDiagnosis={message.data.fromDiagnosis}
                   onSubmit={store.submitFaultTicket}
@@ -249,7 +253,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
             )}
 
             {message.kind === 'systemNotice' && !message.text && (
-              <div className="rounded-lg border border-[#3f7db6] bg-[linear-gradient(135deg,rgba(25,84,146,0.9)_0%,rgba(17,66,114,0.9)_55%,rgba(20,96,113,0.86)_100%)] px-3 py-2 text-xs text-[#d8edff] shadow-[0_8px_16px_rgba(8,37,75,0.3)]">
+              <div className="rounded-lg border border-[#3f7db6] bg-[linear-gradient(135deg,rgba(20,76,133,0.9)_0%,rgba(15,57,101,0.92)_58%,rgba(18,78,99,0.9)_100%)] px-3 py-2 text-xs text-[#d8edff] shadow-[0_8px_16px_rgba(8,37,75,0.3)]">
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <div className="inline-flex items-center rounded-full border border-[rgba(147,214,255,0.45)] bg-[rgba(26,109,156,0.38)] px-1.5 py-0.5 text-[10px] text-[#bfe7ff]">系统通知</div>
                   {message.data.status && (
@@ -271,8 +275,8 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                   </div>
                 )}
                 {Array.isArray(message.data.logs) && message.data.logs.length > 0 && (
-                  <div className="custom-scrollbar mt-2 max-h-[120px] overflow-y-auto rounded border border-[rgba(111,177,230,0.35)] bg-[rgba(11,48,87,0.45)] px-2 py-1.5">
-                    {message.data.logs.map((line: { time: string; text: string }, idx: number) => (
+                  <div className="custom-scrollbar mt-2 max-h-[92px] overflow-y-auto rounded border border-[rgba(111,177,230,0.35)] bg-[rgba(10,43,78,0.52)] px-2 py-1.5">
+                    {message.data.logs.slice(-4).map((line: { time: string; text: string }, idx: number) => (
                       <div key={`${line.time}_${idx}`} className="text-[11px] text-[#d6ebff]">
                         <span className="mr-1 text-[#97c5eb]">{line.time}</span>
                         {line.text}
@@ -338,21 +342,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
           </div>
         );
       })}
-      {store.isResponding && (
-        <div className="ai-dock-msg-enter flex justify-start gap-2">
-          <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#134982] text-[#bfe4ff]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#a8d9ff]" />
-          </div>
-          <div className="rounded-2xl rounded-bl-md border border-[#2f6fad] bg-[rgba(17,60,108,0.78)] px-3 py-2">
-            <div className="mb-1 text-[10px] text-[#9dcaf0]">智慧运维管家正在思考</div>
-            <div className="ai-dock-typing">
-              <i />
-              <i />
-              <i />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
