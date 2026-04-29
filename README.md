@@ -241,6 +241,13 @@ service/
   - `resolveIntent` 统一处理 `detectIntent` 与“业务查询强制命中”规则
 - `useAiDock.ts` 仅保留流程编排与状态更新，降低后续替换真实 API 与策略扩展的改动范围。
 
+### 10.8 ai-dock 知识问答流程解耦
+
+- 新增 `src/pages/agent/ai-dock/store/knowledgeFlow.ts`：
+  - 统一管理 FAQ 命中、知识检索、知识问答摘要构建
+  - 对外提供 `findFaq / searchKnowledge / matchKnowledge / buildKnowledgeQaPayload`
+- `useAiDock.ts` 不再内联知识检索和文案拼装细节，仅负责在意图命中后调度消息流。
+
 ## 11. 系统架构图（docs）
 
 已提供完整系统架构图：
