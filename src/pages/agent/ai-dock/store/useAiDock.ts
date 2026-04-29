@@ -17,7 +17,15 @@ import {
 } from '../../../../mock/assistant';
 import { createId } from '../utils/id';
 import { delay } from '../utils/delay';
-import { detectIntent, IntentType } from './mockIntent';
+import { IntentType } from './mockIntent';
+import { resolveIntent } from './intentRouter';
+import {
+  getPersistedStamp,
+  readLocalPersisted,
+  readRemotePersisted,
+  writeLocalPersisted,
+  writeRemotePersisted,
+} from './sessionPersistence';
 import {
   getAvailabilityStatus,
   getLatencyStatus,
@@ -102,6 +110,9 @@ type PersistedAiDockSessions = {
   sessions: AiConversationSession[];
   activeSessionId: string;
 };
+
+const AI_DOCK_SESSION_STORAGE_KEY = 'ai_dock_sessions_json_v1';
+const AI_DOCK_SESSION_ENDPOINT = '/mock-api/ai-dock-sessions';
 
 const quickChips: QuickChip[] = [
   { id: 'chip_health', label: '业务诊断', prompt: '帮我做一次业务诊断' },
@@ -777,9 +788,6 @@ const buildSessionSnapshotTags = (messages: AiMessage[]): Array<{ label: string;
   return tags;
 };
 
-const AI_DOCK_SESSION_STORAGE_KEY = 'ai_dock_sessions_json_v1';
-const AI_DOCK_SESSION_ENDPOINT = '/mock-api/ai-dock-sessions';
-
 const parseMetricNumber = (raw: unknown): number => {
   if (typeof raw === 'number') return raw;
   if (typeof raw !== 'string') return Number.NaN;
@@ -863,47 +871,6 @@ const parsePersistedSessions = (parsed: unknown): PersistedAiDockSessions | null
   return { sessions, activeSessionId };
 };
 
-const getPersistedStamp = (value: PersistedAiDockSessions): number => {
-  const latestSessionAt = value.sessions.reduce((max, item) => Math.max(max, item.updatedAt || item.createdAt || 0), 0);
-  const messageCount = value.sessions.reduce((sum, item) => sum + item.messages.length, 0);
-  return latestSessionAt * 1000 + messageCount;
-};
-
-const loadPersistedSessions = (): PersistedAiDockSessions => {
-  if (typeof window === 'undefined') return getDefaultPersistedState();
-  try {
-    const raw = window.localStorage.getItem(AI_DOCK_SESSION_STORAGE_KEY);
-    if (!raw) return getDefaultPersistedState();
-    const normalized = parsePersistedSessions(JSON.parse(raw));
-    return normalized || getDefaultPersistedState();
-  } catch (_error) {
-    return getDefaultPersistedState();
-  }
-};
-
-const loadPersistedSessionsFromServer = async (): Promise<PersistedAiDockSessions | null> => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const response = await fetch(AI_DOCK_SESSION_ENDPOINT, { cache: 'no-store' });
-    if (!response.ok) return null;
-    const parsed = await response.json();
-    return parsePersistedSessions(parsed);
-  } catch (_error) {
-    return null;
-  }
-};
-
-const savePersistedSessionsToServer = async (payload: PersistedAiDockSessions): Promise<void> => {
-  const response = await fetch(AI_DOCK_SESSION_ENDPOINT, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) {
-    throw new Error(`Persist ai-dock sessions failed: ${response.status}`);
-  }
-};
-
 export const useAiDock = () => {
   const getMediumSize = () => {
     if (typeof window === 'undefined') return { width: 860, height: 640 };
@@ -929,7 +896,9 @@ export const useAiDock = () => {
     const size = getMediumSize();
     return getCenteredPosition(size.width, size.height);
   });
-  const [initialPersisted] = useState<PersistedAiDockSessions>(() => loadPersistedSessions());
+  const [initialPersisted] = useState<PersistedAiDockSessions>(() =>
+    readLocalPersisted(AI_DOCK_SESSION_STORAGE_KEY, parsePersistedSessions, getDefaultPersistedState)
+  );
   const [sessions, setSessions] = useState<AiConversationSession[]>(() => initialPersisted.sessions);
   const [activeSessionId, setActiveSessionId] = useState<string>(() => initialPersisted.activeSessionId);
   const [sessionHydrated, setSessionHydrated] = useState(false);
@@ -942,7 +911,7 @@ export const useAiDock = () => {
   useEffect(() => {
     let cancelled = false;
     const hydrate = async () => {
-      const remote = await loadPersistedSessionsFromServer();
+      const remote = await readRemotePersisted(AI_DOCK_SESSION_ENDPOINT, parsePersistedSessions);
       if (cancelled) return;
       if (remote) {
         const localStamp = getPersistedStamp(initialPersisted);
@@ -977,8 +946,8 @@ export const useAiDock = () => {
       sessions,
       activeSessionId,
     };
-    window.localStorage.setItem(AI_DOCK_SESSION_STORAGE_KEY, JSON.stringify(payload));
-    void savePersistedSessionsToServer(payload)
+    writeLocalPersisted(AI_DOCK_SESSION_STORAGE_KEY, payload);
+    void writeRemotePersisted(AI_DOCK_SESSION_ENDPOINT, payload)
       .then(() => {
         persistWarnedRef.current = false;
       })
@@ -1388,18 +1357,7 @@ export const useAiDock = () => {
   const handleIntent = useCallback(async (inputRaw: string, intent?: IntentType) => {
     if (stopRespondingRef.current) return;
     const input = inputRaw.toLowerCase();
-    const intentFromModel = intent || detectIntent(input);
-    const shouldForceBusiness =
-      input.includes('业务') &&
-      (input.includes('查询') ||
-        input.includes('列表') ||
-        input.includes('清单') ||
-        input.includes('有哪些') ||
-        input.includes('有什么') ||
-        input.includes('名下') ||
-        input.includes('查一下') ||
-        input.includes('查'));
-    const resolvedIntent = shouldForceBusiness ? 'business' : intentFromModel;
+    const resolvedIntent = resolveIntent(inputRaw, intent);
 
     if (input.includes('联系客户经理') || input.includes('客户经理')) {
       appendMessage({

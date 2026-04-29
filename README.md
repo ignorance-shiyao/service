@@ -231,6 +231,16 @@ service/
 - 历史会话中的诊断报告在加载时会自动做一次状态归一化，修正旧数据错色。
 - 业务诊断数据分布调整为“健康为主、关注少量、异常极少”，更贴近真实生产运营观感。
 
+### 10.7 ai-dock Store 解耦（持久化与意图入口拆分）
+
+- 将会话持久化 I/O 从 `useAiDock.ts` 拆分到：
+  - `src/pages/agent/ai-dock/store/sessionPersistence.ts`
+  - 统一管理 localStorage 与 `/mock-api/ai-dock-sessions` 的读写与时间戳比较
+- 将意图入口判定从 `useAiDock.ts` 拆分到：
+  - `src/pages/agent/ai-dock/store/intentRouter.ts`
+  - `resolveIntent` 统一处理 `detectIntent` 与“业务查询强制命中”规则
+- `useAiDock.ts` 仅保留流程编排与状态更新，降低后续替换真实 API 与策略扩展的改动范围。
+
 ## 11. 系统架构图（docs）
 
 已提供完整系统架构图：
