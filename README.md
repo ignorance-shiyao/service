@@ -248,6 +248,14 @@ service/
   - 对外提供 `findFaq / searchKnowledge / matchKnowledge / buildKnowledgeQaPayload`
 - `useAiDock.ts` 不再内联知识检索和文案拼装细节，仅负责在意图命中后调度消息流。
 
+### 10.9 ai-dock 诊断领域模型解耦
+
+- 新增 `src/pages/agent/ai-dock/store/aiDockTypes.ts`：
+  - 抽离 `BusinessDiagnosis*` 与 `FaultContext` 类型定义，避免 UI 组件直接耦合 `useAiDock` 内部实现。
+- 新增 `src/pages/agent/ai-dock/store/businessDiagnosis.ts`：
+  - 抽离业务诊断报告生成与历史报告状态归一化逻辑。
+- `useAiDock.ts` 仅保留流程调度与状态编排，诊断数据计算职责下沉到独立模块。
+
 ## 11. 系统架构图（docs）
 
 已提供完整系统架构图：
