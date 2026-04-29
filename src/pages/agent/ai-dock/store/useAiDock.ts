@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { showAppToast } from '../../../../components/AppFeedback';
 import {
   KNOWLEDGE_ITEMS,
   KnowledgeItem,
@@ -163,6 +164,60 @@ const searchKnowledge = (rawInput: string, limit = 3): KnowledgeItem[] => {
     return KNOWLEDGE_ITEMS.slice(0, limit);
   }
   return scored.slice(0, limit).map((entry) => entry.item);
+};
+
+const compact = (text: string) => text.replace(/\s+/g, '').replace(/[，。！？；、,.!?;:：\-\(\)（）]/g, '').toLowerCase();
+
+const uniqueNearTexts = (list: string[], limit = 3) => {
+  const picked: string[] = [];
+  for (const item of list) {
+    const c = compact(item);
+    const duplicated = picked.some((p) => {
+      const pc = compact(p);
+      return pc.includes(c) || c.includes(pc);
+    });
+    if (!duplicated) picked.push(item);
+    if (picked.length >= limit) break;
+  }
+  return picked;
+};
+
+const extractKnowledgeCoreLines = (item: KnowledgeItem) => {
+  const raw = item.content
+    .replace(/##\s*/g, '')
+    .split('\n')
+    .map((line) => line.replace(/^-+\s*/, '').trim())
+    .filter(Boolean);
+  const fromSummary = item.summary.replace(/。$/, '');
+  const lines = uniqueNearTexts([fromSummary, ...raw], 3);
+  return lines;
+};
+
+const buildKnowledgeQaPayload = (item: KnowledgeItem): QaPayload => {
+  const coreLines = extractKnowledgeCoreLines(item);
+  const relatedFaq = FAQ_ITEMS
+    .filter((faq) => faq.sourceId === item.id || (faq.sourceId && faq.sourceId.startsWith(item.business.toLowerCase())))
+    .slice(0, 5);
+  const faqTexts = relatedFaq.map((faq) => faq.q);
+  const opSuggestions = uniqueNearTexts([
+    `查看《${item.title}》原始知识`,
+    `按《${item.title}》输出执行步骤`,
+    '继续推荐同类知识',
+    ...relatedFaq.flatMap((faq) => faq.suggestions || []),
+  ], 3);
+  const followups = uniqueNearTexts([
+    ...faqTexts,
+    `这个知识在${item.business}场景怎么落地？`,
+    '有没有同类案例？',
+  ], 3);
+
+  return {
+    conclusion: coreLines[0] || item.summary,
+    explanation: coreLines.slice(1).join('；') || item.summary,
+    sourceId: item.id,
+    suggestions: opSuggestions,
+    followups,
+  };
 };
 
 const pickDiagnosis = (input: string): DiagnosisTemplate | undefined => {
@@ -882,6 +937,7 @@ export const useAiDock = () => {
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const processingRef = useRef(false);
   const stopRespondingRef = useRef(false);
+  const persistWarnedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -922,9 +978,19 @@ export const useAiDock = () => {
       activeSessionId,
     };
     window.localStorage.setItem(AI_DOCK_SESSION_STORAGE_KEY, JSON.stringify(payload));
-    void savePersistedSessionsToServer(payload).catch(() => {
-      // keep local storage as fallback when mock-api endpoint is unavailable
-    });
+    void savePersistedSessionsToServer(payload)
+      .then(() => {
+        persistWarnedRef.current = false;
+      })
+      .catch(() => {
+        if (persistWarnedRef.current) return;
+        persistWarnedRef.current = true;
+        showAppToast('云端会话保存失败，当前仅保存在本机浏览器。', {
+          title: '已切换本地模式',
+          tone: 'warning',
+          duration: 3600,
+        });
+      });
   }, [activeSessionId, sessionHydrated, sessions]);
 
   const activeSession = useMemo(
@@ -1361,20 +1427,7 @@ export const useAiDock = () => {
       appendMessage({
         role: 'assistant',
         kind: 'qa',
-        data: {
-          conclusion: `已整理知识库内容，当前建议先看《${primary.title}》。`,
-          explanation: '我已按当前问题关联了可直接参考的知识来源，您可先查看原始内容，再继续追问具体操作步骤。',
-          sourceId: primary.id,
-          suggestions: ['查看完整知识来源', '给我该主题的操作步骤', '继续推荐相关知识'],
-          followups: ['这个知识的适用场景是什么？', '按这个知识给我一套排查流程', '有没有同类案例？'],
-        } as QaPayload,
-      });
-      knowledgeList.slice(0, 2).forEach((item) => {
-        appendMessage({
-          role: 'assistant',
-          kind: 'knowledgeCard',
-          data: item,
-        });
+        data: buildKnowledgeQaPayload(primary),
       });
       return;
     }
@@ -1468,20 +1521,7 @@ export const useAiDock = () => {
         appendMessage({
           role: 'assistant',
           kind: 'qa',
-          data: {
-            conclusion: `已为您匹配到 ${knowledgeList.length} 条相关知识，优先推荐《${knowledge.title}》。`,
-            explanation: '先给您结论，再附上可追溯的知识来源。您可以打开原始知识全文，也可以直接继续追问操作细节。',
-            sourceId: knowledge.id,
-            suggestions: ['查看完整知识来源', '基于该知识生成操作建议', '继续推荐同类知识'],
-            followups: ['这个知识怎么落地执行？', '还有同类知识吗？', '给我相关问答'],
-          } as QaPayload,
-        });
-        knowledgeList.slice(0, 2).forEach((item) => {
-          appendMessage({
-            role: 'assistant',
-            kind: 'knowledgeCard',
-            data: item,
-          });
+          data: buildKnowledgeQaPayload(knowledge),
         });
       }, 360);
       return;

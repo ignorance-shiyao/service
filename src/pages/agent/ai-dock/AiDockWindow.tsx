@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, History, LoaderCircle, Maximize2, Minimize2, Paperclip, Plus, RotateCcw, Send, Square, Trash2, X } from 'lucide-react';
+import { ChevronDown, History, LoaderCircle, Maximize2, Minimize2, Plus, RotateCcw, Send, Square, Trash2, X } from 'lucide-react';
 import { AiDockStore } from './store/useAiDock';
 import { MessageList } from './messageStream/MessageList';
 import { QuickChipsBar } from './chips/QuickChipsBar';
@@ -36,7 +36,6 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
     height: typeof window === 'undefined' ? 900 : window.innerHeight,
   }));
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const [heroTipIndex, setHeroTipIndex] = useState(0);
   const [historyFilter, setHistoryFilter] = useState<'all' | 'diagnosis' | 'ticket' | 'report' | 'business'>('all');
   const [historyKeyword, setHistoryKeyword] = useState('');
   const dragRef = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
@@ -74,13 +73,6 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
     ],
     []
   );
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setHeroTipIndex((prev) => (prev + 1) % heroTips.length);
-    }, 3200);
-    return () => window.clearInterval(timer);
-  }, [heroTips.length]);
 
   useEffect(() => {
     if (!listRef.current) return;
@@ -582,13 +574,13 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
                   <div className="mt-2 flex justify-center">
                     <button
                       type="button"
-                      onClick={() => store.sendUserText(heroTips[heroTipIndex].prompt)}
+                      onClick={() => store.sendUserText(heroTips[0].prompt)}
                       className="ai-dock-hero-rotator inline-flex max-w-[760px] items-center gap-2 rounded-full border border-[#66a9de] bg-[linear-gradient(135deg,rgba(23,86,136,0.94)_0%,rgba(33,98,154,0.94)_56%,rgba(33,92,146,0.94)_100%)] px-3 py-2 text-[12px] text-[#ecf7ff] shadow-[0_16px_30px_rgba(6,32,61,0.28)]"
                     >
-                      <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${heroTagToneClass[heroTips[heroTipIndex].chip]}`}>
-                        {heroTips[heroTipIndex].tag}
+                      <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${heroTagToneClass[heroTips[0].chip]}`}>
+                        {heroTips[0].tag}
                       </span>
-                      <span key={heroTipIndex} className="ai-dock-hero-tip truncate text-left">{heroTips[heroTipIndex].summary}</span>
+                      <span className="ai-dock-hero-tip truncate text-left">{heroTips[0].summary}</span>
                     </button>
                   </div>
                 </div>
@@ -647,9 +639,6 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
                 </div>
               )}
               <div className="flex h-[44px] items-center gap-2">
-                <button type="button" className="ai-dock-icon-button inline-flex h-8 w-8 rounded-full" title="上传附件">
-                  <Paperclip size={13} />
-                </button>
                 <textarea
                   ref={inputRef}
                   value={input}
