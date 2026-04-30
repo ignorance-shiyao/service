@@ -256,6 +256,28 @@ service/
   - 抽离业务诊断报告生成与历史报告状态归一化逻辑。
 - `useAiDock.ts` 仅保留流程调度与状态编排，诊断数据计算职责下沉到独立模块。
 
+### 10.10 ai-dock 诊断/报障流程 Runner 解耦
+
+- 新增 `src/pages/agent/ai-dock/store/aiDockFlows.ts`：
+  - `runDiagnosisFlow`
+  - `runBusinessDiagnosisFlow`
+  - `submitFaultTicketFlow`
+- `useAiDock.ts` 改为依赖注入方式调用 flow runner（消息追加/状态更新由外部注入），流程逻辑与 store 状态拆分，便于后续单测与替换真实后端流程编排。
+
+### 10.11 ai-dock 业务清单数据装配解耦
+
+- 新增 `src/pages/agent/ai-dock/store/businessQueryData.ts`：
+  - 抽离业务清单 mock 生成与详情字段装配逻辑（专线/5G/IDC/SD-WAN/智算）。
+- `useAiDock.ts` 中删除大段装配实现，仅保留 `buildBusinessQueryData(activeCustomer)` 调用。
+- 进一步降低 `useAiDock` 单文件复杂度，后续替换真实业务查询 API 时可直接替换该模块实现。
+
+### 10.12 ai-dock 会话摘要计算解耦
+
+- 新增 `src/pages/agent/ai-dock/store/sessionMeta.ts`：
+  - 抽离会话预览文案计算 `extractMessagePreview`
+  - 抽离历史卡片标签计算 `buildSessionSnapshotTags`
+- `useAiDock.ts` 仅在 `sessionMetas` 处组合调用，减少与展示策略的耦合。
+
 ## 11. 系统架构图（docs）
 
 已提供完整系统架构图：
