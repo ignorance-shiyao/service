@@ -15,6 +15,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: ReactNode;
 }
 
+interface MetricLabelProps {
+  name: string;
+  fullName?: string;
+  hint?: string;
+  status?: 'excellent' | 'good' | 'warning' | 'danger';
+}
+
 export const Button: React.FC<ButtonProps> = ({ variant = 'primary', size = 'md', icon, children, className, ...props }) => {
   const baseStyle = "inline-flex items-center justify-center rounded-[var(--comp-radius-sm)] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--sys-bg-page)] disabled:opacity-50 disabled:cursor-not-allowed";
   
@@ -179,6 +186,24 @@ export const Input: React.FC<InputProps> = ({ label, prefix, className, ...props
     </div>
   </div>
 );
+
+export const MetricLabel: React.FC<MetricLabelProps> = ({ name, fullName, hint, status = 'good' }) => {
+  const dotClass =
+    status === 'excellent'
+      ? 'bg-emerald-400'
+      : status === 'good'
+        ? 'bg-sky-400'
+        : status === 'warning'
+          ? 'bg-amber-400'
+          : 'bg-red-400';
+  const title = [fullName, hint].filter(Boolean).join(' | ');
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs text-slate-300" title={title}>
+      <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
+      <span>{name}</span>
+    </span>
+  );
+};
 
 type SelectOption = { label: string; value: string };
 type SelectProps = Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> & {
