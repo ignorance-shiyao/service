@@ -287,7 +287,7 @@ export const DeptManager: React.FC = () => {
 
   const handleAdd = (parentId: string | null = null) => {
       if (!selectedDomainId) {
-          showAppToast('请先选择左侧组织机构(域)。', { tone: 'warning' });
+          showAppToast('请先在左侧选择您所属的单位。', { tone: 'warning' });
           return;
       }
       setCurrentDept({
@@ -301,7 +301,7 @@ export const DeptManager: React.FC = () => {
 
   const handleSave = () => {
       if (!currentDept.name || !currentDept.leader) {
-          showAppToast('请完善基本信息。', { tone: 'warning' });
+          showAppToast('还差必填项，请补全部门名称与负责人。', { tone: 'warning' });
           return;
       }
 

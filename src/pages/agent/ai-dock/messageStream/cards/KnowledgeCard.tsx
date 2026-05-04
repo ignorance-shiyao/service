@@ -2,6 +2,7 @@ import React from 'react';
 import { BookOpen } from 'lucide-react';
 import { KnowledgeItem } from '../../../../../mock/assistant';
 import { CardActionBar } from './CardActionBar';
+import { formatRelativeTime } from '../../../../../utils/time';
 
 interface KnowledgeCardProps {
   item: KnowledgeItem;
@@ -11,7 +12,14 @@ interface KnowledgeCardProps {
 }
 
 export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({ item, onOpen, onCopy, onAsk }) => {
-  const tone = ['青蓝', '紫蓝', '橙金'][item.title.length % 3];
+  const toneByBusiness: Record<KnowledgeItem['business'], '青蓝' | '紫蓝' | '橙金'> = {
+    LINE: '青蓝',
+    '5G': '紫蓝',
+    IDC: '橙金',
+    SDWAN: '紫蓝',
+    AIC: '青蓝',
+  };
+  const tone = toneByBusiness[item.business];
   const toneClass =
     tone === '青蓝'
       ? 'border-[#3d8eb9] bg-[#1a5f78]'
@@ -26,7 +34,9 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({ item, onOpen, onCo
           <BookOpen size={16} />
           <span className="text-sm font-semibold">{item.title}</span>
         </div>
-        <span className="rounded-full border border-[rgba(179,228,255,0.45)] bg-[rgba(20,76,122,0.35)] px-1.5 py-0.5 text-[10px] text-[#b3daf3]">更新于 {item.updatedAt}</span>
+        <span className="rounded-full border border-[rgba(179,228,255,0.45)] bg-[rgba(20,76,122,0.35)] px-1.5 py-0.5 text-[10px] text-[#b3daf3]">
+          更新于 {formatRelativeTime(item.updatedAt, { fallback: item.updatedAt })}
+        </span>
       </div>
       <div className="mb-1 flex items-center gap-1.5 text-[10px] text-[#b7daf4]">
         <span className="rounded-full border border-[rgba(179,228,255,0.45)] bg-[rgba(20,76,122,0.35)] px-1.5 py-0.5">{item.business}</span>

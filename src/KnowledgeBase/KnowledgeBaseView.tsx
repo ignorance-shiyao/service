@@ -10,6 +10,7 @@ import { showAppToast } from '../components/AppFeedback';
 import { MOCK_KB_DATA } from './data';
 import { KnowledgeItem, KBBusinessType, KnowledgeVersion } from './types';
 import { GoogleGenAI } from "@google/genai";
+import { formatRelativeTime } from '../utils/time';
 
 interface KBProps {
   mode: 'full' | 'half';
@@ -22,6 +23,7 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
+  const [aiError, setAiError] = useState(false);
   const [activeBiz, setActiveBiz] = useState<KBBusinessType | 'ALL'>('ALL');
   
   // View State
@@ -59,10 +61,11 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
     if (!searchQuery.trim()) return;
     setIsSearching(true);
     setAiResponse(null);
+    setAiError(false);
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
       if (!apiKey) {
-        setAiResponse('未配置 VITE_GEMINI_API_KEY，当前仅可使用本地知识检索。');
+        setAiResponse('当前未启用 AI 引擎。您可以先使用关键词筛选下方知识条目，或联系客户经理获取人工支持。');
         showAppToast('请在 .env.local 配置 VITE_GEMINI_API_KEY。', {
           title: 'AI 能力未启用',
           tone: 'warning',
@@ -77,7 +80,8 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
       });
       setAiResponse(response.text || "AI 暂时无法回答。");
     } catch (error) {
-      setAiResponse("AI 引擎异常。");
+      setAiError(true);
+      setAiResponse("AI 暂时无法响应，可能是请求超时或问题较复杂。建议换一个更短关键词重试，或直接查看下方相关知识。");
       showAppToast('AI 检索失败，请稍后重试。', {
         title: '请求失败',
         tone: 'danger',
@@ -242,6 +246,13 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
                   <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-500 bg-blue-950/20 border border-blue-500/30 rounded-2xl p-6 backdrop-blur-sm">
                     <Badge color="blue" className="mb-4 flex w-fit items-center gap-2 px-3 py-1"><Sparkles size={14}/> AI 诊断建议</Badge>
                     <div className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">{aiResponse}</div>
+                    {aiError && (
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                        <span className="rounded-full border border-slate-600 bg-slate-800/70 px-2 py-1 text-slate-300">建议1：换个简短关键词重试</span>
+                        <span className="rounded-full border border-slate-600 bg-slate-800/70 px-2 py-1 text-slate-300">建议2：浏览下方知识条目</span>
+                        <span className="rounded-full border border-slate-600 bg-slate-800/70 px-2 py-1 text-slate-300">建议3：转人工客户经理</span>
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className={`grid gap-6 ${mode === 'full' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
@@ -255,10 +266,20 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
                       <p className="text-xs text-slate-500 mb-6 line-clamp-2">{item.content}</p>
                       <div className="flex items-center justify-between text-[10px] text-slate-500 pt-4 border-t border-slate-800/50">
                         <div className="flex gap-2">{item.tags.map(t => <span key={t}>#{t}</span>)}</div>
-                        <span>{item.updateTime}</span>
+                        <span>{formatRelativeTime(item.updateTime, { fallback: item.updateTime })}</span>
                       </div>
                     </div>
                   ))}
+                  {filteredData.length === 0 && (
+                    <div className="col-span-full rounded-2xl border border-slate-700 bg-slate-900/40 p-8 text-center">
+                      <div className="mx-auto mb-3 w-fit rounded-full bg-slate-800 p-3 text-slate-300">
+                        <AlertCircle size={18} />
+                      </div>
+                      <h3 className="text-base font-semibold text-slate-100">未找到匹配知识</h3>
+                      <p className="mt-2 text-sm text-slate-400">请尝试更短关键词，或切换业务类型后再试。</p>
+                      <div className="mt-3 text-xs text-slate-500">兜底建议：您也可以直接转人工客户经理。</div>
+                    </div>
+                  )}
                 </div>
               </div>
             </>
