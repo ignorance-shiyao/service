@@ -8,12 +8,13 @@ import {
   Zap, ShieldCheck, Flag, BarChart3, Activity, AlertTriangle,
   Calendar, Clock, Check
 } from 'lucide-react';
-import { Button, Badge, SectionTitle, Input, Card, Modal } from '../components/UI';
+import { Button, Badge, SectionTitle, Input, Card, Modal, MetricLabel } from '../components/UI';
 import { showAppToast } from '../components/AppFeedback';
 import { ReportItem, BusinessSummary, ReportMetric, Recommendation } from './types';
 import { MOCK_REPORTS } from './data';
 import { BaseChart } from '../components/BaseChart';
 import { GoogleGenAI } from "@google/genai";
+import { formatRelativeTime } from '../utils/time';
 
 interface ReportingProps {
   mode: 'full' | 'half';
@@ -150,7 +151,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
       id: `rpt-${Date.now()}`,
       title: `2025年 ${periodLabel} 政企业务运行全景简报`,
       period: `${customStartDate} ~ ${customEndDate}`,
-      createTime: new Date().toLocaleString(),
+      createTime: new Date().toISOString(),
       status: 'published',
       smsSent: false,
       overallScore: 99.1,
@@ -199,7 +200,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
     const updated = reports.map(r => r.id === report.id ? { ...r, smsSent: true } : r);
     setReports(updated);
     if (selectedReport?.id === report.id) setSelectedReport({ ...selectedReport, smsSent: true });
-    showAppToast(`短信已下发：统计周期 ${report.period}，请登录平台查阅。`, {
+    showAppToast(`运行报告已发送到您的绑定手机，统计周期 ${report.period}，约 1 分钟内送达。`, {
       title: '短信网关',
       tone: 'success',
       duration: 3600,
@@ -219,6 +220,12 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
           case 'maintenance': return <Zap size={16} className="text-indigo-400" />;
           default: return <MessageSquare size={16} className="text-slate-400" />;
       }
+  };
+
+  const metricMeta: Record<string, { fullName: string; hint: string; status: 'excellent' | 'good' | 'warning' | 'danger' }> = {
+    '平均可用率': { fullName: '业务可用率', hint: '代表业务在周期内保持可访问的时间占比，越高越好。', status: 'excellent' },
+    '切片在线率': { fullName: '5G 切片在线率', hint: '代表切片持续在线能力，越高说明稳定性越好。', status: 'good' },
+    'PUE 效能': { fullName: '电源使用效率', hint: '衡量数据中心能效，越接近 1.0 越节能。', status: 'excellent' },
   };
 
   return (
@@ -345,7 +352,9 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
                         <div>
                             <h3 className="text-white font-bold text-lg group-hover:text-indigo-400 transition-colors">{rpt.title}</h3>
                             <div className="flex items-center gap-4 mt-1">
-                                <span className="text-xs text-slate-500 flex items-center gap-1"><History size={12}/> {rpt.createTime}</span>
+                                <span className="text-xs text-slate-500 flex items-center gap-1">
+                                  <History size={12}/> {formatRelativeTime(rpt.createTime, { fallback: rpt.createTime })}
+                                </span>
                                 <Badge color="gray" className="scale-90 text-[10px]">{rpt.period}</Badge>
                                 {rpt.smsSent && <Badge color="green" className="scale-90 flex items-center gap-1"><Send size={10}/> 已通知</Badge>}
                             </div>
@@ -553,7 +562,16 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
                                             {biz.metrics.map((m, midx) => (
                                                 <div key={midx} onClick={() => setDrillDownMetric(m)} className="p-4 flex justify-between items-center hover:bg-slate-800/40 cursor-pointer transition-colors group">
                                                     <div>
-                                                        <div className="text-xs text-slate-500 mb-1">{m.name}</div>
+                                                        {metricMeta[m.name] ? (
+                                                          <MetricLabel
+                                                            name={m.name}
+                                                            fullName={metricMeta[m.name].fullName}
+                                                            hint={metricMeta[m.name].hint}
+                                                            status={metricMeta[m.name].status}
+                                                          />
+                                                        ) : (
+                                                          <div className="text-xs text-slate-500 mb-1">{m.name}</div>
+                                                        )}
                                                         <div className="flex items-baseline gap-1">
                                                             <span className="text-lg font-black text-slate-200">{m.value}</span>
                                                             <span className="text-[10px] text-slate-500">{m.unit}</span>

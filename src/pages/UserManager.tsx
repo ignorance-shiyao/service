@@ -378,7 +378,7 @@ export const UserManager: React.FC = () => {
              navigate('/system/user/add');
              return;
           }
-          showAppToast('请先选择左侧组织机构(域)。', { tone: 'warning' });
+          showAppToast('请先在左侧选择您所属的单位。', { tone: 'warning' });
           return;
       }
       navigate('/system/user/add');
@@ -386,7 +386,7 @@ export const UserManager: React.FC = () => {
 
   const handleSave = () => {
       if (!currentUser.username || !currentUser.realName || !currentUser.baseDomainId) {
-          showAppToast('请完善基本信息。', { tone: 'warning' });
+          showAppToast('还差必填项，请补全账号、姓名和所属单位。', { tone: 'warning' });
           return;
       }
 

@@ -95,7 +95,9 @@ export const QaMessage: React.FC<QaMessageProps> = ({ data, onSendFollowup, onOp
           },
         ]}
       />
-      <div className="mt-2 text-[10px] text-[#84afd2]">以上建议供参考，关键变更请结合现场情况确认后执行。</div>
+      <div className="mt-2 text-[10px] text-[#84afd2]">
+        本回答基于当前业务数据与知识库生成；如需人工确认，可点击“转人工客户经理”。
+      </div>
     </div>
   );
 };

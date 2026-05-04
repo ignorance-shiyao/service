@@ -10,6 +10,7 @@ import { TicketDetailDrawer } from './messageStream/cards/TicketDetailDrawer';
 import { confirmApp, showAppToast } from '../../../components/AppFeedback';
 import robotEntryIcon from '../../../assets/robot-entry.svg';
 import './aiDockTheme.css';
+import { formatRelativeTime } from '../../../utils/time';
 
 interface AiDockWindowProps {
   store: AiDockStore;
@@ -243,13 +244,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   const hasUserMessage = store.messages.some((m) => m.role === 'user');
 
   const formatSessionTime = (ts: number) => {
-    const d = new Date(ts);
-    const today = new Date();
-    const sameDay = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
-    if (sameDay) {
-      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    }
-    return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return formatRelativeTime(ts, { fallback: '--' });
   };
 
   const cycleSizeMode = () => {

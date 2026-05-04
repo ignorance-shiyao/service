@@ -1,6 +1,6 @@
 
 export type AssetType = 'LINE' | '5G' | 'IDC' | 'SDWAN';
-export type DiagnosticStatus = 'normal' | 'warning' | 'fault' | 'scanning';
+export type DiagnosticStatus = 'normal' | 'minor' | 'major' | 'warning' | 'fault' | 'scanning';
 
 export interface DiagnosticMetric {
   name: string;

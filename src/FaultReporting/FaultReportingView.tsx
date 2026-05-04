@@ -6,7 +6,7 @@ import {
   Cpu, FileText, Send, ChevronRight, BarChart3, Search,
   ArrowRight, Link as LinkIcon, Check
 } from 'lucide-react';
-import { Button, Badge, SectionTitle, Input } from '../components/UI';
+import { Button, Badge, SectionTitle, Input, MetricLabel } from '../components/UI';
 import { showAppToast } from '../components/AppFeedback';
 import { AssetDiagnostic, AssetType, DiagnosticStatus } from './types';
 
@@ -49,12 +49,12 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
         type: 'LINE',
         uuid: 'LINE-HF-NJ-001-QAX',
         overallStatus: 'fault',
-        suggestion: '检测到链路丢包率持续异常，物理层可能存在光功率衰减，建议立即报障。',
+        suggestion: '您的合肥-南京专线出现持续丢包，通常意味着线路硬件需要现场处理。我们已为您准备好报障单。',
         metrics: [
-          { name: 'Ping 时延', value: '45', unit: 'ms', status: 'warning' },
-          { name: '抖动', value: '12', unit: 'ms', status: 'warning' },
+          { name: 'Ping 时延', value: '45', unit: 'ms', status: 'major' },
+          { name: '抖动', value: '12', unit: 'ms', status: 'minor' },
           { name: '丢包率', value: '18.5', unit: '%', status: 'fault' },
-          { name: '出口带宽利用率', value: '92.4', unit: '%', status: 'warning' }
+          { name: '出口带宽利用率', value: '92.4', unit: '%', status: 'major' }
         ]
       },
       {
@@ -75,12 +75,12 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
         name: '智算中心 A1 节点集群',
         type: 'IDC',
         uuid: 'GPU-CLUSTER-A1-NODE',
-        overallStatus: 'warning',
-        suggestion: '节点心跳正常，但动环系统监测到环境湿度超出阈值（预警线）。',
+        overallStatus: 'major',
+        suggestion: '节点心跳正常，但环境湿度持续波动，建议尽快安排现场复核。',
         metrics: [
           { name: '心跳状态', value: 'Active', unit: '', status: 'normal' },
           { name: '节点利用率', value: '76', unit: '%', status: 'normal' },
-          { name: '机柜湿度', value: '72', unit: '%RH', status: 'warning' },
+          { name: '机柜湿度', value: '72', unit: '%RH', status: 'major' },
           { name: 'PUE 效能', value: '1.25', unit: '', status: 'normal' }
         ]
       },
@@ -89,9 +89,10 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
         name: '上海分公司 SD-WAN 接入网关',
         type: 'SDWAN',
         uuid: 'SDWAN-GW-SH-02',
-        overallStatus: 'normal',
+        overallStatus: 'minor',
+        suggestion: '当前仅出现轻度波动，正常使用基本不受影响，建议加入观察并持续跟踪。',
         metrics: [
-          { name: '隧道时延', value: '28', unit: 'ms', status: 'normal' },
+          { name: '隧道时延', value: '28', unit: 'ms', status: 'minor' },
           { name: '丢包率', value: '0.01', unit: '%', status: 'normal' },
           { name: '控制器连接', value: '稳定', unit: '', status: 'normal' }
         ]
@@ -103,7 +104,7 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
 
   const handleGoToReport = (asset: AssetDiagnostic) => {
     setSelectedAsset(asset);
-    setTicketMemo(`【一键诊断报障】检测到资产 ${asset.name} 存在 ${asset.overallStatus === 'fault' ? '严重故障' : '运行异常'}。系统建议：${asset.suggestion}`);
+    setTicketMemo(`【一键诊断报障】您的「${asset.name}」当前${asset.overallStatus === 'fault' ? '业务受影响' : '存在异常'}。建议：${asset.suggestion || '请尽快联系客户经理处理。'}`);
     setStep('form');
   };
 
@@ -111,7 +112,7 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
     setStep('scanning'); // 借用扫描态显示提交中
     setTimeout(() => {
       const ticketId = `TKT-${Date.now().toString().slice(-8)}`;
-      showAppToast(`工单提交成功：${ticketId}，已自动关联资产 ${selectedAsset?.uuid || '-'}`, {
+      showAppToast(`工单已受理（编号 ${ticketId}），我们已自动定位到您的「${selectedAsset?.name || '-'}」，预计 30 分钟内回复进展。`, {
         title: '报障已受理',
         tone: 'success',
         duration: 4200,
@@ -123,6 +124,8 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
   const getStatusColor = (status: DiagnosticStatus) => {
     switch (status) {
       case 'normal': return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
+      case 'minor': return 'text-sky-400 bg-sky-500/10 border-sky-500/20';
+      case 'major':
       case 'warning': return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
       case 'fault': return 'text-red-500 bg-red-500/10 border-red-500/20';
       default: return 'text-slate-500 bg-slate-500/10 border-slate-500/20';
@@ -136,6 +139,27 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
       case 'IDC': return <Cpu size={20} />;
       case 'SDWAN': return <Zap size={20} />;
     }
+  };
+
+  const statusText = (status: DiagnosticStatus) => {
+    if (status === 'normal') return '运行良好';
+    if (status === 'minor') return '轻度波动';
+    if (status === 'major' || status === 'warning') return '明显异常';
+    if (status === 'fault') return '严重故障';
+    return '检测中';
+  };
+
+  const statusBadgeColor = (status: DiagnosticStatus): 'green' | 'blue' | 'yellow' | 'red' => {
+    if (status === 'normal') return 'green';
+    if (status === 'minor') return 'blue';
+    if (status === 'major' || status === 'warning') return 'yellow';
+    return 'red';
+  };
+
+  const metricMeta: Record<string, { fullName: string; hint: string; status: 'excellent' | 'good' | 'warning' | 'danger' }> = {
+    '信号强度 (RSRP)': { fullName: '参考信号接收功率', hint: '衡量 5G 覆盖强度，通常越高越稳定。', status: 'good' },
+    '信噪比 (SINR)': { fullName: '信号与干扰比', hint: '衡量信号质量，越高代表无线链路质量越好。', status: 'good' },
+    'PUE 效能': { fullName: '电源使用效率', hint: '衡量数据中心能源利用率，越接近 1.0 越节能。', status: 'excellent' },
   };
 
   return (
@@ -170,7 +194,7 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
             <div className="max-w-lg">
               <h1 className="text-3xl font-black text-white mb-4 tracking-tight">名下资产实时健康探测</h1>
               <p className="text-slate-400 leading-relaxed">
-                针对专线时延丢包、5G终端信号、智算节点存活及动环越限进行一键自动化深度扫描。发现隐患可立即发起带有详细诊断报告的报障单。
+                针对专线时延丢包、5G终端信号、智算节点存活及环境波动进行自动检查。发现异常后可直接发起报障，我们会自动附带诊断结论，减少重复沟通。
               </p>
             </div>
             <div className="grid grid-cols-3 gap-6 w-full max-w-xl">
@@ -194,7 +218,7 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
                 onClick={startDetection} 
                 className="bg-blue-600 hover:bg-blue-500 h-16 px-12 rounded-2xl font-black text-xl shadow-2xl shadow-blue-900/40 border-none group"
             >
-                开始一键诊断
+                立即检查我的业务
                 <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
@@ -212,9 +236,9 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
                 <div className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-300" style={{ width: `${scanProgress}%` }}></div>
              </div>
              <div className="text-slate-200 text-lg font-bold tracking-widest uppercase animate-pulse">
-                {scanProgress < 25 ? '初始化探测引擎...' : (scanProgress < 50 ? '正在检测政企专线链路...' : (scanProgress < 75 ? '正在扫描 5G 终端状态...' : '正在解析动环监测指标...')) }
+                {scanProgress < 25 ? '正在准备检查...' : (scanProgress < 50 ? '正在检查您的专线状态...' : (scanProgress < 75 ? '正在查看 5G 终端状态...' : '正在汇总业务影响...')) }
              </div>
-             <div className="text-slate-500 text-xs mt-4 font-mono">ESTABLISHING SECURE CONNECTION TO ASSET MONITORING INTERFACE...</div>
+             <div className="text-slate-500 text-xs mt-4">已采集业务运行数据，正在生成诊断结论</div>
           </div>
         )}
 
@@ -223,9 +247,9 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
              <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                     <SectionTitle title="实时诊断报告" className="mb-0" />
-                    <Badge color="gray" className="py-1">生成时间: {new Date().toLocaleTimeString()}</Badge>
+                    <Badge color="gray" className="py-1">刚刚生成</Badge>
                 </div>
-                <Button variant="secondary" size="sm" onClick={() => setStep('idle')} className="h-9">重新探测</Button>
+                <Button variant="secondary" size="sm" onClick={() => setStep('idle')} className="h-9">再扫一次</Button>
              </div>
 
              <div className={`grid gap-6 ${mode === 'full' ? 'grid-cols-2' : 'grid-cols-1'}`}>
@@ -239,9 +263,9 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
                             <div>
                                 <h3 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">{asset.name}</h3>
                                 <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-[10px] text-slate-500 font-mono tracking-tight">{asset.uuid}</span>
-                                    <Badge color={asset.overallStatus === 'normal' ? 'green' : (asset.overallStatus === 'warning' ? 'yellow' : 'red')} className="scale-75 origin-left">
-                                        {asset.overallStatus === 'normal' ? '运行正常' : (asset.overallStatus === 'warning' ? '预警状态' : '探测到故障')}
+                                    <span className="text-[10px] text-slate-500 tracking-tight">资源标识已关联</span>
+                                    <Badge color={statusBadgeColor(asset.overallStatus)} className="scale-75 origin-left">
+                                        {statusText(asset.overallStatus)}
                                     </Badge>
                                 </div>
                             </div>
@@ -251,35 +275,44 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
                                 onClick={() => handleGoToReport(asset)} 
                                 className="bg-red-600 hover:bg-red-500 border-none animate-bounce-slow h-10 px-4 text-xs font-bold shadow-lg shadow-red-900/40"
                             >
-                                一键报障
+                                我要解决这个问题
                             </Button>
                         )}
-                        {asset.overallStatus === 'warning' && (
-                            <Button variant="secondary" size="sm" onClick={() => handleGoToReport(asset)} className="h-10 px-4 text-xs">异常处理</Button>
+                        {(asset.overallStatus === 'major' || asset.overallStatus === 'warning' || asset.overallStatus === 'minor') && (
+                            <Button variant="secondary" size="sm" onClick={() => handleGoToReport(asset)} className="h-10 px-4 text-xs">我要解决这个问题</Button>
                         )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         {asset.metrics.map((m, idx) => (
                            <div key={idx} className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 flex flex-col justify-between h-24">
-                              <span className="text-[11px] text-slate-500 font-medium">{m.name}</span>
+                              {metricMeta[m.name] ? (
+                                  <MetricLabel name={m.name} fullName={metricMeta[m.name].fullName} hint={metricMeta[m.name].hint} status={metricMeta[m.name].status} />
+                              ) : (
+                                  <span className="text-[11px] text-slate-500 font-medium">{m.name}</span>
+                              )}
                               <div className="flex items-baseline gap-1 mt-1">
-                                  <span className={`text-xl font-black font-mono ${m.status === 'fault' ? 'text-red-400' : (m.status === 'warning' ? 'text-amber-400' : 'text-slate-200')}`}>
+                                  <span className={`text-xl font-black font-mono ${m.status === 'fault' ? 'text-red-400' : (m.status === 'major' || m.status === 'warning' ? 'text-amber-400' : (m.status === 'minor' ? 'text-sky-300' : 'text-slate-200'))}`}>
                                       {m.value}
                                   </span>
                                   <span className="text-[10px] text-slate-500 uppercase">{m.unit}</span>
                               </div>
                               <div className={`h-1 w-full rounded-full mt-2 bg-slate-700 overflow-hidden`}>
-                                 <div className={`h-full rounded-full ${m.status === 'normal' ? 'bg-emerald-500' : (m.status === 'warning' ? 'bg-amber-500' : 'bg-red-500')}`} style={{ width: '65%' }}></div>
+                                 <div className={`h-full rounded-full ${m.status === 'normal' ? 'bg-emerald-500' : (m.status === 'minor' ? 'bg-sky-400' : (m.status === 'major' || m.status === 'warning' ? 'bg-amber-500' : 'bg-red-500'))}`} style={{ width: '65%' }}></div>
                               </div>
                            </div>
                         ))}
                     </div>
 
                     {asset.suggestion && (
-                        <div className={`mt-4 p-4 rounded-2xl border flex gap-3 items-start ${asset.overallStatus === 'fault' ? 'bg-red-950/20 border-red-900/50 text-red-200/80' : 'bg-slate-800/50 border-slate-700 text-slate-400'}`}>
+                        <div className={`mt-4 rounded-2xl border p-4 ${asset.overallStatus === 'fault' ? 'bg-red-950/20 border-red-900/50 text-red-200/80' : 'bg-slate-800/50 border-slate-700 text-slate-400'}`}>
+                            <div className="mb-2 text-xs font-semibold">
+                                {asset.overallStatus === 'fault' ? '业务受影响，建议立即处理。' : (asset.overallStatus === 'minor' ? '存在轻度波动，正常使用基本不受影响。' : '出现明显异常，建议关注。')}
+                            </div>
+                            <div className="flex gap-3 items-start">
                             <AlertTriangle size={16} className={`mt-0.5 shrink-0 ${asset.overallStatus === 'fault' ? 'text-red-400' : 'text-amber-400'}`} />
                             <p className="text-xs leading-relaxed italic">{asset.suggestion}</p>
+                            </div>
                         </div>
                     )}
                   </div>
@@ -301,7 +334,7 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
                         </div>
                         <div>
                             <h1 className="text-3xl font-black text-white tracking-tight">发起一键故障申告</h1>
-                            <p className="text-slate-400 mt-1">系统已自动收集诊断快照，并将连同资产 UUID 提交至运维二线。</p>
+                            <p className="text-slate-400 mt-1">系统已自动收集诊断快照，提交后会同步给您的客户经理持续跟进。</p>
                         </div>
                     </div>
 
@@ -317,12 +350,12 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
                                         <span className="text-xs text-slate-200 font-bold">{selectedAsset.name}</span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-slate-800">
-                                        <span className="text-xs text-slate-500">资产 UUID</span>
-                                        <span className="text-xs text-blue-400 font-mono">{selectedAsset.uuid}</span>
+                                        <span className="text-xs text-slate-500">技术标识</span>
+                                        <span className="text-xs text-blue-400 font-mono">已自动关联（{selectedAsset.uuid}）</span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-slate-800">
-                                        <span className="text-xs text-slate-500">探测状态</span>
-                                        <Badge color={selectedAsset.overallStatus === 'fault' ? 'red' : 'yellow'}>Critical</Badge>
+                                        <span className="text-xs text-slate-500">当前状态</span>
+                                        <Badge color={statusBadgeColor(selectedAsset.overallStatus)}>{statusText(selectedAsset.overallStatus)}</Badge>
                                     </div>
                                 </div>
                                 <div className="p-4 bg-blue-900/10 border border-blue-500/20 rounded-2xl flex items-center gap-3">
@@ -366,7 +399,7 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
                     
                     <div className="flex items-center gap-3 justify-center text-slate-600">
                         <CheckCircle2 size={16} />
-                        <span className="text-xs font-medium">工单提交后将通过 5G 短信及系统站内信实时推送处理进度</span>
+                        <span className="text-xs font-medium">工单提交后将通过短信及站内信同步处理进度</span>
                     </div>
                 </div>
             </div>
