@@ -60,7 +60,7 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, businesses, onOp
         actions={[
           {
             key: 'copy',
-            label: '复制摘要',
+            label: '保存这段',
             onClick: () => onCopy?.(`${report.title}\n${report.summary}`),
           },
           {
@@ -70,7 +70,7 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, businesses, onOp
           },
           {
             key: 'expand',
-            label: expanded ? '收起全文' : '查看全文',
+            label: expanded ? '收起' : '看详细的',
             tone: 'primary',
             onClick: () => setExpanded((v) => !v),
           },

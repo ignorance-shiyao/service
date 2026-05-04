@@ -56,17 +56,17 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({ item, onOpen, onCo
         actions={[
           {
             key: 'copy',
-            label: '复制摘要',
+            label: '保存这段',
             onClick: () => onCopy?.(`${item.title}\n${item.summary}`),
           },
           {
             key: 'ask',
-            label: '继续追问',
+            label: '深入了解',
             onClick: () => onAsk?.(`结合知识条目《${item.title}》，给我更详细的说明和排查步骤`),
           },
           {
             key: 'open',
-            label: '查看完整',
+            label: '看详细的',
             tone: 'primary',
             onClick: () => onOpen(item.id),
           },

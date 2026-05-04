@@ -163,7 +163,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
           { label: '能耗节省', value: '14.5', unit: '%', trend: 'up' }
       ],
       recommendations: [
-          { type: 'optimization', title: '周期性资源调优', content: '预测下一周期流量波动，已自动下发弹性扩容指令。' },
+          { type: 'optimization', title: '周期性资源调优', content: '已为下一周期流量波动预留弹性容量，降低高峰期拥塞风险。' },
           { type: 'risk', title: '维护窗口建议', content: '建议在下周凌晨 2:00-4:00 执行省际干线割接。' }
       ],
       regionalStats: [
@@ -400,9 +400,9 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
              <div className="flex gap-4 mb-8">
                 <Badge color="blue" className={fusionProgress > 20 ? 'opacity-100' : 'opacity-20'}>专线数据</Badge>
                 <Badge color="green" className={fusionProgress > 50 ? 'opacity-100' : 'opacity-20'}>5G性能</Badge>
-                <Badge color="yellow" className={fusionProgress > 80 ? 'opacity-100' : 'opacity-20'}>动环越限</Badge>
+                <Badge color="yellow" className={fusionProgress > 80 ? 'opacity-100' : 'opacity-20'}>环境波动</Badge>
              </div>
-             <div className="text-slate-500 text-xs font-mono">ESTABLISHING DATA FUSION CHANNEL: {fusionProgress}% COMPLETED</div>
+             <div className="text-slate-500 text-xs">已完成 {fusionProgress}%：正在汇总可读报告</div>
           </div>
         )}
 
@@ -415,7 +415,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
                 </button>
                 <div className="flex gap-3">
                    <Button size="sm" variant="secondary" onClick={() => handleSendSMS(selectedReport)} className="bg-emerald-600/10 text-emerald-500 border-emerald-600/30 hover:bg-emerald-600/20" icon={<Send size={14}/>}>
-                      {selectedReport.smsSent ? '短信已推送' : '下发全员通知'}
+                      {selectedReport.smsSent ? '短信已发送' : '发送运行报告'}
                    </Button>
                    <Button size="sm" variant="secondary" icon={<Download size={14}/>}>导出 PDF 报告</Button>
                 </div>

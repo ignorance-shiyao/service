@@ -192,7 +192,7 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
               <div className="absolute inset-0 w-36 h-36 rounded-full border-2 border-blue-500/40 animate-ping opacity-20"></div>
             </div>
             <div className="max-w-lg">
-              <h1 className="text-3xl font-black text-white mb-4 tracking-tight">名下资产实时健康探测</h1>
+              <h1 className="text-3xl font-black text-white mb-4 tracking-tight">名下业务实时健康检查</h1>
               <p className="text-slate-400 leading-relaxed">
                 针对专线时延丢包、5G终端信号、智算节点存活及环境波动进行自动检查。发现异常后可直接发起报障，我们会自动附带诊断结论，减少重复沟通。
               </p>
@@ -211,7 +211,7 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
                  <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
                     <div className="text-purple-400 mb-2 flex justify-center"><Cpu size={24}/></div>
                     <div className="text-xs text-slate-300">智算/IDC</div>
-                    <div className="text-[10px] text-slate-500 mt-1">心跳、动环越限监测</div>
+                    <div className="text-[10px] text-slate-500 mt-1">心跳、环境波动监测</div>
                  </div>
             </div>
             <Button 
@@ -343,15 +343,15 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
                         
                         <div className="grid grid-cols-2 gap-8">
                             <div className="space-y-4">
-                                <SectionTitle title="关联资产详情" />
+                                <SectionTitle title="关联业务详情" />
                                 <div className="space-y-3">
                                     <div className="flex justify-between py-2 border-b border-slate-800">
-                                        <span className="text-xs text-slate-500">资产名称</span>
+                                        <span className="text-xs text-slate-500">业务名称</span>
                                         <span className="text-xs text-slate-200 font-bold">{selectedAsset.name}</span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-slate-800">
                                         <span className="text-xs text-slate-500">技术标识</span>
-                                        <span className="text-xs text-blue-400 font-mono">已自动关联（{selectedAsset.uuid}）</span>
+                                        <span className="text-xs text-blue-400">已自动关联</span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-slate-800">
                                         <span className="text-xs text-slate-500">当前状态</span>
@@ -361,8 +361,8 @@ export const FaultReportingView: React.FC<FaultReportingProps> = ({ mode, onTogg
                                 <div className="p-4 bg-blue-900/10 border border-blue-500/20 rounded-2xl flex items-center gap-3">
                                     <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400"><LinkIcon size={16}/></div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="text-[10px] text-slate-500 uppercase tracking-tighter">诊断报告自动关联</div>
-                                        <div className="text-[11px] text-blue-400 truncate">https://ops-guardian.com/r/{selectedAsset.uuid}</div>
+                                        <div className="text-[10px] text-slate-500">诊断报告已自动关联</div>
+                                        <div className="text-[11px] text-blue-400 truncate">提交后客户经理可查看本次诊断快照</div>
                                     </div>
                                 </div>
                             </div>

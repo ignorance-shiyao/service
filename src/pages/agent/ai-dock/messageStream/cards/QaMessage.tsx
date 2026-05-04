@@ -89,7 +89,7 @@ export const QaMessage: React.FC<QaMessageProps> = ({ data, onSendFollowup, onOp
           },
           {
             key: 'ask',
-            label: '继续追问',
+            label: '深入了解',
             tone: 'primary' as const,
             onClick: () => onSendFollowup('请再给我一个更具体的落地建议'),
           },

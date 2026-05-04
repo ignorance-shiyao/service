@@ -44,7 +44,7 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
     'ALL': { label: '全部业务', color: 'gray' },
     'LINE': { label: '政企专线', color: 'blue' },
     '5G': { label: '5G业务', color: 'green' },
-    'IDC': { label: '动环监控', color: 'yellow' },
+    'IDC': { label: '机房环境', color: 'yellow' },
     'SDWAN': { label: 'SD-WAN', color: 'purple' },
     'AIC': { label: '智算中心', color: 'red' }
   };
