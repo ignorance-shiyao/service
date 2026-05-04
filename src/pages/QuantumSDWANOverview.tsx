@@ -268,10 +268,10 @@ const buildTopologyData = (): { nodes: TopologyNode[]; links: TopologyLink[] } =
 const { nodes: topologyNodes, links: topologyLinks } = buildTopologyData();
 
 const metricCards = [
-  { label: '站点总数(个)', value: '18', icon: Building2, iconBg: 'bg-[#06374d]', iconColor: 'text-[var(--sys-state-info)]' },
-  { label: 'CPE设备数(个)', value: '54', icon: Activity, iconBg: 'bg-[#053c39]', iconColor: 'text-[var(--sys-state-success)]' },
-  { label: '隧道总数(条)', value: '167', icon: Link2, iconBg: 'bg-[#2a1d54]', iconColor: 'text-[var(--sys-state-quantum)]' },
-  { label: '量子隧道数(条)', value: '113', icon: KeyRound, iconBg: 'bg-[#3b2438]', iconColor: 'text-[#f97316]' },
+  { label: '服务站点(个)', value: '18', icon: Building2, iconBg: 'bg-[#06374d]', iconColor: 'text-[var(--sys-state-info)]' },
+  { label: '接入设备(台)', value: '54', icon: Activity, iconBg: 'bg-[#053c39]', iconColor: 'text-[var(--sys-state-success)]' },
+  { label: '业务通道(条)', value: '167', icon: Link2, iconBg: 'bg-[#2a1d54]', iconColor: 'text-[var(--sys-state-quantum)]' },
+  { label: '量子保护通道(条)', value: '113', icon: KeyRound, iconBg: 'bg-[#3b2438]', iconColor: 'text-[#f97316]' },
 ];
 
 const dateShort = ['04-10', '04-11', '04-12', '04-13', '04-14', '04-15', '04-16'];
@@ -1226,8 +1226,8 @@ export const QuantumSDWANOverview: React.FC = () => {
             </div>
             <div className="absolute left-1 top-6 text-[11px] text-[var(--sys-text-secondary)]">总量: 122880B</div>
             <div className="absolute right-1 top-6 text-right text-[11px] text-[var(--sys-text-secondary)]">剩余: 92640B</div>
-            <div className="absolute left-1 bottom-2 text-[11px] text-[var(--sys-text-secondary)]">剩余比例: 75.4%</div>
-            <div className="absolute right-1 bottom-2 text-right text-[11px] text-[var(--sys-text-secondary)]">更新: 2026-04-17 09:18</div>
+            <div className="absolute left-1 bottom-2 text-[11px] text-[var(--sys-text-secondary)]">可用比例: 75.4%</div>
+            <div className="absolute bottom-2 right-16 text-right text-[11px] text-[var(--sys-text-secondary)]">10分钟前更新</div>
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
               <div className="text-[24px] font-black text-[#c9f5ff]">75.4%</div>
               <div className="text-[11px] text-[#7fdfff]">密钥健康</div>
@@ -1685,10 +1685,10 @@ export const QuantumSDWANOverview: React.FC = () => {
                   </span>
                 </div>
                 <div className="mt-1 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[var(--sys-text-secondary)]">
-                  <span className="inline-flex items-center gap-1"><PlugZap size={10} className="text-[#67b7ff]" />地址: {qss.endpoint}</span>
-                  <span className="inline-flex items-center gap-1"><Timer size={10} className="text-[#67b7ff]" />keepAlive: {qss.keepAlive}</span>
-                  <span>版本: {qss.version}</span>
-                  <span className="inline-flex items-center gap-1"><ShieldCheck size={10} className="text-[#67b7ff]" />QSSP: {qss.app}</span>
+                  <span className="inline-flex items-center gap-1"><PlugZap size={10} className="text-[#67b7ff]" />接入点: {qss.zone}</span>
+                  <span className="inline-flex items-center gap-1"><Timer size={10} className="text-[#67b7ff]" />响应: {qss.keepAlive}</span>
+                  <span>服务版本: {qss.version}</span>
+                  <span className="inline-flex items-center gap-1"><ShieldCheck size={10} className="text-[#67b7ff]" />加密服务正常</span>
                   <span className="col-span-2 text-[#a7c8e9]">区域: {qss.zone}</span>
                 </div>
               </div>
@@ -1737,11 +1737,11 @@ export const QuantumSDWANOverview: React.FC = () => {
 
         <div className={`col-span-12 md:col-span-6 xl:col-span-3 ${panelClass}`}>
           {sectionTitleInline(
-            '告警概况',
+            '风险概况',
             tabPills(
               [
-                { id: 'level', label: '告警等级' },
-                { id: 'realtime', label: '实时告警' },
+                { id: 'level', label: '风险等级' },
+                { id: 'realtime', label: '实时风险' },
               ],
               alarmOverviewTab,
               (id) => setAlarmOverviewTab(id as AlarmOverviewTab)
@@ -1753,7 +1753,7 @@ export const QuantumSDWANOverview: React.FC = () => {
               <BaseChart option={alarmOverviewOption} />
               <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
                 <div className="text-[22px] font-black text-[#e5f2ff]">36</div>
-                <div className="text-[11px] text-[var(--sys-text-secondary)]">告警总数</div>
+                <div className="text-[11px] text-[var(--sys-text-secondary)]">需关注事项</div>
               </div>
             </div>
           ) : (
@@ -1790,10 +1790,10 @@ export const QuantumSDWANOverview: React.FC = () => {
 
         <div className={`col-span-12 md:col-span-6 xl:col-span-3 ${panelClass}`}>
           {sectionTitleInline(
-            '告警分析',
+            '风险分析',
             tabPills(
               [
-                { id: 'reason', label: '告警原因' },
+                { id: 'reason', label: '风险原因' },
                 { id: 'highfreq', label: '高频站点' },
               ],
               alarmAnalysisTab,
@@ -1808,10 +1808,10 @@ export const QuantumSDWANOverview: React.FC = () => {
 
         <div className={`col-span-12 md:col-span-6 xl:col-span-3 ${panelClass}`}>
           {sectionTitleInline(
-            '告警趋势',
+            '风险趋势',
             tabPills(
               [
-                { id: 'history', label: '历史告警' },
+                { id: 'history', label: '历史风险' },
                 { id: 'keyUpdate', label: '密钥更新统计' },
               ],
               alarmTrendTab,
