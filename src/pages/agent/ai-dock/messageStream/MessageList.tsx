@@ -14,6 +14,7 @@ import { FaultFormCard } from './cards/FaultFormCard';
 import { TicketCard } from './cards/TicketCard';
 import { ProgressiveCardShell } from './cards/ProgressiveCardShell';
 import { CardActionBar } from './cards/CardActionBar';
+import { ReceiptCard } from './cards/ReceiptCard';
 
 interface MessageListProps {
   messages: AiMessage[];
@@ -246,6 +247,17 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                 <TicketCard
                   ticket={message.data}
                   onOpen={store.openTicketDetail}
+                  onCopy={copyMessage}
+                  onAsk={store.sendUserText}
+                />
+              )
+            )}
+
+            {message.kind === 'receiptCard' && (
+              wrapCard(
+                message,
+                <ReceiptCard
+                  data={message.data}
                   onCopy={copyMessage}
                   onAsk={store.sendUserText}
                 />

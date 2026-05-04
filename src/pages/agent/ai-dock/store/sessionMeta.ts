@@ -5,6 +5,7 @@ export const extractMessagePreview = (message: AiMessage | undefined): string =>
   if (message.text) return message.text;
   if (message.kind === 'qa' && message.data?.conclusion) return String(message.data.conclusion);
   if (message.kind === 'systemNotice' && message.data?.title) return String(message.data.title);
+  if (message.kind === 'receiptCard' && message.data?.title) return `回执：${String(message.data.title)}`;
   if (message.kind === 'knowledgeCard' && message.data?.title) return `知识：${String(message.data.title)}`;
   if (message.kind === 'reportCard') return '运行报告';
   if (message.kind === 'businessQuery') return '业务查询结果';
@@ -69,6 +70,10 @@ export const buildSessionSnapshotTags = (messages: AiMessage[]): Array<{ label: 
         continue;
       }
     }
+    if (message.kind === 'receiptCard') {
+      pushTag('receipt', '服务回执', 'green');
+      continue;
+    }
     if (message.kind === 'qa' || message.kind === 'knowledgeCard') {
       pushTag('knowledge', '知识问答', 'indigo');
     }
@@ -79,4 +84,3 @@ export const buildSessionSnapshotTags = (messages: AiMessage[]): Array<{ label: 
   }
   return tags;
 };
-

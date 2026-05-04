@@ -6,10 +6,11 @@ interface KnowledgeDrawerProps {
   item: KnowledgeItem;
   onOpenKnowledge: (id: string) => void;
   onAsk: (text: string) => void;
+  onFeedback: (payload: { id: string; feedback: 'useful' | 'useless' | 'old' }) => void;
   onClose: () => void;
 }
 
-export const KnowledgeDrawer: React.FC<KnowledgeDrawerProps> = ({ item, onOpenKnowledge, onAsk, onClose }) => {
+export const KnowledgeDrawer: React.FC<KnowledgeDrawerProps> = ({ item, onOpenKnowledge, onAsk, onFeedback, onClose }) => {
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const related = useMemo(
@@ -101,7 +102,10 @@ export const KnowledgeDrawer: React.FC<KnowledgeDrawerProps> = ({ item, onOpenKn
                 key={b.key}
                 type="button"
                 disabled={!!feedback}
-                onClick={() => setFeedback(b.key)}
+                onClick={() => {
+                  setFeedback(b.key);
+                  onFeedback({ id: item.id, feedback: b.key as 'useful' | 'useless' | 'old' });
+                }}
                 className={`inline-flex items-center gap-1 rounded border px-2 py-1 text-[11px] ${
                   feedback === b.key
                     ? 'border-[#35a7ff] bg-[#165699] text-[#e6f4ff]'

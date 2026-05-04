@@ -40,11 +40,13 @@ import {
 import {
   getManagedBusinessStatus,
 } from './metricSemantics';
+import { trackFallback, trackIntentHit, trackKnowledgeFeedback } from './opsMetrics';
 
 export type MessageRole = 'assistant' | 'user' | 'system';
 export type MessageKind =
   | 'text'
   | 'qa'
+  | 'receiptCard'
   | 'businessQuery'
   | 'knowledgeCard'
   | 'reportCard'
@@ -87,6 +89,8 @@ export type QuickChip = {
   label: string;
   prompt: string;
 };
+
+type KnowledgeFeedbackType = 'useful' | 'useless' | 'old';
 
 export type AiConversationSession = {
   id: string;
@@ -210,6 +214,29 @@ const formatSessionTitle = (input: string): string => {
   const t = input.replace(/\s+/g, ' ').trim();
   if (!t) return '新会话';
   return t.length > 14 ? `${t.slice(0, 14)}…` : t;
+};
+
+const parseSlashCommand = (input: string): { prompt: string; intent?: IntentType } | null => {
+  const raw = input.trim();
+  if (!raw.startsWith('/')) return null;
+  const body = raw.slice(1).trim();
+  if (!body) return null;
+  const [cmd, ...rest] = body.split(/\s+/);
+  const args = rest.join(' ').trim();
+  const map: Record<string, { intent?: IntentType; base: string }> = {
+    '诊断': { intent: 'diagnosis', base: '帮我做一次业务诊断' },
+    '报障': { intent: 'fault', base: '我要发起报障' },
+    '工单': { intent: 'ticket', base: '查一下我最近的工单进度' },
+    '报告': { intent: 'report', base: '生成本月运行报告' },
+    '知识库': { intent: 'knowledge', base: '基于当前业务类型推荐知识' },
+    '业务': { intent: 'business', base: '帮我查一下我名下都有哪些业务' },
+  };
+  const hit = map[cmd];
+  if (!hit) return null;
+  return {
+    prompt: args ? `${hit.base}：${args}` : hit.base,
+    intent: hit.intent,
+  };
 };
 
 
@@ -689,32 +716,38 @@ export const useAiDock = () => {
     const resolvedIntent = resolveIntent(inputRaw, intent);
 
     if (input.includes('联系客户经理') || input.includes('客户经理')) {
+      trackIntentHit('other', 0);
       appendMessage({
         role: 'system',
         kind: 'systemNotice',
         data: { title: '已通知客户经理，预计 5 分钟内与您联系。', progress: 100 },
       });
-      const managerReceipt = [
-        '【客户经理联络回执】',
-        `客户经理：${activeCustomer.accountManager.name}（${activeCustomer.accountManager.phone}）`,
-        '通知渠道：应用内通知 + 短信提醒',
-        '预计回呼：5分钟内',
-        '',
-        '【升级路径】',
-        '1. 5分钟无回呼：自动二次提醒',
-        `2. 超过${activeCustomer.slas.responseMinutes}分钟：升级至值班主管`,
-        '3. 仍无响应：转二线专家组介入',
-      ].join('\n');
       appendMessage({
         role: 'assistant',
-        kind: 'text',
-        text: managerReceipt,
+        kind: 'receiptCard',
+        data: {
+          title: '客户经理联络回执',
+          fields: [
+            { label: '客户经理', value: `${activeCustomer.accountManager.name}（${activeCustomer.accountManager.phone}）` },
+            { label: '通知渠道', value: '应用内通知 + 短信提醒' },
+            { label: '预计回呼', value: '5分钟内' },
+          ],
+          nextSteps: [
+            '5分钟无回呼：自动二次提醒',
+            `超过${activeCustomer.slas.responseMinutes}分钟：升级至值班主管`,
+            '仍无响应：转二线专家组介入',
+          ],
+          actions: [
+            { key: 'remind', label: '立即二次提醒', ask: '请立即二次提醒客户经理并回传结果', tone: 'primary' },
+          ],
+        },
       });
       await streamAssistantText('我已把当前会话上下文同步给客户经理，您可以继续补充问题细节以便更快处理。');
       return;
     }
 
     if (input.includes('反馈') || input.includes('意见') || input.includes('建议')) {
+      trackIntentHit('other', 0);
       appendMessage({
         role: 'system',
         kind: 'systemNotice',
@@ -725,6 +758,7 @@ export const useAiDock = () => {
     }
 
     if (input.includes('催办') && input.includes('工单')) {
+      trackIntentHit('ticket', 0);
       const targetTicket = tickets[0] || TICKETS[0];
       const { id: urgeNoticeId, logs: urgeLogs0 } = createSystemNoticeFlow(
         `工单 ${targetTicket.id} 催办处理中`,
@@ -748,13 +782,30 @@ export const useAiDock = () => {
       });
       appendMessage({
         role: 'assistant',
-        kind: 'text',
-        text: `已催办工单 ${targetTicket.id}，当前跟进人：${targetTicket.owner}。若超过 ${activeCustomer.slas.responseMinutes} 分钟仍无更新，我会继续升级提醒。`,
+        kind: 'receiptCard',
+        data: {
+          title: '工单催办回执',
+          fields: [
+            { label: '工单号', value: targetTicket.id },
+            { label: '当前跟进', value: targetTicket.owner },
+            { label: '催办结果', value: '已送达责任人并同步值班群' },
+            { label: 'SLA时限', value: `${activeCustomer.slas.responseMinutes}分钟响应` },
+          ],
+          nextSteps: [
+            '等待责任人反馈最新处理进展',
+            '若超时未更新：自动升级至值班主管',
+            '必要时直接转二线专家组接管',
+          ],
+          actions: [
+            { key: 'track', label: '继续追踪', ask: `继续追踪工单 ${targetTicket.id} 的处理进展`, tone: 'primary' },
+          ],
+        },
       });
       return;
     }
 
     if (input.includes('相关知识') || input.includes('知识列表') || input === '知识库' || input.includes('按业务类型筛')) {
+      trackIntentHit('knowledge', 0);
       const knowledgeList = searchKnowledge(inputRaw, 3);
       const primary = knowledgeList[0] || KNOWLEDGE_ITEMS[0];
       appendMessage({
@@ -766,6 +817,7 @@ export const useAiDock = () => {
     }
 
     if (resolvedIntent === 'report') {
+      trackIntentHit('report', 0);
       await appendCardWithThinking(() => {
         appendMessage({ role: 'assistant', kind: 'reportCard', data: activeReport });
       });
@@ -773,6 +825,7 @@ export const useAiDock = () => {
     }
 
     if (resolvedIntent === 'business') {
+      trackIntentHit('business', 0);
       await appendCardWithThinking(() => {
         appendMessage({
           role: 'assistant',
@@ -784,6 +837,7 @@ export const useAiDock = () => {
     }
 
     if (resolvedIntent === 'ticket') {
+      trackIntentHit('ticket', 0);
       await appendCardWithThinking(() => {
         appendMessage({ role: 'assistant', kind: 'ticketCard', data: tickets[0] || TICKETS[0] });
         appendMessage({
@@ -796,6 +850,7 @@ export const useAiDock = () => {
     }
 
     if (resolvedIntent === 'fault') {
+      trackIntentHit('fault', 0);
       await appendCardWithThinking(() => {
         const businessOptions = buildBusinessQueryData(activeCustomer)
           .flatMap((category) => category.items.slice(0, 10).map((item) => ({
@@ -829,6 +884,7 @@ export const useAiDock = () => {
     }
 
     if (resolvedIntent === 'diagnosis') {
+      trackIntentHit('diagnosis', 0);
       const matched = pickDiagnosis(input);
       if (!matched) {
         await appendCardWithThinking(() => {
@@ -846,6 +902,7 @@ export const useAiDock = () => {
 
     const faq = findFaq(input);
     if (faq) {
+      trackIntentHit('qa', 0);
       await appendCardWithThinking(() => {
         pushQa(faq);
       }, 360);
@@ -853,6 +910,7 @@ export const useAiDock = () => {
     }
 
     if (resolvedIntent === 'knowledge') {
+      trackIntentHit('knowledge', 0);
       const knowledgeList = searchKnowledge(inputRaw, 3);
       const knowledge = knowledgeList[0] || matchKnowledge(input);
       await appendCardWithThinking(() => {
@@ -866,6 +924,7 @@ export const useAiDock = () => {
     }
 
     if (resolvedIntent === 'qa') {
+      trackIntentHit('qa', 0);
       await appendCardWithThinking(() => {
         appendMessage({
           role: 'assistant',
@@ -882,6 +941,7 @@ export const useAiDock = () => {
     }
 
     await appendCardWithThinking(() => {
+      trackFallback();
       appendMessage({
         role: 'assistant',
         kind: 'fallback',
@@ -894,7 +954,10 @@ export const useAiDock = () => {
   }, [activeCustomer, activeReport, appendCardWithThinking, appendMessage, faultContext, faultContexts, pushQa, runDiagnosisFlow, ticketDraftFromDiagnosis, tickets]);
 
   const sendUserText = useCallback(async (text: string, forcedIntent?: IntentType) => {
-    const trimmed = text.trim();
+    const slash = parseSlashCommand(text);
+    const normalized = slash?.prompt || text;
+    const finalIntent = slash?.intent || forcedIntent;
+    const trimmed = normalized.trim();
     if (!trimmed || processingRef.current) return;
 
     stopRespondingRef.current = false;
@@ -909,16 +972,35 @@ export const useAiDock = () => {
     });
 
     appendMessage({ role: 'user', kind: 'text', text: trimmed });
+    trackIntentHit('other');
     try {
       await delay(280);
       if (stopRespondingRef.current) return;
-      await handleIntent(trimmed, forcedIntent);
+      await handleIntent(trimmed, finalIntent);
+    } catch (_error) {
+      appendMessage({
+        role: 'assistant',
+        kind: 'fallback',
+        data: {
+          title: '处理失败，请重试',
+          desc: '本次请求未成功完成，您可以重试当前问题，或稍后再试。',
+        },
+      });
+      showAppToast('请求处理失败，请重试。', {
+        title: '智能体处理异常',
+        tone: 'danger',
+        duration: 2400,
+      });
     } finally {
       setIsResponding(false);
       processingRef.current = false;
       stopRespondingRef.current = false;
     }
   }, [appendMessage, handleIntent, updateActiveSession]);
+
+  const submitKnowledgeFeedback = useCallback((payload: { id: string; feedback: KnowledgeFeedbackType }) => {
+    trackKnowledgeFeedback(payload.feedback);
+  }, []);
 
   const stopResponding = useCallback(() => {
     if (!processingRef.current) return;
@@ -973,23 +1055,28 @@ export const useAiDock = () => {
         status: 'done',
       },
     });
-    const nextActionLines = [
-      '【报障回执】',
-      `工单号：${ticketResult.firstTicketId || '已生成'}`,
-      `承诺响应：${activeCustomer.slas.responseMinutes}分钟`,
-      `预计恢复：${activeCustomer.slas.restoreHours}小时`,
-      `当前跟进：${ticketResult.owner}`,
-      `影响业务：${ticketResult.ticketCount}条`,
-      '',
-      '【下一步可执行】',
-      '1. 继续补充现象截图/日志（可加速定位）',
-      '2. 在工单追踪中实时查看状态变化',
-      '3. 若超时未响应，可直接发送“催办工单”',
-    ].join('\n');
     appendMessage({
       role: 'assistant',
-      kind: 'text',
-      text: nextActionLines,
+      kind: 'receiptCard',
+      data: {
+        title: '报障回执',
+        fields: [
+          { label: '工单号', value: ticketResult.firstTicketId || '已生成' },
+          { label: '承诺响应', value: `${activeCustomer.slas.responseMinutes}分钟` },
+          { label: '预计恢复', value: `${activeCustomer.slas.restoreHours}小时` },
+          { label: '当前跟进', value: ticketResult.owner },
+          { label: '影响业务', value: `${ticketResult.ticketCount}条` },
+        ],
+        nextSteps: [
+          '继续补充现象截图/日志（可加速定位）',
+          '在工单追踪中实时查看状态变化',
+          '若超时未响应，可直接发送“催办工单”',
+        ],
+        actions: [
+          { key: 'urge', label: '立即催办', ask: '催办工单', tone: 'primary' },
+          { key: 'track', label: '查看工单进度', ask: '查一下我最近的工单进度' },
+        ],
+      },
     });
   }, [activeCustomer.slas.restoreHours, activeCustomer.slas.responseMinutes, advanceSystemNoticeFlow, appendMessage, createSystemNoticeFlow, updateActiveSession]);
 
@@ -1119,6 +1206,7 @@ export const useAiDock = () => {
     switchConversation,
     deleteConversation,
     deleteConversations,
+    submitKnowledgeFeedback,
   };
 };
 

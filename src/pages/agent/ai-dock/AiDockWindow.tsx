@@ -301,6 +301,17 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
     () => store.activeCustomer?.name || store.sessionMetas.find((session) => session.id === store.activeSessionId)?.customerName || '客户',
     [store.activeCustomer, store.activeSessionId, store.sessionMetas]
   );
+  const activeBusinessTypes = useMemo(() => {
+    const types = store.activeCustomer?.businessTypes || [];
+    const map: Record<string, string> = {
+      LINE: '专线',
+      '5G': '5G',
+      IDC: 'IDC',
+      SDWAN: 'SD-WAN',
+      AIC: '智算',
+    };
+    return types.map((item: string) => map[item] || item).join('、') || '未配置';
+  }, [store.activeCustomer]);
 
   const heroTagToneClass: Record<string, string> = {
     chip_health: 'border-[#4fc0e8] bg-[#0f7fa4] text-[#dcf9ff]',
@@ -390,6 +401,13 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
       </div>
 
       <div className="min-h-0 flex flex-1 flex-col overflow-hidden">
+        <div className="border-b border-[#275c95] bg-[linear-gradient(90deg,rgba(18,66,108,0.92)_0%,rgba(13,54,95,0.92)_100%)] px-3 py-1.5 text-[11px] text-[#b8dbf3]">
+          <div className={`${contentWrapClass} flex min-w-0 items-center justify-between gap-2`}>
+            <div className="truncate">客户编码：{store.activeCustomer.code}</div>
+            <div className="truncate">业务类型：{activeBusinessTypes}</div>
+            <div className="truncate">SLA：{store.activeCustomer.slas.responseMinutes}分钟响应 / {store.activeCustomer.slas.restoreHours}小时恢复</div>
+          </div>
+        </div>
         <div className="min-h-0 flex flex-1 overflow-hidden">
           {historyOpen && (
             <aside className="ai-dock-history-pane min-h-0 w-[252px] shrink-0 border-r border-[#2a639f]">
@@ -598,6 +616,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
                     item={store.drawer.item}
                     onOpenKnowledge={store.openKnowledgeDrawer}
                     onAsk={store.sendUserText}
+                    onFeedback={store.submitKnowledgeFeedback}
                     onClose={() => store.setDrawer(null)}
                   />
                 )}

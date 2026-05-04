@@ -278,6 +278,18 @@ service/
   - 抽离历史卡片标签计算 `buildSessionSnapshotTags`
 - `useAiDock.ts` 仅在 `sessionMetas` 处组合调用，减少与展示策略的耦合。
 
+### 10.13 ai-dock 服务回执卡与运营指标补齐
+
+- 新增 `src/pages/agent/ai-dock/messageStream/cards/ReceiptCard.tsx`：
+  - 将“报障回执 / 催办回执 / 客户经理联络回执”统一为标准回执卡片（字段区 + 后续动作 + 快捷操作）。
+- `MessageList.tsx` 新增 `receiptCard` 渲染分支，统一进入渐进卡片容器。
+- 新增 `src/pages/agent/ai-dock/store/opsMetrics.ts`：
+  - 本地记录最小运营指标：请求总量、意图命中、fallback 次数、知识反馈（有用/没用/过时）。
+  - 后续接运营看板时可直接复用，不需改业务流程。
+- `KnowledgeDrawer.tsx` 的内容反馈已接入 `useAiDock.submitKnowledgeFeedback`，反馈会计入运营指标。
+- `sendUserText` 增加兜底异常处理：
+  - 失败时展示可见 fallback 消息 + toast，不再静默失败。
+
 ## 11. 系统架构图（docs）
 
 已提供完整系统架构图：
