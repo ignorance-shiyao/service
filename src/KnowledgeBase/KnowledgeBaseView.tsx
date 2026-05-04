@@ -6,6 +6,7 @@ import {
   X, Filter, Upload, Edit3, Save, History, ArrowLeft, Plus, Trash2, CheckCircle2, RotateCcw
 } from 'lucide-react';
 import { Button, Badge, Input, SectionTitle, Modal, ConfirmDialog } from '../components/UI';
+import { showAppToast } from '../components/AppFeedback';
 import { MOCK_KB_DATA } from './data';
 import { KnowledgeItem, KBBusinessType, KnowledgeVersion } from './types';
 import { GoogleGenAI } from "@google/genai";
@@ -59,7 +60,17 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
     setIsSearching(true);
     setAiResponse(null);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
+      if (!apiKey) {
+        setAiResponse('未配置 VITE_GEMINI_API_KEY，当前仅可使用本地知识检索。');
+        showAppToast('请在 .env.local 配置 VITE_GEMINI_API_KEY。', {
+          title: 'AI 能力未启用',
+          tone: 'warning',
+          duration: 2800,
+        });
+        return;
+      }
+      const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `你是一名资深的政企运维专家。用户提问: "${searchQuery}"。请基于你的专业知识，给出针对性的排障建议。`,
@@ -67,6 +78,10 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
       setAiResponse(response.text || "AI 暂时无法回答。");
     } catch (error) {
       setAiResponse("AI 引擎异常。");
+      showAppToast('AI 检索失败，请稍后重试。', {
+        title: '请求失败',
+        tone: 'danger',
+      });
     } finally {
       setIsSearching(false);
     }

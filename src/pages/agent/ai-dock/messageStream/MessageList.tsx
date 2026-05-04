@@ -267,7 +267,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
             {message.kind === 'systemNotice' && !message.text && (
               <div className="rounded-lg border border-[#3f7db6] bg-[linear-gradient(135deg,rgba(20,76,133,0.9)_0%,rgba(15,57,101,0.92)_58%,rgba(18,78,99,0.9)_100%)] px-3 py-2 text-xs text-[#d8edff] shadow-[0_8px_16px_rgba(8,37,75,0.3)]">
                 <div className="mb-1 flex items-center justify-between gap-2">
-                  <div className="inline-flex items-center rounded-full border border-[rgba(147,214,255,0.45)] bg-[rgba(26,109,156,0.38)] px-1.5 py-0.5 text-[10px] text-[#bfe7ff]">系统通知</div>
+                  <div className="inline-flex items-center rounded-full border border-[rgba(147,214,255,0.45)] bg-[rgba(26,109,156,0.38)] px-1.5 py-0.5 text-[10px] text-[#bfe7ff]">服务进展</div>
                   {message.data.status && (
                     <div
                       className={`rounded-full border px-1.5 py-0.5 text-[10px] ${
@@ -300,11 +300,11 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                   actions={[
                     {
                       key: 'copy',
-                      label: '复制通知',
+                      label: '复制进展',
                       onClick: () =>
                         copyMessage(
                           [
-                            String(message.data.title || '系统通知'),
+                            String(message.data.title || '服务进展'),
                             ...(Array.isArray(message.data.logs)
                               ? message.data.logs.map((line: { time: string; text: string }) => `${line.time} ${line.text}`)
                               : []),
@@ -315,7 +315,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                       key: 'ask',
                       label: '继续处理',
                       tone: 'primary',
-                      onClick: () => store.sendUserText('请基于这条系统通知给我下一步操作建议'),
+                      onClick: () => store.sendUserText('请基于这条服务进展给我下一步处理建议'),
                     },
                   ]}
                 />

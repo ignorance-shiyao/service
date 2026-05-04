@@ -5,12 +5,13 @@ import { CardActionBar } from './CardActionBar';
 
 interface TicketCardProps {
   ticket: TicketItem;
-  onOpen: (id: string) => void;
+  onOpen: (id: string, fallback?: TicketItem) => void;
   onCopy?: (text: string) => void;
   onAsk?: (text: string) => void;
 }
 
 export const TicketCard: React.FC<TicketCardProps> = ({ ticket, onOpen, onCopy, onAsk }) => {
+  const needsCustomerConfirm = ticket.status === '待客户确认';
   const statusTone = ticket.status.includes('待')
     ? {
         badge: 'border-[#cc9d66] bg-[rgba(124,86,42,0.55)] text-[#ffe8cc]',
@@ -39,6 +40,11 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, onOpen, onCopy, 
       <div className="mt-1 text-sm font-semibold text-[#dff1ff]">{ticket.title}</div>
       <div className="mt-1 text-[11px] text-[#b8daf4]">业务：{ticket.business}</div>
       <div className="mt-0.5 text-[11px] text-[#9ec8ea]">责任人：{ticket.owner}</div>
+      {needsCustomerConfirm && (
+        <div className="mt-2 rounded border border-[#cfb277] bg-[rgba(132,97,40,0.45)] px-2 py-1 text-[11px] text-[#ffe9bf]">
+          该工单等待您确认处理结果，可进入详情执行“确认完成”或“二次受理”。
+        </div>
+      )}
       <CardActionBar
         actions={[
           {
@@ -48,14 +54,19 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, onOpen, onCopy, 
           },
           {
             key: 'ask',
-            label: '催办建议',
-            onClick: () => onAsk?.(`请给我工单 ${ticket.id} 的催办话术，语气专业简洁`),
+            label: needsCustomerConfirm ? '确认建议' : '催办建议',
+            onClick: () =>
+              onAsk?.(
+                needsCustomerConfirm
+                  ? `工单 ${ticket.id} 当前待客户确认，请给我确认完成与申请二次受理的判断建议`
+                  : `请给我工单 ${ticket.id} 的催办话术，语气专业简洁`
+              ),
           },
           {
             key: 'open',
             label: '查看详情',
             tone: 'primary',
-            onClick: () => onOpen(ticket.id),
+            onClick: () => onOpen(ticket.id, ticket),
           },
         ]}
       />

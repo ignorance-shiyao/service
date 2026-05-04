@@ -124,14 +124,26 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
     let aiText = `基于${periodLabel}（${customStartDate} 至 ${customEndDate}）的大数据融合分析，业务运行整体稳定。建议加强对高负荷区域的基站巡检。`;
     
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `你是一名资深政企运维总监。请根据以下模拟指标生成一段150字以内的“${periodLabel}”业务简报。统计时间跨度：${customStartDate} 至 ${customEndDate}。关键指标：专线可用率99.99%，5G流量增长12%，IDC能效PUE 1.25。请根据时间周期特点（如周报侧重波动，年报侧重宏观）给出专业建议。`,
-      });
-      aiText = response.text || aiText;
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
+      if (!apiKey) {
+        showAppToast('未配置 VITE_GEMINI_API_KEY，已使用本地模板生成简报。', {
+          title: 'AI 能力未启用',
+          tone: 'warning',
+          duration: 2800,
+        });
+      } else {
+        const ai = new GoogleGenAI({ apiKey });
+        const response = await ai.models.generateContent({
+          model: 'gemini-3-flash-preview',
+          contents: `你是一名资深政企运维总监。请根据以下模拟指标生成一段150字以内的“${periodLabel}”业务简报。统计时间跨度：${customStartDate} 至 ${customEndDate}。关键指标：专线可用率99.99%，5G流量增长12%，IDC能效PUE 1.25。请根据时间周期特点（如周报侧重波动，年报侧重宏观）给出专业建议。`,
+        });
+        aiText = response.text || aiText;
+      }
     } catch (e) {
-      console.error("AI Generation Failed", e);
+      showAppToast('AI 生成失败，已使用模板内容。', {
+        title: '报告生成降级',
+        tone: 'warning',
+      });
     }
 
     const newReport: ReportItem = {

@@ -611,32 +611,6 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
               </div>
                 )}
                 <MessageList messages={store.messages} store={store} />
-                {store.drawer?.type === 'knowledge' && (
-                  <KnowledgeDrawer
-                    item={store.drawer.item}
-                    onOpenKnowledge={store.openKnowledgeDrawer}
-                    onAsk={store.sendUserText}
-                    onFeedback={store.submitKnowledgeFeedback}
-                    onClose={() => store.setDrawer(null)}
-                  />
-                )}
-                {store.drawer?.type === 'reportHistory' && (
-                  <ReportHistoryDrawer
-                    list={store.drawer.list}
-                    onSelect={(id) => {
-                      store.setActiveReportId(id);
-                      store.sendUserText('查看该期报告', 'report');
-                      store.setDrawer(null);
-                    }}
-                    onClose={() => store.setDrawer(null)}
-                  />
-                )}
-                {store.drawer?.type === 'diagnosisHistory' && (
-                  <DiagnosisHistoryDrawer list={store.drawer.list} onClose={() => store.setDrawer(null)} />
-                )}
-                {store.drawer?.type === 'ticket' && (
-                  <TicketDetailDrawer item={store.drawer.item} onClose={() => store.setDrawer(null)} />
-                )}
               </div>
               {showScrollToBottom && (
                 <button
@@ -698,6 +672,36 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
           </div>
         </div>
       </div>
+      {store.drawer?.type === 'knowledge' && (
+        <KnowledgeDrawer
+          item={store.drawer.item}
+          onOpenKnowledge={store.openKnowledgeDrawer}
+          onAsk={store.sendUserText}
+          onFeedback={store.submitKnowledgeFeedback}
+          onClose={() => store.setDrawer(null)}
+        />
+      )}
+      {store.drawer?.type === 'reportHistory' && (
+        <ReportHistoryDrawer
+          list={store.drawer.list}
+          onSelect={(id) => {
+            store.setActiveReportId(id);
+            store.sendUserText('查看该期报告', 'report');
+            store.setDrawer(null);
+          }}
+          onClose={() => store.setDrawer(null)}
+        />
+      )}
+      {store.drawer?.type === 'diagnosisHistory' && (
+        <DiagnosisHistoryDrawer list={store.drawer.list} onClose={() => store.setDrawer(null)} />
+      )}
+      {store.drawer?.type === 'ticket' && (
+        <TicketDetailDrawer
+          item={store.drawer.item}
+          onAction={store.handleTicketCustomerAction}
+          onClose={() => store.setDrawer(null)}
+        />
+      )}
       {sizeMode !== 'max' && (
         <>
           <div className="absolute left-0 top-[56px] bottom-0 w-2 cursor-ew-resize opacity-0" onMouseDown={startResize('left')} />

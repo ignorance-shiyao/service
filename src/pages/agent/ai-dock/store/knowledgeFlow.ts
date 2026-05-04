@@ -78,6 +78,10 @@ export const findFaq = (input: string): FaqItem | undefined =>
 
 export const buildKnowledgeQaPayload = (item: KnowledgeItem) => {
   const coreLines = extractKnowledgeCoreLines(item);
+  const relatedKnowledge = KNOWLEDGE_ITEMS
+    .filter((k) => k.business === item.business && k.id !== item.id)
+    .slice(0, 2);
+  const sourceIds = [item.id, ...relatedKnowledge.map((k) => k.id)];
   const relatedFaq = FAQ_ITEMS
     .filter((faq) => faq.sourceId === item.id || (faq.sourceId && faq.sourceId.startsWith(item.business.toLowerCase())))
     .slice(0, 5);
@@ -98,8 +102,9 @@ export const buildKnowledgeQaPayload = (item: KnowledgeItem) => {
     conclusion: coreLines[0] || item.summary,
     explanation: coreLines.slice(1).join('；') || item.summary,
     sourceId: item.id,
+    sourceIds,
+    sourceUpdatedAt: item.updatedAt,
     suggestions: opSuggestions,
     followups,
   };
 };
-

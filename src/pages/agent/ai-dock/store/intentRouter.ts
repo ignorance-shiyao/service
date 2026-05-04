@@ -1,6 +1,12 @@
 import { detectIntent, IntentType } from './mockIntent';
 
 const shouldForceBusinessIntent = (input: string) =>
+  !(
+    input.includes('诊断') ||
+    input.includes('体检') ||
+    input.includes('异常分析') ||
+    input.includes('排障')
+  ) &&
   input.includes('业务') &&
   (input.includes('查询') ||
     input.includes('列表') ||
@@ -16,4 +22,3 @@ export const resolveIntent = (inputRaw: string, forcedIntent?: IntentType): Inte
   const intentFromModel = forcedIntent || detectIntent(input);
   return shouldForceBusinessIntent(input) ? 'business' : intentFromModel;
 };
-

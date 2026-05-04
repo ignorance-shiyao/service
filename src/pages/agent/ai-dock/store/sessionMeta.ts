@@ -50,8 +50,12 @@ export const buildSessionSnapshotTags = (messages: AiMessage[]): Array<{ label: 
       continue;
     }
     if (message.kind === 'ticketCard') {
-      const status = typeof message.data?.status === 'string' ? ` ${message.data.status}` : '';
-      pushTag('ticket', `工单${status}`, 'amber');
+      const status = typeof message.data?.status === 'string' ? String(message.data.status) : '';
+      if (status.includes('待客户确认')) {
+        pushTag('ticket_confirm', '待你确认', 'amber');
+      } else {
+        pushTag('ticket', status ? `工单 ${status}` : '工单', 'amber');
+      }
       continue;
     }
     if (message.kind === 'faultForm') {

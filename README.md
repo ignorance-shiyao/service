@@ -290,6 +290,20 @@ service/
 - `sendUserText` 增加兜底异常处理：
   - 失败时展示可见 fallback 消息 + toast，不再静默失败。
 
+### 10.14 ai-dock 工单策略模块化与最小单测
+
+- 工单流程策略拆分为独立模块：
+  - `ticketFlowPolicy.ts`：是否自动进入“待客户确认”
+  - `ticketActionReducer.ts`：客户动作（补充/催办/确认/二次受理）状态迁移与限频校验
+  - `ticketReceiptBuilders.ts`：报障回执、客户操作回执、客户确认引导回执
+  - `ticketNoticeBuilders.ts`：系统通知文案生成
+  - `ticketText.ts`：状态文案与阈值常量（如催办限频分钟）
+- `useAiDock.ts` 主流程减少内联 if/else 与硬编码字符串，职责聚焦为编排与状态更新。
+- 新增最小单测（Vitest）覆盖关键规则：
+  - `src/pages/agent/ai-dock/store/ticketFlowPolicy.test.ts`
+  - `src/pages/agent/ai-dock/store/ticketActionReducer.test.ts`
+  - 覆盖高严重度/批量拦截、待客户确认校验、催办限频与确认完成迁移。
+
 ## 11. 系统架构图（docs）
 
 已提供完整系统架构图：

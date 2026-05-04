@@ -105,9 +105,9 @@ export const ChatInterface: React.FC<{ isHuman: boolean }> = ({ isHuman: initial
                 appendToSession(activeSessionId, answer);
                 return;
             }
-            const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
             if (!apiKey) {
-                const noKeyMsg = createMessage('assistant', 'AI Key 未配置，请联系管理员在环境变量中设置后重试。');
+                const noKeyMsg = createMessage('assistant', 'AI Key 未配置，请在 .env.local 设置 VITE_GEMINI_API_KEY 后重试。');
                 setMessages(prev => [...prev, noKeyMsg]);
                 appendToSession(activeSessionId, noKeyMsg);
                 return;

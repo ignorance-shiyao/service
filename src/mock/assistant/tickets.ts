@@ -1,4 +1,4 @@
-export type TicketStatus = '待受理' | '处理中' | '待验证' | '已完成';
+export type TicketStatus = '待受理' | '处理中' | '待验证' | '待客户确认' | '已完成';
 
 export type TicketItem = {
   id: string;
@@ -10,6 +10,7 @@ export type TicketItem = {
   updatedAt: string;
   detail: string;
   timeline: { time: string; text: string }[];
+  lastUrgedAt?: number;
 };
 
 export const TICKETS: TicketItem[] = [
@@ -32,7 +33,7 @@ export const TICKETS: TicketItem[] = [
     id: 'TKT-20260422-0897',
     title: 'IDC高热区预警处置',
     business: 'IDC动环',
-    status: '待验证',
+    status: '待客户确认',
     owner: '赵工',
     createdAt: '2026-04-22 17:03',
     updatedAt: '2026-04-22 18:20',
@@ -40,7 +41,7 @@ export const TICKETS: TicketItem[] = [
     timeline: [
       { time: '17:03', text: '工单创建。' },
       { time: '17:35', text: '完成现场调整。' },
-      { time: '18:20', text: '进入待验证。' },
+      { time: '18:20', text: '进入待客户确认。' },
     ],
   },
 ];

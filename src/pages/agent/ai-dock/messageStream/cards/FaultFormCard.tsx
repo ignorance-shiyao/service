@@ -10,6 +10,8 @@ type FaultBusinessOption = {
   type: string;
   region: string;
   site: string;
+  risk?: boolean;
+  riskSeverity?: string;
 };
 
 interface FaultFormCardProps {
@@ -22,7 +24,7 @@ interface FaultFormCardProps {
   contexts?: FaultContext[];
   businessOptions?: FaultBusinessOption[];
   fromDiagnosis?: boolean;
-  onSubmit: (payload: { title: string; business: string; businesses: string[]; desc: string; severity: string }) => void;
+  onSubmit: (payload: { title: string; business: string; businesses: string[]; desc: string; severity: string }) => void | Promise<void>;
 }
 
 export const FaultFormCard: React.FC<FaultFormCardProps> = ({
@@ -43,7 +45,18 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
   );
   const [severity, setSeverity] = useState(defaultSeverity);
   const [desc, setDesc] = useState(defaultDesc);
-  const selectedOptions = businessOptions.filter((option) => businesses.includes(option.value));
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const riskBusinessSet = new Set(contexts.map((item) => item.business).filter(Boolean));
+  if (context?.business) riskBusinessSet.add(context.business);
+  const sortedBusinessOptions = businessOptions
+    .map((option) => ({
+      ...option,
+      risk: option.risk || riskBusinessSet.has(option.value),
+      riskSeverity: option.riskSeverity || contexts.find((item) => item.business === option.value)?.severity,
+    }))
+    .sort((a, b) => Number(Boolean(b.risk)) - Number(Boolean(a.risk)) || a.type.localeCompare(b.type, 'zh-CN'));
+  const selectedOptions = sortedBusinessOptions.filter((option) => businesses.includes(option.value));
   const primaryBusiness = selectedOptions[0]?.value || businesses[0] || defaultBusiness;
   const canSubmit = businesses.length > 0 && title.trim().length > 0 && desc.trim().length >= 8;
 
@@ -60,10 +73,31 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
   };
 
   const toggleBusiness = (value: string) => {
+    setSubmitError('');
     setBusinesses((prev) => {
       if (prev.includes(value)) return prev.filter((item) => item !== value);
       return [...prev, value];
     });
+  };
+
+  const submit = async () => {
+    if (!canSubmit || submitting) {
+      setSubmitError('请至少选择 1 条业务，并补充不少于 8 个字的问题描述。');
+      return;
+    }
+    setSubmitError('');
+    setSubmitting(true);
+    try {
+      await onSubmit({
+        title: title.trim(),
+        business: primaryBusiness,
+        businesses,
+        desc: desc.trim(),
+        severity,
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -77,12 +111,12 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
           已选 {businesses.length} 条
         </span>
       </div>
-      {fromDiagnosis && <div className="mt-1 text-[11px] text-[#8fc7ff]">已自动关联诊断上下文</div>}
+      {fromDiagnosis && <div className="mt-1 text-[11px] text-[#8fc7ff]">已带入本次诊断结果</div>}
       {(context || selectedOptions[0]) && (
         <div className="mt-2 rounded-lg border border-[#2f679d] bg-[#113864] p-2 text-[11px] text-[#d5ebff]">
           <div className="mb-1 flex items-center gap-1 text-[#9ecfff]">
             <RadioTower size={12} />
-            报障业务上下文
+            报障业务信息
           </div>
           <div className="truncate">业务：{contexts.length > 1 ? `${contexts.length} 条业务` : context?.business || primaryBusiness}</div>
           <div className="mt-0.5 truncate">类型：{context?.businessType || selectedOptions[0]?.type || '未指定'}</div>
@@ -105,9 +139,16 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
               <div className="text-xs font-semibold text-[#cbe7ff]">选择报障业务（可多选）</div>
               <div className="text-[11px] text-[#9fd0f5]">已选 {businesses.length}</div>
             </div>
-            <div className="custom-scrollbar max-h-[160px] space-y-1 overflow-y-auto pr-1">
-              {businessOptions.map((option) => (
-                <label key={option.id} className="flex cursor-pointer items-start gap-2 rounded border border-[#2f6698] bg-[#123b66] px-2 py-1.5 text-[12px] text-[#d6ecff] transition hover:border-[#57a8ef] hover:bg-[#154374]">
+            <div className="custom-scrollbar max-h-[190px] space-y-1 overflow-y-auto pr-1">
+              {sortedBusinessOptions.map((option) => (
+                <label
+                  key={option.id}
+                  className={`flex cursor-pointer items-start gap-2 rounded border px-2 py-1.5 text-[12px] text-[#d6ecff] transition hover:border-[#57a8ef] hover:bg-[#154374] ${
+                    option.risk
+                      ? 'border-[#c58b58] bg-[rgba(98,67,35,0.68)]'
+                      : 'border-[#2f6698] bg-[#123b66]'
+                  }`}
+                >
                   <span className="mt-0.5 shrink-0 text-[#7ec5ff]">
                     {businesses.includes(option.value) ? <CheckCircle2 size={14} /> : <Circle size={14} />}
                   </span>
@@ -122,7 +163,14 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
                       }
                     }}
                   />
-                  <span className="min-w-0 leading-5">{option.label}｜{option.region}</span>
+                  <span className="min-w-0 flex-1 leading-5">
+                    <span>{option.label}｜{option.region}</span>
+                    {option.risk && (
+                      <span className="ml-1 inline-flex rounded border border-[#d5a86d] bg-[rgba(111,72,31,0.82)] px-1 py-0.5 text-[10px] text-[#ffe6bf]">
+                        诊断风险{option.riskSeverity ? ` · ${option.riskSeverity}` : ''}
+                      </span>
+                    )}
+                  </span>
                 </label>
               ))}
             </div>
@@ -159,10 +207,10 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
           className="min-h-[86px] w-full rounded-md border border-[#3d77af] bg-[#174473] px-2.5 py-2 text-sm text-[#dff1ff] placeholder:text-[#91bbdd] outline-none focus:border-[#5eb2ff]"
           placeholder="请描述问题现象（建议包含影响范围、发生时间、是否可复现）"
         />
-        {!canSubmit && (
+        {(!canSubmit || submitError) && (
           <div className="inline-flex items-center gap-1 text-[11px] text-[#ffcfaf]">
             <AlertTriangle size={12} />
-            请至少选择 1 条业务，并补充有效问题描述后再提交
+            {submitError || '请至少选择 1 条业务，并补充有效问题描述后再提交'}
           </div>
         )}
       </div>
@@ -185,18 +233,9 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
           },
           {
             key: 'submit',
-            label: businesses.length > 1 ? `提交工单（${businesses.length}条）` : '提交工单',
+            label: submitting ? '提交中...' : businesses.length > 1 ? `提交工单（${businesses.length}条）` : '提交工单',
             tone: 'primary',
-            onClick: () => {
-              if (!canSubmit) return;
-              onSubmit({
-                title,
-                business: primaryBusiness,
-                businesses,
-                desc,
-                severity,
-              });
-            },
+            onClick: () => void submit(),
           },
         ]}
       />

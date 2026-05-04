@@ -41,6 +41,11 @@ import {
   getManagedBusinessStatus,
 } from './metricSemantics';
 import { trackFallback, trackIntentHit, trackKnowledgeFeedback } from './opsMetrics';
+import { decideAutoMoveToCustomerConfirm } from './ticketFlowPolicy';
+import { TICKET_TEXT } from './ticketText';
+import { buildTicketCustomerActionReceipt, buildTicketCustomerConfirmGuideReceipt, buildTicketFaultReceipt } from './ticketReceiptBuilders';
+import { buildTicketPendingConfirmNotice, buildTicketStillProcessingNotice } from './ticketNoticeBuilders';
+import { reduceTicketCustomerAction } from './ticketActionReducer';
 
 export type MessageRole = 'assistant' | 'user' | 'system';
 export type MessageKind =
@@ -65,6 +70,8 @@ export type QaPayload = {
   explanation: string;
   suggestions?: string[];
   sourceId?: string;
+  sourceIds?: string[];
+  sourceUpdatedAt?: string;
   followups?: string[];
 };
 
@@ -852,15 +859,24 @@ export const useAiDock = () => {
     if (resolvedIntent === 'fault') {
       trackIntentHit('fault', 0);
       await appendCardWithThinking(() => {
+        const riskContextMap = new Map(
+          faultContexts.map((item) => [item.business, item])
+        );
+        if (faultContext?.business) riskContextMap.set(faultContext.business, faultContext);
         const businessOptions = buildBusinessQueryData(activeCustomer)
-          .flatMap((category) => category.items.slice(0, 10).map((item) => ({
+          .flatMap((category) => category.items.map((item) => {
+            const riskContext = riskContextMap.get(item.name);
+            return {
             id: item.id,
             label: `${category.label}｜${item.name}`,
             value: item.name,
             type: category.label,
             region: item.region,
             site: item.site,
-          })));
+            risk: Boolean(riskContext),
+            riskSeverity: riskContext?.severity,
+          };
+          }));
         const defaultBusinesses = faultContexts.length > 0
           ? Array.from(new Set(faultContexts.map((item) => item.business)))
           : [faultContext?.business || ticketDraftFromDiagnosis?.name || businessOptions[0]?.value || '政企业务专网'];
@@ -1032,10 +1048,77 @@ export const useAiDock = () => {
     setDrawer({ type: 'diagnosisHistory', list: DIAGNOSIS_TEMPLATES });
   }, []);
 
-  const openTicketDetail = useCallback((id: string) => {
-    const item = tickets.find((t) => t.id === id);
+  const openTicketDetail = useCallback((id: string, fallback?: TicketItem) => {
+    const item = tickets.find((t) => t.id === id) || fallback;
     if (item) setDrawer({ type: 'ticket', item });
   }, [tickets]);
+
+  const handleTicketCustomerAction = useCallback((payload: {
+    ticketId: string;
+    action: 'supplement' | 'urge' | 'confirm' | 'reopen';
+    note?: string;
+  }) => {
+    const now = Date.now();
+    const timeText = new Date(now).toLocaleTimeString('zh-CN', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    let rejectedReason = '';
+    let actionText = '';
+    let followupText = '';
+
+    updateActiveSession((session) => {
+      const nextTickets = session.tickets.map((ticket) => {
+        if (ticket.id !== payload.ticketId) return ticket;
+        const reduced = reduceTicketCustomerAction({
+          ticket,
+          action: payload.action,
+          now,
+          timeText,
+          note: payload.note,
+        });
+        if (!reduced.ok) {
+          rejectedReason = reduced.reason;
+          return ticket;
+        }
+        actionText = reduced.actionText;
+        followupText = reduced.followupText;
+        return reduced.ticket;
+      });
+      const activeTicket = nextTickets.find((item) => item.id === payload.ticketId);
+      const nextDrawer = drawer?.type === 'ticket' && activeTicket
+        ? { ...drawer, item: activeTicket }
+        : drawer;
+      if (nextDrawer !== drawer) setDrawer(nextDrawer);
+      return {
+        ...session,
+        updatedAt: Date.now(),
+        tickets: nextTickets,
+      };
+    });
+
+    if (rejectedReason) {
+      showAppToast(rejectedReason, {
+        title: TICKET_TEXT.actionBlockedTitle,
+        tone: 'warning',
+      });
+      return;
+    }
+
+    if (actionText) {
+      appendMessage({
+        role: 'assistant',
+        kind: 'receiptCard',
+        data: buildTicketCustomerActionReceipt({
+          ticketId: payload.ticketId,
+          actionText,
+          timeText,
+          followupText,
+        }),
+      });
+    }
+  }, [appendMessage, drawer, updateActiveSession]);
 
   const submitFaultTicket = useCallback(async (payload: { title: string; business: string; businesses?: string[]; desc: string; severity: string }) => {
     const ticketResult = await submitFaultTicketFlow({
@@ -1058,25 +1141,72 @@ export const useAiDock = () => {
     appendMessage({
       role: 'assistant',
       kind: 'receiptCard',
+      data: buildTicketFaultReceipt({
+        ticketId: ticketResult.firstTicketId,
+        responseMinutes: activeCustomer.slas.responseMinutes,
+        restoreHours: activeCustomer.slas.restoreHours,
+        owner: ticketResult.owner,
+        ticketCount: ticketResult.ticketCount,
+      }),
+    });
+
+    const autoMoveDecision = decideAutoMoveToCustomerConfirm({
+      severity: payload.severity,
+      desc: payload.desc,
+      ticketCount: ticketResult.ticketCount,
+    });
+    if (!autoMoveDecision.allow) {
+      appendMessage({
+        role: 'system',
+        kind: 'systemNotice',
+        data: {
+          title: buildTicketStillProcessingNotice({
+            ticketId: ticketResult.firstTicketId,
+            reason: autoMoveDecision.reason || '需人工复核后再确认',
+          }),
+          progress: 100,
+          status: 'done',
+        },
+      });
+      return;
+    }
+
+    await delay(900);
+    const focusTicketId = ticketResult.firstTicketId;
+    if (!focusTicketId) return;
+    let pushed = false;
+    updateActiveSession((session) => {
+      const tickets = session.tickets.map((ticket) => {
+        if (ticket.id !== focusTicketId || ticket.status === TICKET_TEXT.pendingConfirmStatus || ticket.status === TICKET_TEXT.doneStatus) return ticket;
+        pushed = true;
+        const timeText = new Date().toLocaleTimeString('zh-CN', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        return {
+          ...ticket,
+          status: TICKET_TEXT.pendingConfirmStatus,
+          updatedAt: `${new Date().toISOString().slice(0, 10)} ${timeText}`,
+          timeline: [...ticket.timeline, { time: timeText, text: TICKET_TEXT.pendingConfirmTimeline }],
+        };
+      });
+      return { ...session, updatedAt: Date.now(), tickets };
+    });
+    if (!pushed) return;
+    appendMessage({
+      role: 'system',
+      kind: 'systemNotice',
       data: {
-        title: '报障回执',
-        fields: [
-          { label: '工单号', value: ticketResult.firstTicketId || '已生成' },
-          { label: '承诺响应', value: `${activeCustomer.slas.responseMinutes}分钟` },
-          { label: '预计恢复', value: `${activeCustomer.slas.restoreHours}小时` },
-          { label: '当前跟进', value: ticketResult.owner },
-          { label: '影响业务', value: `${ticketResult.ticketCount}条` },
-        ],
-        nextSteps: [
-          '继续补充现象截图/日志（可加速定位）',
-          '在工单追踪中实时查看状态变化',
-          '若超时未响应，可直接发送“催办工单”',
-        ],
-        actions: [
-          { key: 'urge', label: '立即催办', ask: '催办工单', tone: 'primary' },
-          { key: 'track', label: '查看工单进度', ask: '查一下我最近的工单进度' },
-        ],
+        title: buildTicketPendingConfirmNotice(focusTicketId),
+        progress: 100,
+        status: 'done',
       },
+    });
+    appendMessage({
+      role: 'assistant',
+      kind: 'receiptCard',
+      data: buildTicketCustomerConfirmGuideReceipt(focusTicketId),
     });
   }, [activeCustomer.slas.restoreHours, activeCustomer.slas.responseMinutes, advanceSystemNoticeFlow, appendMessage, createSystemNoticeFlow, updateActiveSession]);
 
@@ -1188,6 +1318,7 @@ export const useAiDock = () => {
     openReportHistory,
     openDiagnosisHistory,
     openTicketDetail,
+    handleTicketCustomerAction,
     activeReport,
     setActiveReportId,
     runReportExport,

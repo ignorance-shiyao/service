@@ -15,7 +15,7 @@ const PHASE_MAP: Partial<Record<AiMessage['kind'], string[]>> = {
   diagnosisReport: ['汇总检测结果', '分析根因线索', '生成诊断结论'],
   ticketCard: ['提取工单上下文', '同步处理状态', '组装工单卡片'],
   faultForm: ['匹配报障模板', '填充业务上下文', '准备提交流程'],
-  fallback: ['理解输入问题', '检索可用信息', '生成兜底建议'],
+  fallback: ['理解输入问题', '检索可用信息', '整理处理建议'],
 };
 
 const TIMELINE_MAP: Partial<Record<AiMessage['kind'], [number, number, number]>> = {

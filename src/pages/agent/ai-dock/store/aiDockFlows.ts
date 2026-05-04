@@ -153,7 +153,7 @@ export const submitFaultTicketFlow = async (args: {
       title: selectedBusinesses.length > 1 ? `${payload.title}（${business}）` : payload.title,
       business,
       status: '待受理',
-      owner: '自动分派中',
+      owner: '正在分派',
       createdAt: new Date().toLocaleString(),
       updatedAt: new Date().toLocaleString(),
       detail: payload.desc,
@@ -183,15 +183,15 @@ export const submitFaultTicketFlow = async (args: {
   }));
 
   const noticeTitle = selectedBusinesses.length > 1
-    ? `批量工单状态流转中（${createdTickets.length}条）`
-    : `工单 ${createdTickets[0].id} 状态流转中`;
+    ? `批量工单受理进展（${createdTickets.length}条）`
+    : `工单 ${createdTickets[0].id} 受理进展`;
   const firstId = createdTickets[0].id;
-  const { id: noticeId, logs: initialLogs } = createSystemNoticeFlow(noticeTitle, `工单 ${firstId} 已创建，等待系统分派`, 25);
+  const { id: noticeId, logs: initialLogs } = createSystemNoticeFlow(noticeTitle, `工单 ${firstId} 已创建，正在分派处理人员`, 25);
   let logs = initialLogs;
   await delay(360);
   logs = advanceSystemNoticeFlow(noticeId, {
     logs,
-    logText: selectedBusinesses.length > 1 ? '批量工单已自动分派到二线团队' : '工单已自动分派到二线团队',
+    logText: selectedBusinesses.length > 1 ? '批量工单已分派到处理团队' : '工单已分派到处理团队',
     progress: 60,
     title: noticeTitle,
   });
@@ -208,12 +208,13 @@ export const submitFaultTicketFlow = async (args: {
     logText: '状态已更新为处理中，可在工单详情追踪进展',
     progress: 100,
     status: 'done',
-    title: selectedBusinesses.length > 1 ? '批量工单状态更新：处理中' : `工单 ${firstId} 状态更新：处理中`,
+    title: selectedBusinesses.length > 1 ? '批量工单已进入处理中' : `工单 ${firstId} 已进入处理中`,
   });
   setIsResponding(false);
   return {
     firstTicketId: createdTickets[0]?.id || '',
     ticketCount: createdTickets.length,
-    owner: createdTickets[0]?.owner || '自动分派中',
+    ticketIds: createdTickets.map((item) => item.id),
+    owner: createdTickets[0]?.owner || '正在分派',
   };
 };
