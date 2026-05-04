@@ -128,16 +128,6 @@ export type {
 const AI_DOCK_SESSION_STORAGE_KEY = 'ai_dock_sessions_json_v1';
 const AI_DOCK_SESSION_ENDPOINT = '/mock-api/ai-dock-sessions';
 
-const quickChips: QuickChip[] = [
-  { id: 'chip_health', label: '业务诊断', prompt: '帮我做一次业务诊断' },
-  { id: 'chip_business', label: '业务查询', prompt: '帮我查一下我名下都有哪些业务' },
-  { id: 'chip_report', label: '运行月报', prompt: '生成本月运行报告' },
-  { id: 'chip_knowledge', label: '知识库', prompt: '量子加密保护是什么' },
-  { id: 'chip_ticket', label: '工单追踪', prompt: '查一下我最近的工单进度' },
-  { id: 'chip_fault', label: '自助报障', prompt: '我要发起报障' },
-  { id: 'chip_manager', label: '联系经理', prompt: '联系客户经理' },
-];
-
 const welcomeMessages = (): AiMessage[] => [];
 
 const pickDiagnosis = (input: string): DiagnosisTemplate | undefined => {
@@ -178,16 +168,19 @@ const appendFlowLog = (logs: FlowLogEntry[], text: string): FlowLogEntry[] => [
 type CustomerContext = {
   name: string;
   code: string;
+  businessTypes: Array<'LINE' | '5G' | 'IDC' | 'SDWAN' | 'AIC'>;
+  accountManager: { name: string; phone: string };
+  slas: { responseMinutes: number; restoreHours: number };
 };
 
 const CUSTOMER_POOL: CustomerContext[] = [
-  { name: '安徽交控集团', code: 'CUST-AHJT-0001' },
-  { name: '合肥工业大学', code: 'CUST-HFUT-0002' },
-  { name: '奇瑞汽车股份', code: 'CUST-CHERY-0003' },
-  { name: '科大讯飞股份', code: 'CUST-IFLYTEK-0004' },
-  { name: '安徽电力公司', code: 'CUST-STATEGRID-0005' },
-  { name: '中国声谷园区', code: 'CUST-SOUNDVALLEY-0006' },
-  { name: '芜湖港航集团', code: 'CUST-WHPORT-0007' },
+  { name: '安徽交控集团', code: 'CUST-AHJT-0001', businessTypes: ['LINE', 'SDWAN', 'IDC'], accountManager: { name: '李明', phone: '138****5678' }, slas: { responseMinutes: 15, restoreHours: 2 } },
+  { name: '合肥工业大学', code: 'CUST-HFUT-0002', businessTypes: ['LINE', '5G', 'IDC'], accountManager: { name: '王婷', phone: '139****2088' }, slas: { responseMinutes: 20, restoreHours: 4 } },
+  { name: '奇瑞汽车股份', code: 'CUST-CHERY-0003', businessTypes: ['LINE', '5G', 'AIC', 'SDWAN'], accountManager: { name: '赵凯', phone: '137****9221' }, slas: { responseMinutes: 10, restoreHours: 2 } },
+  { name: '科大讯飞股份', code: 'CUST-IFLYTEK-0004', businessTypes: ['AIC', 'SDWAN', 'LINE'], accountManager: { name: '周宁', phone: '136****1123' }, slas: { responseMinutes: 15, restoreHours: 3 } },
+  { name: '安徽电力公司', code: 'CUST-STATEGRID-0005', businessTypes: ['LINE', 'IDC', '5G'], accountManager: { name: '陈璐', phone: '135****0029' }, slas: { responseMinutes: 15, restoreHours: 2 } },
+  { name: '中国声谷园区', code: 'CUST-SOUNDVALLEY-0006', businessTypes: ['5G', 'SDWAN', 'AIC'], accountManager: { name: '许航', phone: '188****8712' }, slas: { responseMinutes: 20, restoreHours: 4 } },
+  { name: '芜湖港航集团', code: 'CUST-WHPORT-0007', businessTypes: ['LINE', 'SDWAN'], accountManager: { name: '何晶', phone: '189****6619' }, slas: { responseMinutes: 30, restoreHours: 6 } },
 ];
 
 const randomCustomerContext = (seed?: number): CustomerContext => {
@@ -376,6 +369,28 @@ export const useAiDock = () => {
     () => REPORTS.find((r) => r.id === activeReportId) || REPORTS[0],
     [activeReportId]
   );
+
+  const quickChips = useMemo<QuickChip[]>(() => {
+    const typeLabelMap: Record<'LINE' | '5G' | 'IDC' | 'SDWAN' | 'AIC', string> = {
+      LINE: '专线',
+      '5G': '5G',
+      IDC: 'IDC',
+      SDWAN: 'SD-WAN',
+      AIC: '智算',
+    };
+    const types = activeCustomer.businessTypes || [];
+    const typeText = types.length > 0 ? types.map((item) => typeLabelMap[item]).join('、') : '核心业务';
+    const firstType = types[0] ? typeLabelMap[types[0]] : '核心业务';
+    return [
+      { id: 'chip_health', label: '业务诊断', prompt: `先诊断我名下${firstType}业务健康度` },
+      { id: 'chip_business', label: '业务查询', prompt: `帮我查一下名下${typeText}业务清单` },
+      { id: 'chip_report', label: '运行月报', prompt: `生成${activeCustomer.name}本月运行报告` },
+      { id: 'chip_knowledge', label: '知识库', prompt: '基于当前业务类型推荐知识' },
+      { id: 'chip_ticket', label: '工单追踪', prompt: '查一下我最近的工单进度' },
+      { id: 'chip_fault', label: '自助报障', prompt: `按SLA承诺发起${firstType}业务报障` },
+      { id: 'chip_manager', label: '联系经理', prompt: `联系客户经理${activeCustomer.accountManager.name}` },
+    ];
+  }, [activeCustomer.accountManager.name, activeCustomer.businessTypes, activeCustomer.name]);
 
   const normalizedManagedBusinesses = useMemo(() => {
     return MANAGED_BUSINESSES.map((item) => {
@@ -679,7 +694,23 @@ export const useAiDock = () => {
         kind: 'systemNotice',
         data: { title: '已通知客户经理，预计 5 分钟内与您联系。', progress: 100 },
       });
-      await streamAssistantText('我已把当前会话上下文同步给客户经理，您也可以继续描述问题细节。');
+      const managerReceipt = [
+        '【客户经理联络回执】',
+        `客户经理：${activeCustomer.accountManager.name}（${activeCustomer.accountManager.phone}）`,
+        '通知渠道：应用内通知 + 短信提醒',
+        '预计回呼：5分钟内',
+        '',
+        '【升级路径】',
+        '1. 5分钟无回呼：自动二次提醒',
+        `2. 超过${activeCustomer.slas.responseMinutes}分钟：升级至值班主管`,
+        '3. 仍无响应：转二线专家组介入',
+      ].join('\n');
+      appendMessage({
+        role: 'assistant',
+        kind: 'text',
+        text: managerReceipt,
+      });
+      await streamAssistantText('我已把当前会话上下文同步给客户经理，您可以继续补充问题细节以便更快处理。');
       return;
     }
 
@@ -690,6 +721,36 @@ export const useAiDock = () => {
         data: { title: '反馈已记录，产品团队将在 1 个工作日内回访。', progress: 100 },
       });
       await streamAssistantText('感谢反馈，若您愿意我可以继续引导您描述复现步骤。');
+      return;
+    }
+
+    if (input.includes('催办') && input.includes('工单')) {
+      const targetTicket = tickets[0] || TICKETS[0];
+      const { id: urgeNoticeId, logs: urgeLogs0 } = createSystemNoticeFlow(
+        `工单 ${targetTicket.id} 催办处理中`,
+        '已提交催办请求至责任人',
+        35
+      );
+      await delay(320);
+      const urgeLogs1 = advanceSystemNoticeFlow(urgeNoticeId, {
+        logs: urgeLogs0,
+        logText: '已同步客户SLA承诺与当前处理时限',
+        progress: 72,
+        title: `工单 ${targetTicket.id} 催办处理中`,
+      });
+      await delay(280);
+      advanceSystemNoticeFlow(urgeNoticeId, {
+        logs: urgeLogs1,
+        logText: '催办完成，预计10分钟内反馈处理进展',
+        progress: 100,
+        status: 'done',
+        title: `工单 ${targetTicket.id} 催办已送达`,
+      });
+      appendMessage({
+        role: 'assistant',
+        kind: 'text',
+        text: `已催办工单 ${targetTicket.id}，当前跟进人：${targetTicket.owner}。若超过 ${activeCustomer.slas.responseMinutes} 分钟仍无更新，我会继续升级提醒。`,
+      });
       return;
     }
 
@@ -725,6 +786,11 @@ export const useAiDock = () => {
     if (resolvedIntent === 'ticket') {
       await appendCardWithThinking(() => {
         appendMessage({ role: 'assistant', kind: 'ticketCard', data: tickets[0] || TICKETS[0] });
+        appendMessage({
+          role: 'assistant',
+          kind: 'text',
+          text: `当前SLA承诺：${activeCustomer.slas.responseMinutes}分钟响应 / ${activeCustomer.slas.restoreHours}小时恢复。可直接发送“催办工单”触发升级提醒。`,
+        });
       }, 420);
       return;
     }
@@ -890,7 +956,7 @@ export const useAiDock = () => {
   }, [tickets]);
 
   const submitFaultTicket = useCallback(async (payload: { title: string; business: string; businesses?: string[]; desc: string; severity: string }) => {
-    await submitFaultTicketFlow({
+    const ticketResult = await submitFaultTicketFlow({
       payload,
       setIsResponding,
       appendMessage,
@@ -898,7 +964,34 @@ export const useAiDock = () => {
       createSystemNoticeFlow,
       advanceSystemNoticeFlow,
     });
-  }, [advanceSystemNoticeFlow, appendMessage, createSystemNoticeFlow, updateActiveSession]);
+    appendMessage({
+      role: 'system',
+      kind: 'systemNotice',
+      data: {
+        title: `SLA承诺：${activeCustomer.slas.responseMinutes}分钟响应 / ${activeCustomer.slas.restoreHours}小时恢复`,
+        progress: 100,
+        status: 'done',
+      },
+    });
+    const nextActionLines = [
+      '【报障回执】',
+      `工单号：${ticketResult.firstTicketId || '已生成'}`,
+      `承诺响应：${activeCustomer.slas.responseMinutes}分钟`,
+      `预计恢复：${activeCustomer.slas.restoreHours}小时`,
+      `当前跟进：${ticketResult.owner}`,
+      `影响业务：${ticketResult.ticketCount}条`,
+      '',
+      '【下一步可执行】',
+      '1. 继续补充现象截图/日志（可加速定位）',
+      '2. 在工单追踪中实时查看状态变化',
+      '3. 若超时未响应，可直接发送“催办工单”',
+    ].join('\n');
+    appendMessage({
+      role: 'assistant',
+      kind: 'text',
+      text: nextActionLines,
+    });
+  }, [activeCustomer.slas.restoreHours, activeCustomer.slas.responseMinutes, advanceSystemNoticeFlow, appendMessage, createSystemNoticeFlow, updateActiveSession]);
 
   const setActiveReportId = useCallback((id: string) => {
     updateActiveSession((session) => ({ ...session, activeReportId: id, updatedAt: Date.now() }));
@@ -1019,6 +1112,7 @@ export const useAiDock = () => {
     setFaultContexts,
     submitFaultTicket,
     managedBusinesses: normalizedManagedBusinesses,
+    activeCustomer,
     activeSessionId,
     sessionMetas,
     createConversation,

@@ -298,8 +298,8 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   }, [historyFilter, historyKeyword, store.sessionMetas]);
 
   const activeCustomerName = useMemo(
-    () => store.sessionMetas.find((session) => session.id === store.activeSessionId)?.customerName || '客户',
-    [store.activeSessionId, store.sessionMetas]
+    () => store.activeCustomer?.name || store.sessionMetas.find((session) => session.id === store.activeSessionId)?.customerName || '客户',
+    [store.activeCustomer, store.activeSessionId, store.sessionMetas]
   );
 
   const heroTagToneClass: Record<string, string> = {
@@ -571,6 +571,12 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
                     <img src={robotEntryIcon} alt="智能体图标" className="ai-dock-hero-robot h-7 w-7" draggable={false} />
                   </div>
                   <div className="ai-dock-hero-title text-xl font-semibold text-[#ebf7ff]">{`您好，${activeCustomerName}`}</div>
+                  <div className="mt-1 text-[11px] text-[#9ec9e9]">
+                    {store.activeCustomer.code} · 客户经理 {store.activeCustomer.accountManager.name}（{store.activeCustomer.accountManager.phone}）
+                  </div>
+                  <div className="mt-1 text-[11px] text-[#8fc0e5]">
+                    SLA承诺：{store.activeCustomer.slas.responseMinutes}分钟响应 / {store.activeCustomer.slas.restoreHours}小时恢复
+                  </div>
                   <div className="mt-2 flex justify-center">
                     <button
                       type="button"

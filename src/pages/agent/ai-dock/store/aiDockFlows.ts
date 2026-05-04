@@ -211,4 +211,9 @@ export const submitFaultTicketFlow = async (args: {
     title: selectedBusinesses.length > 1 ? '批量工单状态更新：处理中' : `工单 ${firstId} 状态更新：处理中`,
   });
   setIsResponding(false);
+  return {
+    firstTicketId: createdTickets[0]?.id || '',
+    ticketCount: createdTickets.length,
+    owner: createdTickets[0]?.owner || '自动分派中',
+  };
 };
