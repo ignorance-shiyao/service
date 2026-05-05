@@ -137,7 +137,7 @@ export type {
   FaultContext,
 } from './aiDockTypes';
 
-const AI_DOCK_SESSION_STORAGE_KEY = 'ai_dock_sessions_json_v1';
+export const AI_DOCK_SESSION_STORAGE_KEY = 'ai_dock_sessions_json_v1';
 const AI_DOCK_SESSION_ENDPOINT = '/mock-api/ai-dock-sessions';
 
 const welcomeMessages = (): AiMessage[] => [];
@@ -209,6 +209,39 @@ const CUSTOMER_POOL: CustomerContext[] = [
 const randomCustomerContext = (seed?: number): CustomerContext => {
   const index = typeof seed === 'number' ? seed % CUSTOMER_POOL.length : Math.floor(Math.random() * CUSTOMER_POOL.length);
   return CUSTOMER_POOL[index];
+};
+
+export const normalizeCustomerContext = (value: unknown, seed?: number): CustomerContext => {
+  const fallback = randomCustomerContext(seed);
+  if (!value || typeof value !== 'object') return fallback;
+  const raw = value as Partial<CustomerContext>;
+  const businessTypes = Array.isArray(raw.businessTypes) && raw.businessTypes.length > 0
+    ? raw.businessTypes.filter((type): type is CustomerContext['businessTypes'][number] =>
+      ['LINE', '5G', 'IDC', 'SDWAN', 'AIC'].includes(type as string)
+    )
+    : fallback.businessTypes;
+
+  return {
+    name: typeof raw.name === 'string' && raw.name.trim() ? raw.name : fallback.name,
+    code: typeof raw.code === 'string' && raw.code.trim() ? raw.code : fallback.code,
+    businessTypes: businessTypes.length > 0 ? businessTypes : fallback.businessTypes,
+    accountManager: {
+      name: typeof raw.accountManager?.name === 'string' && raw.accountManager.name.trim()
+        ? raw.accountManager.name
+        : fallback.accountManager.name,
+      phone: typeof raw.accountManager?.phone === 'string' && raw.accountManager.phone.trim()
+        ? raw.accountManager.phone
+        : fallback.accountManager.phone,
+    },
+    slas: {
+      responseMinutes: typeof raw.slas?.responseMinutes === 'number'
+        ? raw.slas.responseMinutes
+        : fallback.slas.responseMinutes,
+      restoreHours: typeof raw.slas?.restoreHours === 'number'
+        ? raw.slas.restoreHours
+        : fallback.slas.restoreHours,
+    },
+  };
 };
 
 
@@ -284,8 +317,72 @@ const isContextAdviceIntent = (input: string) =>
   input.includes('处置建议') ||
   input.includes('优化建议') ||
   input.includes('重点建议') ||
+  input.includes('风险项') ||
   input.includes('实施清单') ||
-  input.includes('风险点');
+  input.includes('风险点') ||
+  input.includes('哪些指标') ||
+  input.includes('持续观察') ||
+  input.includes('客户侧怎么说明') ||
+  input.includes('整理客户说明') ||
+  input.includes('是否需要升级') ||
+  input.includes('哪些业务最优先');
+
+const stripCitationMarks = (text: string) => text.replace(/\s*\[\d+\]/g, '').trim();
+
+const hasQaSources = (payload: QaPayload) => Boolean(payload.sources?.length || payload.sourceIds?.length || payload.sourceId);
+
+export const buildQaExpansionPayload = (previous: QaPayload, input: string): QaPayload => {
+  const title = stripCitationMarks(previous.conclusion);
+  const citation = hasQaSources(previous) ? ' [1]' : '';
+  const base = stripCitationMarks(previous.explanation);
+  const shared = {
+    sourceId: previous.sourceId,
+    sourceIds: previous.sourceIds,
+    sources: previous.sources,
+    sourceUpdatedAt: previous.sourceUpdatedAt,
+  };
+
+  if (input.includes('实施清单')) {
+    return {
+      ...shared,
+      conclusion: `${title}实施清单${citation}`,
+      explanation: [
+        `1. 先确认适用业务范围、关键分支和当前风险。`,
+        `2. 建立密钥健康、链路时延、丢包和隧道状态的监测基线。`,
+        `3. 选择一个关键分支小范围验证，观察至少一个业务高峰周期。`,
+        `4. 验证通过后分批推广，并保留策略回退与人工确认入口。`,
+        base ? `依据：${base}${citation}` : '',
+      ].filter(Boolean).join(' '),
+      suggestions: ['列出风险点', '转人工客户经理确认'],
+      followups: ['需要哪些前置条件？', '如何判断落地效果？', '异常时怎么回退？'],
+    };
+  }
+
+  if (input.includes('风险点')) {
+    return {
+      ...shared,
+      conclusion: `${title}风险点${citation}`,
+      explanation: [
+        `主要风险包括：适用业务范围未确认、密钥健康监测缺失、小范围验证不足、回退策略未演练、异常指标无人确认。`,
+        `建议把这些风险分别绑定到负责人、监测阈值和回退动作，避免只完成配置但无法证明效果。`,
+        base ? `依据：${base}${citation}` : '',
+      ].filter(Boolean).join(' '),
+      suggestions: ['生成实施清单', '转人工客户经理确认'],
+      followups: ['哪些风险优先级最高？', '需要客户确认什么？', '怎么做回退预案？'],
+    };
+  }
+
+  return {
+    ...shared,
+    conclusion: `${title}的落地建议${citation}`,
+    explanation: [
+      base,
+      `落地时建议先确认适用业务范围与当前风险，再按“先监测、再小范围验证、最后推广”的顺序执行。过程中保留回退方案，遇到指标持续异常时直接转人工客户经理确认。${citation}`,
+    ].filter(Boolean).join(' '),
+    suggestions: ['生成实施清单', '列出风险点', '转人工客户经理确认'],
+    followups: ['需要哪些前置条件？', '如何判断落地效果？', '异常时怎么回退？'],
+  };
+};
 
 const buildContextAdvicePayload = (message?: AiMessage): QaPayload | null => {
   if (!message?.data) return null;
@@ -350,11 +447,13 @@ const buildContextAdvicePayload = (message?: AiMessage): QaPayload | null => {
   }
 
   if (message.kind === 'businessQuery') {
-    const categories = message.data as Array<{ label: string; items: BusinessQueryItem[] }>;
-    const total = categories.reduce((sum, category) => sum + category.items.length, 0);
+    const categories = Array.isArray(message.data)
+      ? (message.data as Array<{ label: string; items?: BusinessQueryItem[] }>)
+      : [];
+    const total = categories.reduce((sum, category) => sum + (category.items || []).length, 0);
     const riskItems = categories.flatMap((category) =>
-      category.items
-        .filter((item) => item.details.some((detail) =>
+      (category.items || [])
+        .filter((item) => (item.details || []).some((detail) =>
           /状态|健康|风险/.test(detail.label) && !/正常|健康|稳定/.test(detail.value)
         ))
         .map((item) => `${category.label}-${item.name}`)
@@ -370,15 +469,37 @@ const buildContextAdvicePayload = (message?: AiMessage): QaPayload | null => {
   return null;
 };
 
+export const buildSlaCheckPayload = (ticket: TicketItem, customer: CustomerContext): QaPayload => ({
+  conclusion: `工单 ${ticket.id} SLA判断建议`,
+  explanation: [
+    `当前工单状态为“${ticket.status}”，客户SLA承诺为 ${customer.slas.responseMinutes} 分钟响应 / ${customer.slas.restoreHours} 小时恢复。`,
+    '建议先核对最近一次工单更新时间、客户侧影响是否仍存在、责任人是否已给出恢复时间。',
+    ticket.status === '处理中'
+      ? '如果超过承诺响应时间仍无进展，可立即催办；如果影响扩大，建议升级至值班主管。'
+      : '如果已进入待客户确认或已完成，应重点确认客户侧业务是否恢复，必要时申请二次受理。',
+  ].join(' '),
+  suggestions: ['催办工单', '查看工单详情', '联系客户经理'],
+  followups: ['客户侧怎么说明？', '还需要补什么材料？', '是否需要二次升级？'],
+});
+
+export const buildImpactSupplementPayload = (): QaPayload => ({
+  conclusion: '补充影响范围所需信息',
+  explanation: [
+    '建议补充四类信息：1. 受影响业务或站点；2. 开始时间和持续时长；3. 具体表现，例如慢、断、丢包、接入失败；4. 是否可复现及是否已有截图/日志。',
+    '补充后可直接发起报障或同步给客户经理，便于责任人快速判断优先级。',
+  ].join(' '),
+  suggestions: ['发起报障', '联系客户经理'],
+  followups: ['需要我生成报障描述吗？', '哪些材料最关键？', '客户侧怎么说明？'],
+});
+
 
 const toValidSession = (value: any): AiConversationSession | null => {
   if (!value || typeof value !== 'object') return null;
   if (typeof value.id !== 'string' || typeof value.title !== 'string') return null;
   if (!Array.isArray(value.messages) || !Array.isArray(value.tickets)) return null;
   const activeReportId = typeof value.activeReportId === 'string' ? value.activeReportId : REPORTS[0].id;
-  const customer = value.customer && typeof value.customer.name === 'string' && typeof value.customer.code === 'string'
-    ? (value.customer as CustomerContext)
-    : randomCustomerContext(typeof value.createdAt === 'number' ? value.createdAt : Date.now());
+  const sessionSeed = typeof value.createdAt === 'number' ? value.createdAt : Date.now();
+  const customer = normalizeCustomerContext(value.customer, sessionSeed);
   const normalizedMessages = (value.messages as AiMessage[]).map((message) => {
     if (message.kind !== 'businessDiagnosisReport') return message;
     return {
@@ -406,7 +527,7 @@ const getDefaultPersistedState = (): PersistedAiDockSessions => {
   return { sessions: [first], activeSessionId: first.id };
 };
 
-const parsePersistedSessions = (parsed: unknown): PersistedAiDockSessions | null => {
+export const parsePersistedSessions = (parsed: unknown): PersistedAiDockSessions | null => {
   if (!parsed || typeof parsed !== 'object' || !Array.isArray((parsed as PersistedAiDockSessions).sessions)) {
     return null;
   }
@@ -915,13 +1036,21 @@ export const useAiDock = () => {
       return;
     }
 
+    if (input.includes('查看本月运行报告') || input.includes('生成运行月报')) {
+      trackIntentHit('report', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({ role: 'assistant', kind: 'reportCard', data: activeReport });
+      }, 280);
+      return;
+    }
+
     if (input.includes('导出报告')) {
       trackIntentHit('report', 0);
       await runReportExport('pdf');
       return;
     }
 
-    if (input.includes('生成客户汇报话术') || input.includes('整理给客户的话术')) {
+    if (input.includes('生成客户汇报话术') || input.includes('整理给客户的话术') || input.includes('生成汇报说明')) {
       const latestReport = [...messages].reverse().find((message) => message.kind === 'businessDiagnosisReport' && message.data);
       if (latestReport?.data) {
         trackIntentHit('report', 0);
@@ -942,6 +1071,38 @@ export const useAiDock = () => {
       return;
     }
 
+    if (input.includes('继续追踪') || input.includes('查看工单进度')) {
+      trackIntentHit('ticket', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({ role: 'assistant', kind: 'ticketCard', data: tickets[0] || TICKETS[0] });
+      }, 280);
+      return;
+    }
+
+    if (input.includes('是否超过sla') || input.includes('是否超时') || input.includes('超过sla')) {
+      trackIntentHit('ticket', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildSlaCheckPayload(tickets[0] || TICKETS[0], activeCustomer),
+        });
+      }, 240);
+      return;
+    }
+
+    if (input.includes('补充影响范围') || input.includes('补什么材料') || input.includes('哪些材料最关键')) {
+      trackIntentHit('fault', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildImpactSupplementPayload(),
+        });
+      }, 240);
+      return;
+    }
+
     const lastQaMessage = [...messages].reverse().find((message) => message.kind === 'qa' && message.data);
     if (isQaExpansionIntent(input) && lastQaMessage?.data) {
       const previous = lastQaMessage.data as QaPayload;
@@ -950,19 +1111,7 @@ export const useAiDock = () => {
         appendMessage({
           role: 'assistant',
           kind: 'qa',
-          data: {
-            conclusion: `${previous.conclusion}的落地建议`,
-            explanation: [
-              previous.explanation,
-              '落地时建议先确认适用业务范围与当前风险，再按“先监测、再小范围验证、最后推广”的顺序执行。过程中保留回退方案，遇到指标持续异常时直接转人工客户经理确认。',
-            ].join(' '),
-            suggestions: ['生成实施清单', '列出风险点', '转人工客户经理确认'],
-            sourceId: previous.sourceId,
-            sourceIds: previous.sourceIds,
-            sources: previous.sources,
-            sourceUpdatedAt: previous.sourceUpdatedAt,
-            followups: ['需要哪些前置条件？', '如何判断落地效果？', '异常时怎么回退？'],
-          } as QaPayload,
+          data: buildQaExpansionPayload(previous, input),
         });
       }, 240);
       return;
