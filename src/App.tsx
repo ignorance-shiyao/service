@@ -301,7 +301,7 @@ const App: React.FC = () => {
   const currentBigScreen = BIG_SCREENS.find(screen => location.pathname.startsWith(screen.path));
   const isBigScreenPage = Boolean(currentBigScreen) || location.pathname === '/';
   const appTitle = currentBigScreen
-    ? currentBigScreen.name
+    ? `政企业务智慧运维管家-${currentBigScreen.name}`
     : '政企业务智慧运维管家';
 
   const handleConfirmBigScreenSwitch = () => {
@@ -349,10 +349,10 @@ const App: React.FC = () => {
       {!isFocusMode && (
       <header className="bg-[var(--sys-bg-header)] border-b border-[var(--sys-border-primary)] shrink-0 z-50 shadow-md">
         <div className="h-12 flex items-center justify-between px-3.5 bg-[url('/screens/top-nav-banner.svg')] bg-cover bg-center bg-no-repeat">
-         <div className="flex min-w-0 items-center">
-            <div className="flex min-w-0 items-center cursor-pointer" onClick={() => navigate('/')}>
+         <div className="flex items-center">
+            <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
                 <Cpu className="text-blue-400 mr-2" size={18} />
-                <span className="truncate font-bold text-[clamp(15px,2.8vw,20px)] leading-none text-[#cfe9ff]">{appTitle}</span>
+                <span className="font-bold text-[20px] leading-none tracking-wide text-[#cfe9ff]">{appTitle}</span>
             </div>
          </div>
 
