@@ -25,6 +25,7 @@ interface FaultFormCardProps {
   businessOptions?: FaultBusinessOption[];
   fromDiagnosis?: boolean;
   onSubmit: (payload: { title: string; business: string; businesses: string[]; desc: string; severity: string }) => void | Promise<void>;
+  onAsk?: (text: string) => void;
 }
 
 export const FaultFormCard: React.FC<FaultFormCardProps> = ({
@@ -38,6 +39,7 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
   businessOptions = [],
   fromDiagnosis,
   onSubmit,
+  onAsk,
 }) => {
   const [title, setTitle] = useState(defaultTitle);
   const [businesses, setBusinesses] = useState<string[]>(
@@ -230,6 +232,11 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
             key: 'template',
             label: '填充示例',
             onClick: applyTemplate,
+          },
+          {
+            key: 'check',
+            label: '提交前校验',
+            onClick: () => onAsk?.(`请校验这次报障是否信息完整：标题=${title || '未填写'}；业务=${businesses.join('、') || '未选择'}；紧急程度=${severity}；描述=${desc || '未填写'}`),
           },
           {
             key: 'submit',

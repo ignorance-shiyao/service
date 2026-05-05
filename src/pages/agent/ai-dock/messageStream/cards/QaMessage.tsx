@@ -39,6 +39,9 @@ export const QaMessage: React.FC<QaMessageProps> = ({ data, onSendFollowup, onOp
     `解释：${data.explanation}`,
     ...(sources.length ? ['', '引用来源', ...sources.map((source, idx) => `[${idx + 1}] ${source.title}`)] : []),
   ].join('\n');
+  const mergedFollowups = Array.from(
+    new Set([...(data.suggestions || []), ...((data.followups || []).slice(0, 3))])
+  );
 
   return (
     <div className="rounded-xl border border-[#3f77ab] bg-[linear-gradient(180deg,#0f3562_0%,#10315a_100%)] p-3 shadow-[0_10px_20px_rgba(7,31,67,0.24)]">
@@ -73,23 +76,11 @@ export const QaMessage: React.FC<QaMessageProps> = ({ data, onSendFollowup, onOp
           )}
         </div>
       )}
-      {data.suggestions && data.suggestions.length > 0 && (
+      {mergedFollowups.length > 0 && (
         <div className="mt-2">
-          <div className="mb-1 text-[11px] text-[#9fd0f5]">可执行操作</div>
+          <div className="mb-1 text-[11px] text-[#9fd0f5]">你可能还会问</div>
           <div className="flex flex-wrap gap-2">
-            {data.suggestions.map((s) => (
-              <button key={s} type="button" onClick={() => onSendFollowup(s)} className="rounded border border-[#3f85c4] bg-[#174f8d] px-2 py-1 text-[11px] text-[#dff1ff]">
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-      {data.followups && data.followups.length > 0 && (
-        <div className="mt-2">
-          <div className="mb-1 text-[11px] text-[#9fd0f5]">相关问答</div>
-          <div className="flex flex-wrap gap-2">
-          {data.followups.slice(0, 3).map((f) => (
+          {mergedFollowups.map((f) => (
             <button
               type="button"
               key={f}

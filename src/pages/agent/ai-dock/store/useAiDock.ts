@@ -497,13 +497,593 @@ export const buildReportCustomerBriefPayload = (report: ReportItem, customer: Cu
   explanation: [
     `${customer.name}本期运行整体可概括为：${report.summary}`,
     report.metrics.length ? `核心指标：${report.metrics.map((item) => `${item.label}${item.value}`).join('，')}。` : '',
+    report.serviceQuality?.length
+      ? `业务质量：${report.serviceQuality.map((item) => `${item.name}${item.status}（可用性${item.availability}，${item.note}）`).join('；')}。`
+      : '',
     report.events.length ? `重点事件：${report.events.slice(0, 2).map((item) => `${item.time} ${item.text}`).join('；')}。` : '',
+    report.risks?.length
+      ? `需关注风险：${report.risks.map((item) => `${item.level}风险-${item.title}，${item.detail}，责任${item.owner}`).join('；')}。`
+      : '',
+    report.tickets?.length ? `服务闭环：${report.tickets.map((item) => `${item.label}${item.value}，${item.note}`).join('；')}。` : '',
     report.suggestions.length ? `后续建议：${report.suggestions.join('；')}` : '',
+    report.nextActions?.length ? `建议下一步：${report.nextActions.map((item) => `${item.priority} ${item.action}（${item.owner}，${item.due}）`).join('；')}。` : '',
     '对客户沟通时建议先说整体稳定性，再说明已处理事件和后续观察动作，避免直接堆叠内部技术指标。',
   ].filter(Boolean).join(' '),
   suggestions: ['导出报告', '列出风险项', '联系客户经理'],
   followups: ['怎么给客户解释？', '哪些指标最需要关注？', '是否需要生成月报摘要？'],
 });
+
+export const buildReportRiskCustomerExplanationPayload = (report: ReportItem, customer: CustomerContext): QaPayload => {
+  const riskLines = (report.risks || []).map((risk, index) =>
+    `${index + 1}. ${risk.title}：可对客户说明为“当前已识别到${risk.level}风险关注项，暂未形成持续业务中断，但可能影响高峰期体验或恢复效率。我们已安排${risk.owner}跟进，目标时间：${risk.due}。”`
+  );
+  const actionLines = (report.nextActions || []).slice(0, 3).map((action, index) =>
+    `${index + 1}. ${action.action}（${action.owner}，${action.due}）。`
+  );
+
+  return {
+    conclusion: `${customer.name}风险说明建议`,
+    explanation: [
+      '客户沟通建议采用“整体可控、明确影响、说明动作、给出期限”的顺序，避免直接抛出内部风险名造成误解。',
+      `建议开场：${customer.name}本期整体运行平稳，当前风险项均已纳入跟踪清单，暂未发现持续性业务不可用。`,
+      riskLines.length ? `风险说明：${riskLines.join(' ')}` : '当前报告未列出明确风险项，可重点说明持续观察和例行优化安排。',
+      actionLines.length ? `后续动作：${actionLines.join(' ')}` : '',
+      '结束语建议：我们会持续观察关键指标，如出现客户侧可感知影响，会第一时间同步处理进展并升级人工跟进。',
+    ].filter(Boolean).join(' '),
+    suggestions: ['导出Word报告', '生成客户汇报话术', '联系客户经理'],
+    followups: ['需要更正式的客户邮件版本吗？', '风险项如何降级？', '能先生成报告预览吗？'],
+  };
+};
+
+export const buildReportRiskCustomerEmailPayload = (report: ReportItem, customer: CustomerContext): QaPayload => {
+  const riskSummary = (report.risks || []).map((risk) =>
+    `- ${risk.title}：当前为${risk.level}风险关注项，责任团队/人员为${risk.owner}，目标时间为${risk.due}。`
+  );
+  const actionSummary = (report.nextActions || []).slice(0, 4).map((action) =>
+    `- ${action.priority}：${action.action}（${action.owner}，${action.due}）`
+  );
+
+  return {
+    conclusion: `${customer.name}客户邮件草稿`,
+    explanation: [
+      `主题：${report.title}运行情况及后续跟踪说明`,
+      `尊敬的${customer.name}相关负责人：`,
+      `您好！本期运行报告显示，${customer.name}整体运行平稳，核心业务未发现持续性不可用情况。${report.summary}`,
+      '针对报告中列出的关注项，我们已纳入专项跟踪，不会仅停留在指标观察层面，会同步推进责任团队、目标时间和后续复核。',
+      riskSummary.length ? `当前重点关注项如下：\n${riskSummary.join('\n')}` : '当前未识别到明确风险项，后续将保持例行巡检和指标观察。',
+      actionSummary.length ? `后续计划如下：\n${actionSummary.join('\n')}` : '',
+      '如后续出现客户侧可感知影响，我们会第一时间同步处理进展，并按需升级人工跟进。也欢迎您反馈现场体验或补充业务高峰窗口，便于我们进一步优化保障策略。',
+      '此致',
+      '运维服务团队',
+    ].filter(Boolean).join('\n\n'),
+    suggestions: ['导出Word报告', '导出PDF报告', '联系客户经理'],
+    followups: ['需要更简短的短信版本吗？', '风险项如何降级？', '能先生成报告预览吗？'],
+  };
+};
+
+export const buildReportRiskSmsPayload = (report: ReportItem, customer: CustomerContext): QaPayload => {
+  const primaryRisks = (report.risks || []).slice(0, 2).map((risk) => `${risk.title}（${risk.owner}，${risk.due}）`);
+  const primaryAction = report.nextActions?.[0];
+  return {
+    conclusion: `${customer.name}短信版风险说明`,
+    explanation: [
+      `${customer.name}本期业务整体运行平稳，暂未发现持续性业务不可用。`,
+      primaryRisks.length ? `当前重点关注：${primaryRisks.join('；')}。` : '当前未识别到明确风险项，将保持例行巡检和指标观察。',
+      primaryAction ? `下一步：${primaryAction.action}，由${primaryAction.owner}负责，目标${primaryAction.due}。` : '',
+      '如出现客户侧可感知影响，我们会第一时间同步处理进展并升级人工跟进。',
+    ].filter(Boolean).join(''),
+    suggestions: ['复制回答', '导出Word报告', '联系客户经理'],
+    followups: ['需要更正式的客户邮件版本吗？', '风险项如何降级？'],
+  };
+};
+
+export const buildReportRiskDowngradePayload = (report: ReportItem): QaPayload => ({
+  conclusion: '风险项降级条件与动作',
+  explanation: [
+    '风险项不建议只凭主观判断降级，应同时满足“指标恢复、客户无感知、责任动作完成、观察期通过”四类条件。',
+    report.risks?.length
+      ? `当前报告风险项建议逐项处理：${report.risks.map((risk) => `${risk.title}需由${risk.owner}在${risk.due}前完成复核，并保留指标截图或巡检记录`).join('；')}。`
+      : '当前报告未列出明确风险项，可按例行巡检结果进行状态确认。',
+    '建议降级口径：中风险连续 3 个高峰窗口无复现后可降为低风险；低风险完成责任动作并通过 7 天观察后可关闭。',
+    '如果客户侧仍有慢、断、失败、排队变长等反馈，即使平台指标恢复，也不建议降级，应先补充客户侧影响确认。',
+  ].join(' '),
+  suggestions: ['生成客户汇报话术', '导出Word报告', '联系客户经理'],
+  followups: ['客户侧怎么说明风险？', '需要更正式的客户邮件版本吗？'],
+});
+
+const sanitizeFileName = (name: string) => name.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_');
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+const downloadBlob = (blob: Blob, fileName: string) => {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+const dataUrlToBytes = (dataUrl: string) => {
+  const base64 = dataUrl.split(',')[1] || '';
+  const binary = window.atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+};
+
+const encodePdfText = (text: string) => new TextEncoder().encode(text);
+
+const createPdfFromJpeg = (jpegBytes: Uint8Array, width: number, height: number) => {
+  const objects = [
+    '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
+    '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
+    `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n`,
+    `4 0 obj\n<< /Type /XObject /Subtype /Image /Width ${width} /Height ${height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`,
+    `\nendstream\nendobj\n`,
+    `5 0 obj\n<< /Length ${String(`q\n${width} 0 0 ${height} 0 0 cm\n/Im0 Do\nQ\n`).length} >>\nstream\nq\n${width} 0 0 ${height} 0 0 cm\n/Im0 Do\nQ\nendstream\nendobj\n`,
+  ];
+  const chunks: Uint8Array[] = [];
+  const offsets: number[] = [];
+  let cursor = 0;
+  const push = (chunk: Uint8Array) => {
+    chunks.push(chunk);
+    cursor += chunk.length;
+  };
+
+  push(encodePdfText('%PDF-1.4\n% report\n'));
+  offsets.push(cursor);
+  push(encodePdfText(objects[0]));
+  offsets.push(cursor);
+  push(encodePdfText(objects[1]));
+  offsets.push(cursor);
+  push(encodePdfText(objects[2]));
+  offsets.push(cursor);
+  push(encodePdfText(objects[3]));
+  push(jpegBytes);
+  push(encodePdfText(objects[4]));
+  offsets.push(cursor);
+  push(encodePdfText(objects[5]));
+
+  const xrefOffset = cursor;
+  const xref = [
+    'xref',
+    `0 ${offsets.length + 1}`,
+    '0000000000 65535 f ',
+    ...offsets.map((offset) => `${String(offset).padStart(10, '0')} 00000 n `),
+    'trailer',
+    `<< /Size ${offsets.length + 1} /Root 1 0 R >>`,
+    'startxref',
+    String(xrefOffset),
+    '%%EOF',
+    '',
+  ].join('\n');
+  push(encodePdfText(xref));
+
+  const output = new Uint8Array(cursor);
+  let writeOffset = 0;
+  chunks.forEach((chunk) => {
+    output.set(chunk, writeOffset);
+    writeOffset += chunk.length;
+  });
+  return new Blob([output], { type: 'application/pdf' });
+};
+
+const wrapCanvasText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => {
+  const lines: string[] = [];
+  let current = '';
+  Array.from(text).forEach((char) => {
+    const next = current + char;
+    if (ctx.measureText(next).width > maxWidth && current) {
+      lines.push(current);
+      current = char;
+    } else {
+      current = next;
+    }
+  });
+  if (current) lines.push(current);
+  return lines;
+};
+
+const drawWrappedText = (
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number
+) => {
+  const lines = wrapCanvasText(ctx, text, maxWidth);
+  lines.forEach((line, index) => ctx.fillText(line, x, y + index * lineHeight));
+  return lines.length * lineHeight;
+};
+
+const drawCanvasTable = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  widths: number[],
+  headers: string[],
+  rows: string[][],
+  options: { fontSize?: number; lineHeight?: number } = {}
+) => {
+  const fontSize = options.fontSize || 20;
+  const lineHeight = options.lineHeight || 30;
+  const paddingX = 12;
+  const headerHeight = 42;
+  const tableWidth = widths.reduce((sum, width) => sum + width, 0);
+
+  ctx.save();
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  ctx.fillStyle = '#edf3f8';
+  ctx.strokeStyle = '#b9c8d8';
+  ctx.lineWidth = 1.5;
+  ctx.fillRect(x, y, tableWidth, headerHeight);
+  ctx.strokeRect(x, y, tableWidth, headerHeight);
+  let cursorX = x;
+  headers.forEach((header, index) => {
+    if (index > 0) {
+      ctx.beginPath();
+      ctx.moveTo(cursorX, y);
+      ctx.lineTo(cursorX, y + headerHeight);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#22435f';
+    ctx.fillText(header, cursorX + paddingX, y + 28);
+    cursorX += widths[index];
+  });
+  y += headerHeight;
+
+  ctx.font = `${fontSize}px sans-serif`;
+  rows.forEach((row, rowIndex) => {
+    const cellLines = row.map((cell, index) => wrapCanvasText(ctx, cell, widths[index] - paddingX * 2));
+    const rowHeight = Math.max(42, Math.max(...cellLines.map((lines) => lines.length)) * lineHeight + 18);
+    ctx.fillStyle = rowIndex % 2 === 0 ? '#ffffff' : '#fafcff';
+    ctx.fillRect(x, y, tableWidth, rowHeight);
+    ctx.strokeStyle = '#bdcad8';
+    ctx.strokeRect(x, y, tableWidth, rowHeight);
+    cursorX = x;
+    cellLines.forEach((lines, index) => {
+      if (index > 0) {
+        ctx.beginPath();
+        ctx.moveTo(cursorX, y);
+        ctx.lineTo(cursorX, y + rowHeight);
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#27364a';
+      lines.forEach((line, lineIndex) => {
+        ctx.fillText(line, cursorX + paddingX, y + 28 + lineIndex * lineHeight);
+      });
+      cursorX += widths[index];
+    });
+    y += rowHeight;
+  });
+  ctx.restore();
+  return y;
+};
+
+const measureCanvasTableHeight = (
+  ctx: CanvasRenderingContext2D,
+  widths: number[],
+  rows: string[][],
+  options: { fontSize?: number; lineHeight?: number } = {}
+) => {
+  const fontSize = options.fontSize || 20;
+  const lineHeight = options.lineHeight || 30;
+  ctx.save();
+  ctx.font = `${fontSize}px sans-serif`;
+  const height = rows.reduce((sum, row) => {
+    const maxLines = Math.max(...row.map((cell, index) => wrapCanvasText(ctx, cell, widths[index] - 24).length));
+    return sum + Math.max(42, maxLines * lineHeight + 18);
+  }, 42);
+  ctx.restore();
+  return height;
+};
+
+const getExportReportPosture = (report: ReportItem) => {
+  const abnormal = report.serviceQuality?.filter((item) => item.status === '异常').length || 0;
+  const watch = report.serviceQuality?.filter((item) => item.status === '关注').length || 0;
+  const highRisks = report.risks?.filter((item) => item.level === '高').length || 0;
+  if (abnormal > 0 || highRisks > 0) return { label: '需立即处置', score: 'B', color: '#ff7d91' };
+  if (watch > 0 || (report.risks?.length || 0) > 0) return { label: '整体稳定，需跟踪', score: 'A-', color: '#ffb657' };
+  return { label: '运行健康', score: 'A', color: '#5de0b4' };
+};
+
+const renderReportCanvas = (report: ReportItem, customer: CustomerContext) => {
+  const width = 1240;
+  const padding = 88;
+  const contentWidth = width - padding * 2;
+  const tempCanvas = document.createElement('canvas');
+  const tempCtx = tempCanvas.getContext('2d');
+  if (!tempCtx) throw new Error('Canvas 初始化失败');
+
+  const posture = getExportReportPosture(report);
+  const normalQualityCount = report.serviceQuality?.filter((item) => item.status === '正常').length || 0;
+  const watchQualityCount = report.serviceQuality?.filter((item) => item.status !== '正常').length || 0;
+
+  tempCtx.font = '20px sans-serif';
+  const metricRows = report.metrics.map((item) => [item.label, item.value]);
+  const sectionLines = (report.sections || []).flatMap((section) => [`${section.title}`, ...section.items.map((item, index) => `${index + 1}. ${item}`)]);
+  const serviceRows = (report.serviceQuality || []).map((item) => [item.name, item.status, item.availability, item.latency, item.loss, item.note]);
+  const riskRows = (report.risks || []).map((item) => [item.level, item.title, item.detail, item.owner, item.due]);
+  const ticketRows = (report.tickets || []).map((item) => [item.label, item.value, item.note]);
+  const capacityRows = (report.capacity || []).map((item) => [item.label, item.value, item.note]);
+  const eventRows = report.events.map((item) => [item.time, item.text]);
+  const actionRows = (report.nextActions || []).map((item) => [item.priority, item.action, item.owner, item.due]);
+
+  const sectionHeight = sectionLines.reduce((sum, line) => sum + wrapCanvasText(tempCtx, line, contentWidth - 24).length * 30, 0) + 32;
+  let height = 250;
+  height += 110;
+  height += 64 + measureCanvasTableHeight(tempCtx, [contentWidth * 0.42, contentWidth * 0.58], metricRows);
+  height += 64 + sectionHeight;
+  if (serviceRows.length) height += 64 + measureCanvasTableHeight(tempCtx, [180, 100, 130, 130, 110, contentWidth - 650], serviceRows, { fontSize: 18, lineHeight: 28 });
+  if (riskRows.length) height += 64 + measureCanvasTableHeight(tempCtx, [110, 190, contentWidth - 620, 160, 160], riskRows, { fontSize: 18, lineHeight: 28 });
+  if (ticketRows.length) height += 64 + measureCanvasTableHeight(tempCtx, [190, 150, contentWidth - 340], ticketRows);
+  if (capacityRows.length) height += 64 + measureCanvasTableHeight(tempCtx, [220, 180, contentWidth - 400], capacityRows);
+  height += 64 + measureCanvasTableHeight(tempCtx, [190, contentWidth - 190], eventRows);
+  height += 64 + report.suggestions.reduce((sum, item) => sum + wrapCanvasText(tempCtx, item, contentWidth - 32).length * 30, 24);
+  if (actionRows.length) height += 64 + measureCanvasTableHeight(tempCtx, [100, contentWidth - 420, 170, 150], actionRows, { fontSize: 18, lineHeight: 28 });
+  height += 80;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 初始化失败');
+
+  ctx.fillStyle = '#f1f5f9';
+  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(15, 35, 60, 0.14)';
+  ctx.shadowBlur = 24;
+  ctx.shadowOffsetY = 10;
+  ctx.fillRect(48, 34, width - 96, height - 68);
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = '#d8e1ea';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(48, 34, width - 96, height - 68);
+
+  let y = 64;
+  ctx.fillStyle = '#0f2f57';
+  ctx.font = 'bold 40px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(report.title, width / 2, y);
+  y += 42;
+  ctx.fillStyle = '#5b6778';
+  ctx.font = '20px sans-serif';
+  ctx.fillText(`客户：${customer.name}（${customer.code}）　生成时间：${new Date().toLocaleString('zh-CN')}`, width / 2, y);
+  ctx.textAlign = 'left';
+  y += 38;
+  ctx.strokeStyle = '#c7d4e2';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(padding, y);
+  ctx.lineTo(width - padding, y);
+  ctx.stroke();
+  y += 28;
+
+  ctx.fillStyle = '#f7fafd';
+  ctx.strokeStyle = '#c5d3e2';
+  ctx.lineWidth = 1.5;
+  const summaryHeight = 118;
+  ctx.fillRect(padding, y, contentWidth, summaryHeight);
+  ctx.strokeRect(padding, y, contentWidth, summaryHeight);
+  ctx.fillStyle = posture.color;
+  ctx.font = 'bold 24px sans-serif';
+  ctx.fillText(`综合判断：${posture.score}｜${posture.label}`, padding + 24, y + 36);
+  ctx.fillStyle = '#26384f';
+  ctx.font = '20px sans-serif';
+  drawWrappedText(ctx, `总体摘要：${report.summary}`, padding + 24, y + 70, contentWidth - 48, 28);
+  ctx.fillStyle = '#4b5563';
+  ctx.fillText(`质量状态：${normalQualityCount} 项正常 / ${watchQualityCount} 项关注；风险项：${report.risks?.length || 0} 项；行动计划：${report.nextActions?.length || 0} 项。`, padding + 24, y + 104);
+  y += summaryHeight + 38;
+
+  const drawTitle = (title: string) => {
+    ctx.fillStyle = '#0f4c81';
+    ctx.font = 'bold 26px sans-serif';
+    ctx.fillText(title, padding, y);
+    y += 12;
+    ctx.strokeStyle = '#9bb7d4';
+    ctx.beginPath();
+    ctx.moveTo(padding, y);
+    ctx.lineTo(width - padding, y);
+    ctx.stroke();
+    y += 20;
+  };
+
+  drawTitle('一、核心指标');
+  y = drawCanvasTable(ctx, padding, y, [contentWidth * 0.42, contentWidth * 0.58], ['指标', '数值'], metricRows);
+  y += 34;
+
+  drawTitle('二、运行概述');
+  ctx.font = '20px sans-serif';
+  sectionLines.forEach((line) => {
+    const isHeading = !/^\d+\./.test(line);
+    ctx.fillStyle = isHeading ? '#1f4f7a' : '#27364a';
+    ctx.font = isHeading ? 'bold 22px sans-serif' : '20px sans-serif';
+    const used = drawWrappedText(ctx, line, padding + (isHeading ? 0 : 20), y, contentWidth - (isHeading ? 0 : 20), 30);
+    y += used + (isHeading ? 4 : 2);
+  });
+  y += 28;
+
+  if (serviceRows.length) {
+    drawTitle('三、业务质量明细');
+    y = drawCanvasTable(ctx, padding, y, [180, 100, 130, 130, 110, contentWidth - 650], ['业务', '状态', '可用性', '时延', '丢包', '说明'], serviceRows, { fontSize: 18, lineHeight: 28 });
+    y += 34;
+  }
+
+  if (riskRows.length) {
+    drawTitle('四、风险与影响');
+    y = drawCanvasTable(ctx, padding, y, [110, 190, contentWidth - 620, 160, 160], ['风险等级', '风险项', '影响说明', '责任部门/责任人', '计划期限'], riskRows, { fontSize: 18, lineHeight: 28 });
+    y += 34;
+  }
+
+  if (ticketRows.length) {
+    drawTitle('五、服务闭环');
+    y = drawCanvasTable(ctx, padding, y, [190, 150, contentWidth - 340], ['事项', '结果', '说明'], ticketRows);
+    y += 34;
+  }
+
+  if (capacityRows.length) {
+    drawTitle('六、容量与资源');
+    y = drawCanvasTable(ctx, padding, y, [220, 180, contentWidth - 400], ['资源项', '状态/数值', '说明'], capacityRows);
+    y += 34;
+  }
+
+  drawTitle('七、关键事件');
+  y = drawCanvasTable(ctx, padding, y, [190, contentWidth - 190], ['时间', '事件说明'], eventRows);
+  y += 34;
+
+  drawTitle('八、后续建议');
+  ctx.font = '20px sans-serif';
+  ctx.fillStyle = '#27364a';
+  report.suggestions.forEach((item, index) => {
+    const used = drawWrappedText(ctx, `${index + 1}. ${item}`, padding + 8, y, contentWidth - 8, 30);
+    y += used + 4;
+  });
+  y += 30;
+
+  if (actionRows.length) {
+    drawTitle('九、行动计划');
+    y = drawCanvasTable(ctx, padding, y, [100, contentWidth - 420, 170, 150], ['优先级', '行动项', '责任部门/责任人', '完成期限'], actionRows, { fontSize: 18, lineHeight: 28 });
+    y += 34;
+  }
+
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '18px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('由运维管家智能体生成，建议提交前结合客户现场反馈进行人工确认。', width - padding, height - 54);
+  ctx.textAlign = 'left';
+  return canvas;
+};
+
+const buildWordTable = (headers: string[], rows: string[][]) => `
+  <table>
+    <thead>
+      <tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join('')}</tr>
+    </thead>
+    <tbody>
+      ${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}
+    </tbody>
+  </table>
+`;
+
+const buildReportWordHtml = (report: ReportItem, customer: CustomerContext) => {
+  const posture = getExportReportPosture(report);
+  const normalQualityCount = report.serviceQuality?.filter((item) => item.status === '正常').length || 0;
+  const watchQualityCount = report.serviceQuality?.filter((item) => item.status !== '正常').length || 0;
+  const generatedAt = new Date().toLocaleString('zh-CN');
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(report.title)}</title>
+  <style>
+    @page { margin: 2.2cm 1.8cm; }
+    body { font-family: "Microsoft YaHei", SimSun, Arial, sans-serif; color: #1f2937; line-height: 1.75; font-size: 12pt; }
+    h1 { text-align: center; font-size: 22pt; margin: 0 0 16pt; color: #0f2f57; }
+    h2 { font-size: 15pt; color: #0f4c81; border-bottom: 1px solid #9bb7d4; padding-bottom: 4pt; margin-top: 18pt; }
+    h3 { font-size: 13pt; color: #1f4f7a; margin: 10pt 0 4pt; }
+    .meta { text-align: center; color: #4b5563; margin-bottom: 18pt; }
+    .summary { border: 1px solid #b7c9dd; background: #f3f7fb; padding: 10pt 12pt; margin: 12pt 0; }
+    .judgement { font-weight: bold; color: #0f4c81; }
+    table { width: 100%; border-collapse: collapse; margin: 8pt 0 12pt; }
+    th { background: #dbeafe; color: #173b63; font-weight: bold; }
+    th, td { border: 1px solid #9db4ce; padding: 6pt 7pt; vertical-align: top; }
+    ul, ol { margin-top: 4pt; }
+    li { margin-bottom: 3pt; }
+    .footer { color: #6b7280; font-size: 10pt; margin-top: 24pt; text-align: right; }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(report.title)}</h1>
+  <div class="meta">客户：${escapeHtml(customer.name)}（${escapeHtml(customer.code)}）　生成时间：${escapeHtml(generatedAt)}</div>
+
+  <div class="summary">
+    <div class="judgement">综合判断：${escapeHtml(posture.score)}｜${escapeHtml(posture.label)}</div>
+    <div>总体摘要：${escapeHtml(report.summary)}</div>
+    <div>质量状态：${normalQualityCount} 项正常 / ${watchQualityCount} 项关注；风险项：${report.risks?.length || 0} 项；行动计划：${report.nextActions?.length || 0} 项。</div>
+  </div>
+
+  <h2>一、核心指标</h2>
+  ${buildWordTable(['指标', '数值'], report.metrics.map((item) => [item.label, item.value]))}
+
+  <h2>二、运行概述</h2>
+  ${(report.sections || []).map((section) => `
+    <h3>${escapeHtml(section.title)}</h3>
+    <ol>${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ol>
+  `).join('')}
+
+  <h2>三、业务质量明细</h2>
+  ${buildWordTable(
+    ['业务', '状态', '可用性', '时延', '丢包', '说明'],
+    (report.serviceQuality || []).map((item) => [item.name, item.status, item.availability, item.latency, item.loss, item.note])
+  )}
+
+  <h2>四、风险与影响</h2>
+  ${buildWordTable(
+    ['风险等级', '风险项', '影响说明', '责任部门/责任人', '计划期限'],
+    (report.risks || []).map((item) => [item.level, item.title, item.detail, item.owner, item.due])
+  )}
+
+  <h2>五、服务闭环</h2>
+  ${buildWordTable(['事项', '结果', '说明'], (report.tickets || []).map((item) => [item.label, item.value, item.note]))}
+
+  <h2>六、容量与资源</h2>
+  ${buildWordTable(['资源项', '状态/数值', '说明'], (report.capacity || []).map((item) => [item.label, item.value, item.note]))}
+
+  <h2>七、关键事件</h2>
+  ${buildWordTable(['时间', '事件说明'], report.events.map((item) => [item.time, item.text]))}
+
+  <h2>八、后续建议</h2>
+  <ol>${report.suggestions.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ol>
+
+  <h2>九、行动计划</h2>
+  ${buildWordTable(
+    ['优先级', '行动项', '责任部门/责任人', '完成期限'],
+    (report.nextActions || []).map((item) => [item.priority, item.action, item.owner, item.due])
+  )}
+
+  <div class="footer">由运维管家智能体生成，建议提交前结合客户现场反馈进行人工确认。</div>
+</body>
+</html>`;
+};
+
+const exportReportFile = (report: ReportItem, customer: CustomerContext, type: 'pdf' | 'image' | 'word') => {
+  const fileBase = sanitizeFileName(`${customer.name}_${report.title}`);
+  if (type === 'word') {
+    const html = buildReportWordHtml(report, customer);
+    downloadBlob(new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' }), `${fileBase}.doc`);
+    showAppToast('运行报告 Word 已开始下载', 'success');
+    return;
+  }
+
+  const canvas = renderReportCanvas(report, customer);
+  if (type === 'image') {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        showAppToast('长图生成失败，请稍后再试', 'error');
+        return;
+      }
+      downloadBlob(blob, `${fileBase}.png`);
+      showAppToast('运行报告长图已开始下载', 'success');
+    }, 'image/png');
+    return;
+  }
+
+  const jpegBytes = dataUrlToBytes(canvas.toDataURL('image/jpeg', 0.92));
+  const pdfBlob = createPdfFromJpeg(jpegBytes, canvas.width, canvas.height);
+  downloadBlob(pdfBlob, `${fileBase}.pdf`);
+  showAppToast('运行报告 PDF 已开始下载', 'success');
+};
 
 export const buildFaultDescriptionPayload = (customer: CustomerContext): QaPayload => ({
   conclusion: '可用于报障的描述模板',
@@ -543,6 +1123,72 @@ export const buildQuantumTopologyPayload = (): QaPayload => ({
   sourceUpdatedAt: '2026-04-15',
   suggestions: ['发起SD-WAN诊断', '查看密钥健康详情', '查看《SD-WAN 选路策略》原始知识'],
   followups: ['哪些地市启用了量子？', '普通隧道是否有风险？', '异常时怎么回退？'],
+});
+
+export const buildFaultPrecheckPayload = (input: string): QaPayload => {
+  const missing: string[] = [];
+  if (/标题=未填写/.test(input)) missing.push('工单标题');
+  if (/业务=未选择/.test(input)) missing.push('报障业务');
+  if (/描述=未填写/.test(input) || /描述=.{0,7}$/.test(input)) missing.push('问题描述');
+  const hasImpact = /影响|中断|变慢|失败|丢包|无法|不通|抖动/.test(input);
+  const hasTime = /时间|上午|下午|晚上|\d{1,2}[:：]\d{2}|今日|昨天|分钟|小时/.test(input);
+
+  return {
+    conclusion: missing.length ? '报障信息仍需补充' : '报障信息基本完整',
+    explanation: [
+      missing.length ? `缺少：${missing.join('、')}。` : '标题、业务、描述和紧急程度已具备，可进入提交。',
+      hasImpact ? '已包含影响或现象描述。' : '建议补充客户侧影响，例如受影响站点、用户范围或业务表现。',
+      hasTime ? '已包含时间信息。' : '建议补充发生时间和持续时长，便于判断SLA和优先级。',
+      '提交前请确认描述中没有内部无关术语，优先说明客户可感知影响。',
+    ].join(' '),
+    suggestions: missing.length ? ['补充影响范围', '生成报障描述', '联系客户经理'] : ['发起报障', '联系客户经理'],
+    followups: ['哪些材料最关键？', '是否需要升级处理？', '客户侧怎么说明？'],
+  };
+};
+
+export const buildDiagnosisPriorityPayload = (customer: CustomerContext): QaPayload => {
+  const available = customer.businessTypes
+    .map((type) => DIAGNOSIS_TEMPLATES.find((item) => item.id === type))
+    .filter((item): item is DiagnosisTemplate => Boolean(item));
+  const ordered = available.length > 0
+    ? available.slice().sort((a, b) => a.score - b.score)
+    : DIAGNOSIS_TEMPLATES.slice().sort((a, b) => a.score - b.score);
+
+  return {
+    conclusion: '推荐诊断优先级',
+    explanation: [
+      `建议优先诊断：${ordered.slice(0, 3).map((item, index) => `${index + 1}. ${item.name}`).join('；')}。`,
+      '排序依据是当前业务类型、历史健康评分和潜在客户影响，先处理低评分或关键承载业务，再处理日常巡检项。',
+      '如果客户已明确反馈某类业务受影响，应以客户反馈业务为第一优先级。',
+    ].join(' '),
+    suggestions: ['开始业务诊断', `发起${ordered[0]?.name || '业务'}诊断`, '查看本月运行报告'],
+    followups: ['哪些业务最优先？', '是否需要生成客户说明？', '诊断后如何处置？'],
+  };
+};
+
+export const buildDiagnosisStagePayload = (input: string): QaPayload => {
+  const step = input.match(/诊断正在进行[:：](.*?)(，|,|。|$)/)?.[1]?.trim() || '当前诊断阶段';
+  return {
+    conclusion: '诊断阶段解读',
+    explanation: [
+      `当前阶段是“${step}”。`,
+      '这个阶段主要用于采集运行指标、关联告警日志并形成初步判断，还不适合直接下结论。',
+      '建议等待诊断完成后再发起报障；如果客户侧影响仍在扩大，可先联系客户经理同步风险。',
+    ].join(' '),
+    suggestions: ['联系客户经理', '查看诊断历史'],
+    followups: ['诊断完成后怎么处置？', '哪些指标需要持续观察？', '是否需要升级处理？'],
+  };
+};
+
+export const buildDiagnosisCompletionPayload = (title: string): QaPayload => ({
+  conclusion: `${title || '诊断'}后续处置建议`,
+  explanation: [
+    '建议先查看诊断报告里的健康评分、关键发现和建议动作。',
+    '如果结论包含异常、抖动、失败、容量不足或客户侧影响，应直接发起报障并带入诊断结果。',
+    '如果只是关注项，建议生成客户侧说明并设置未来7天重点观察。',
+  ].join(' '),
+  suggestions: ['发起报障', '查看诊断历史', '生成客户汇报话术'],
+  followups: ['哪些指标需要持续观察？', '是否需要升级处理？', '客户侧怎么说明？'],
 });
 
 export const getPrimaryQaSourceId = (payload?: QaPayload): string | null =>
@@ -791,6 +1437,24 @@ export const useAiDock = () => {
     }));
   }, [updateActiveSession]);
 
+  const upsertLatestReceiptCard = useCallback((
+    matcher: (message: AiMessage) => boolean,
+    data: any
+  ) => {
+    const existing = [...messages].reverse().find((message) => (
+      message.role === 'assistant' && message.kind === 'receiptCard' && matcher(message)
+    ));
+    if (existing) {
+      updateMessageData(existing.id, data);
+      return existing.id;
+    }
+    return appendMessage({
+      role: 'assistant',
+      kind: 'receiptCard',
+      data,
+    });
+  }, [appendMessage, messages, updateMessageData]);
+
   const createSystemNoticeFlow = useCallback((title: string, firstLog: string, progress = 0) => {
     const logs = appendFlowLog([], firstLog);
     const id = appendMessage({
@@ -949,33 +1613,13 @@ export const useAiDock = () => {
     });
   }, [appendMessage, updateMessageData]);
 
-  const runReportExport = useCallback(async (type: 'pdf' | 'image') => {
-    const docName = type === 'pdf' ? 'PDF' : '长图';
-    const { id, logs: initialLogs } = createSystemNoticeFlow(`正在生成${docName}...`, `开始生成${docName}文件`, 20);
-    let logs = initialLogs;
-    await delay(420);
-    logs = advanceSystemNoticeFlow(id, {
-      logs,
-      logText: '已完成图表渲染与数据聚合',
-      progress: 55,
-      title: `正在生成${docName}...`,
-    });
-    await delay(420);
-    logs = advanceSystemNoticeFlow(id, {
-      logs,
-      logText: '已完成模板排版与导出封装',
-      progress: 85,
-      title: `正在生成${docName}...`,
-    });
-    await delay(360);
-    advanceSystemNoticeFlow(id, {
-      logs,
-      logText: `${docName}已生成，可执行下载`,
-      progress: 100,
-      status: 'done',
-      title: `已生成${docName}，点击下载`,
-    });
-  }, [advanceSystemNoticeFlow, createSystemNoticeFlow]);
+  const runReportExport = useCallback(async (type: 'pdf' | 'image' | 'word') => {
+    try {
+      exportReportFile(activeReport, activeCustomer, type);
+    } catch {
+      showAppToast(`${type === 'pdf' ? 'PDF' : type === 'word' ? 'Word' : '长图'}导出失败，请稍后再试`, 'error');
+    }
+  }, [activeCustomer, activeReport]);
 
   const generateBusinessDiagnosisBrief = useCallback(async (report: BusinessDiagnosisReportPayload) => {
     const abnormal = report.results.filter((item) => item.level === '异常');
@@ -1040,19 +1684,16 @@ export const useAiDock = () => {
 
     if (input.includes('二次提醒') || input.includes('再次提醒')) {
       trackIntentHit('other', 0);
-      appendMessage({
-        role: 'system',
-        kind: 'systemNotice',
-        data: { title: '已再次提醒客户经理，并同步当前会话上下文。', progress: 100 },
-      });
-      appendMessage({
-        role: 'assistant',
-        kind: 'receiptCard',
-        data: {
+      upsertLatestReceiptCard(
+        (message) => {
+          const title = String(message.data?.title || '');
+          return title.includes('客户经理联络回执') || title.includes('客户经理二次提醒回执');
+        },
+        {
           title: '客户经理二次提醒回执',
           fields: [
             { label: '客户经理', value: `${activeCustomer.accountManager.name}（${activeCustomer.accountManager.phone}）` },
-            { label: '提醒结果', value: '已发送二次提醒' },
+            { label: '提醒结果', value: '已发送二次提醒（含会话上下文）' },
             { label: '升级条件', value: `超过${activeCustomer.slas.responseMinutes}分钟仍无响应` },
           ],
           nextSteps: [
@@ -1063,22 +1704,16 @@ export const useAiDock = () => {
           actions: [
             { key: 'fault', label: '发起报障', ask: '我要发起报障', tone: 'primary' },
           ],
-        },
-      });
+        }
+      );
       return;
     }
 
     if (input.includes('联系客户经理') || input.includes('客户经理')) {
       trackIntentHit('other', 0);
-      appendMessage({
-        role: 'system',
-        kind: 'systemNotice',
-        data: { title: '已通知客户经理，预计 5 分钟内与您联系。', progress: 100 },
-      });
-      appendMessage({
-        role: 'assistant',
-        kind: 'receiptCard',
-        data: {
+      upsertLatestReceiptCard(
+        (message) => String(message.data?.title || '').includes('客户经理'),
+        {
           title: '客户经理联络回执',
           fields: [
             { label: '客户经理', value: `${activeCustomer.accountManager.name}（${activeCustomer.accountManager.phone}）` },
@@ -1093,9 +1728,8 @@ export const useAiDock = () => {
           actions: [
             { key: 'remind', label: '立即二次提醒', ask: '请立即二次提醒客户经理并回传结果', tone: 'primary' },
           ],
-        },
-      });
-      await streamAssistantText('我已把当前会话上下文同步给客户经理，您可以继续补充问题细节以便更快处理。');
+        }
+      );
       return;
     }
 
@@ -1118,6 +1752,43 @@ export const useAiDock = () => {
         kind: 'systemNotice',
         data: { title: '已打开诊断历史，可查看历史诊断结果与模板。', progress: 100 },
       });
+      return;
+    }
+
+    if (input.includes('推荐优先诊断顺序') || input.includes('推荐诊断顺序') || input.includes('推荐优先级')) {
+      trackIntentHit('diagnosis', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildDiagnosisPriorityPayload(activeCustomer),
+        });
+      }, 240);
+      return;
+    }
+
+    if (input.includes('诊断正在进行') || input.includes('解释这个阶段')) {
+      trackIntentHit('diagnosis', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildDiagnosisStagePayload(inputRaw),
+        });
+      }, 220);
+      return;
+    }
+
+    if (input.includes('诊断已完成') && input.includes('处置建议')) {
+      trackIntentHit('diagnosis', 0);
+      const title = inputRaw.match(/诊断已完成（(.+?)）/)?.[1] || '诊断';
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildDiagnosisCompletionPayload(title),
+        });
+      }, 240);
       return;
     }
 
@@ -1198,9 +1869,111 @@ export const useAiDock = () => {
       return;
     }
 
-    if (input.includes('导出报告')) {
+    if (input.includes('导出word') || input.includes('导出 word') || input.includes('word报告') || input.includes('word版')) {
+      trackIntentHit('report', 0);
+      await runReportExport('word');
+      return;
+    }
+
+    if (input.includes('导出长图') || input.includes('生成长图') || input.includes('图片版报告')) {
+      trackIntentHit('report', 0);
+      await runReportExport('image');
+      return;
+    }
+
+    if (input.includes('导出pdf') || input.includes('导出 pdf') || input.includes('pdf报告')) {
       trackIntentHit('report', 0);
       await runReportExport('pdf');
+      return;
+    }
+
+    if (input.includes('导出报告')) {
+      trackIntentHit('report', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: {
+            conclusion: '请选择报告导出格式',
+            explanation: '当前运行报告支持 Word、PDF 和长图三种格式。Word 适合正式编辑和归档，PDF 适合定稿发送，长图适合移动端快速转发。点击下方操作后会直接下载，不会再生成二次对话。',
+            suggestions: ['导出Word报告', '导出PDF报告', '导出长图'],
+            followups: ['哪种格式适合客户汇报？', '能先生成报告预览吗？'],
+          },
+        });
+      }, 180);
+      return;
+    }
+
+    if (input.includes('哪种格式适合客户汇报') || input.includes('哪种格式适合汇报') || input.includes('报告格式建议')) {
+      trackIntentHit('report', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: {
+            conclusion: '客户汇报优先使用 Word，定稿外发再转 PDF',
+            explanation: '如果还需要客户经理补充措辞、删改风险描述或调整责任部门，建议先导出 Word；如果内容已经确认无误，建议导出 PDF 作为正式附件；如果只是微信群、移动端快速同步，可导出长图。当前报告预览已按 Word 结构组织，适合先导出 Word 后再人工润色。',
+            suggestions: ['导出Word报告', '导出PDF报告', '生成客户汇报话术'],
+            followups: ['能先生成报告预览吗？', '客户侧怎么说明风险？'],
+          },
+        });
+      }, 180);
+      return;
+    }
+
+    if (input.includes('生成报告预览') || input.includes('先生成报告预览') || input.includes('查看报告预览')) {
+      trackIntentHit('report', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({ role: 'assistant', kind: 'reportCard', data: activeReport });
+      }, 240);
+      return;
+    }
+
+    if (input.includes('客户侧怎么说明风险') || input.includes('客户怎么说明风险') || input.includes('风险怎么对客户说')) {
+      trackIntentHit('report', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildReportRiskCustomerExplanationPayload(activeReport, activeCustomer),
+        });
+      }, 220);
+      return;
+    }
+
+    if (input.includes('正式的客户邮件') || input.includes('客户邮件版本') || input.includes('客户邮件草稿')) {
+      trackIntentHit('report', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildReportRiskCustomerEmailPayload(activeReport, activeCustomer),
+        });
+      }, 220);
+      return;
+    }
+
+    if (input.includes('简短的短信版本') || input.includes('短信版本') || input.includes('企微版本') || input.includes('微信版本')) {
+      trackIntentHit('report', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildReportRiskSmsPayload(activeReport, activeCustomer),
+        });
+      }, 200);
+      return;
+    }
+
+    if (input.includes('风险项如何降级') || input.includes('风险怎么降级') || input.includes('风险降级条件')) {
+      trackIntentHit('report', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildReportRiskDowngradePayload(activeReport),
+        });
+      }, 220);
       return;
     }
 
@@ -1263,6 +2036,18 @@ export const useAiDock = () => {
           data: buildFaultDescriptionPayload(activeCustomer),
         });
       }, 240);
+      return;
+    }
+
+    if (input.includes('校验这次报障') || input.includes('提交前校验')) {
+      trackIntentHit('fault', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildFaultPrecheckPayload(inputRaw),
+        });
+      }, 220);
       return;
     }
 

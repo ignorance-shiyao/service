@@ -240,6 +240,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                   businessOptions={message.data.businessOptions}
                   fromDiagnosis={message.data.fromDiagnosis}
                   onSubmit={store.submitFaultTicket}
+                  onAsk={store.sendUserText}
                 />
               )
             )}

@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildFaultDescriptionPayload,
+  buildFaultPrecheckPayload,
+  buildDiagnosisCompletionPayload,
+  buildDiagnosisPriorityPayload,
+  buildDiagnosisStagePayload,
   buildImpactSupplementPayload,
   buildQaExpansionPayload,
   buildQuantumKeyHealthPayload,
   buildQuantumTopologyPayload,
   buildReportCustomerBriefPayload,
+  buildReportRiskCustomerEmailPayload,
+  buildReportRiskCustomerExplanationPayload,
+  buildReportRiskDowngradePayload,
+  buildReportRiskSmsPayload,
   buildSlaCheckPayload,
   getPrimaryQaSourceId,
   getRelatedKnowledgeForQa,
@@ -13,7 +21,7 @@ import {
   parsePersistedSessions,
 } from './useAiDock';
 import type { TicketItem } from '../../../../mock/assistant';
-import { REPORTS } from '../../../../mock/assistant';
+import { FAQ_ITEMS, REPORTS } from '../../../../mock/assistant';
 
 describe('ai dock persisted session hardening', () => {
   it('fills missing customer fields from a stable fallback', () => {
@@ -141,7 +149,64 @@ describe('ai dock action payload completeness', () => {
     expect(payload.conclusion).toContain('客户汇报话术');
     expect(payload.explanation).toContain('测试客户');
     expect(payload.explanation).toContain(REPORTS[0].summary);
+    expect(payload.explanation).toContain('业务质量');
+    expect(payload.explanation).toContain('需关注风险');
+    expect(payload.explanation).toContain('建议下一步');
     expect(payload.suggestions).toContain('导出报告');
+  });
+
+  it('keeps report export guidance aligned with direct download formats', () => {
+    const faq = FAQ_ITEMS.find((item) => item.id === 'faq_7');
+
+    expect(faq?.conclusion).toContain('Word');
+    expect(faq?.conclusion).toContain('PDF');
+    expect(faq?.conclusion).toContain('长图');
+    expect(faq?.explanation).toContain('直接下载');
+    expect(faq?.explanation).not.toContain('返回下载链接');
+  });
+
+  it('builds customer-safe explanations for report risks', () => {
+    const customer = normalizeCustomerContext({ name: '测试客户', code: 'CUST-TEST' }, 0);
+    const payload = buildReportRiskCustomerExplanationPayload(REPORTS[0], customer);
+
+    expect(payload.conclusion).toContain('测试客户');
+    expect(payload.explanation).toContain('整体可控');
+    expect(payload.explanation).toContain('暂未形成持续业务中断');
+    expect(payload.explanation).toContain('目标时间');
+    expect(payload.explanation).not.toContain('完成复核或优化');
+    expect(payload.explanation).toContain(REPORTS[0].risks?.[0].owner);
+    expect(payload.suggestions).toContain('导出Word报告');
+  });
+
+  it('builds a formal customer email draft for report risks', () => {
+    const customer = normalizeCustomerContext({ name: '测试客户', code: 'CUST-TEST' }, 0);
+    const payload = buildReportRiskCustomerEmailPayload(REPORTS[0], customer);
+
+    expect(payload.conclusion).toContain('客户邮件草稿');
+    expect(payload.explanation).toContain('主题：');
+    expect(payload.explanation).toContain('尊敬的测试客户相关负责人');
+    expect(payload.explanation).toContain('此致');
+    expect(payload.suggestions).toContain('导出Word报告');
+  });
+
+  it('builds risk downgrade conditions from report risks', () => {
+    const payload = buildReportRiskDowngradePayload(REPORTS[0]);
+
+    expect(payload.conclusion).toContain('风险项降级');
+    expect(payload.explanation).toContain('指标恢复');
+    expect(payload.explanation).toContain('观察期');
+    expect(payload.explanation).toContain(REPORTS[0].risks?.[0].owner);
+  });
+
+  it('builds a concise SMS version for report risks', () => {
+    const customer = normalizeCustomerContext({ name: '测试客户', code: 'CUST-TEST' }, 0);
+    const payload = buildReportRiskSmsPayload(REPORTS[0], customer);
+
+    expect(payload.conclusion).toContain('短信版');
+    expect(payload.explanation).toContain('整体运行平稳');
+    expect(payload.explanation).toContain('当前重点关注');
+    expect(payload.explanation.length).toBeLessThan(360);
+    expect(payload.suggestions).toContain('联系客户经理');
   });
 
   it('builds a usable fault description template', () => {
@@ -152,6 +217,41 @@ describe('ai dock action payload completeness', () => {
     expect(payload.explanation).toContain('现象');
     expect(payload.explanation).toContain('诉求');
     expect(payload.suggestions).toContain('发起报障');
+  });
+
+  it('builds diagnosis priority guidance for customer business types', () => {
+    const customer = normalizeCustomerContext({ name: '测试客户', code: 'CUST-TEST', businessTypes: ['SDWAN', 'AIC'] }, 0);
+    const payload = buildDiagnosisPriorityPayload(customer);
+
+    expect(payload.conclusion).toBe('推荐诊断优先级');
+    expect(payload.explanation).toContain('建议优先诊断');
+    expect(payload.suggestions?.some((item) => item.includes('诊断'))).toBe(true);
+  });
+
+  it('builds diagnosis stage explanation from progress text', () => {
+    const payload = buildDiagnosisStagePayload('诊断正在进行：关联告警与日志事件，请解释这个阶段在做什么');
+
+    expect(payload.conclusion).toBe('诊断阶段解读');
+    expect(payload.explanation).toContain('关联告警与日志事件');
+    expect(payload.suggestions).toContain('联系客户经理');
+  });
+
+  it('builds diagnosis completion next actions', () => {
+    const payload = buildDiagnosisCompletionPayload('量子隧道与选路策略诊断');
+
+    expect(payload.conclusion).toContain('后续处置建议');
+    expect(payload.explanation).toContain('诊断报告');
+    expect(payload.suggestions).toContain('发起报障');
+    expect(payload.suggestions).toContain('查看诊断历史');
+  });
+
+  it('checks fault form completeness before submit', () => {
+    const payload = buildFaultPrecheckPayload('请校验这次报障是否信息完整：标题=未填写；业务=未选择；紧急程度=中；描述=未填写');
+
+    expect(payload.conclusion).toBe('报障信息仍需补充');
+    expect(payload.explanation).toContain('工单标题');
+    expect(payload.explanation).toContain('报障业务');
+    expect(payload.suggestions).toContain('补充影响范围');
   });
 
   it('builds quantum key health details with knowledge sources', () => {

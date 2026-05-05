@@ -59,7 +59,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, onOpen, onCopy, 
               onAsk?.(
                 needsCustomerConfirm
                   ? `工单 ${ticket.id} 当前待客户确认，请给我确认完成与申请二次受理的判断建议`
-                  : `请给我工单 ${ticket.id} 的催办话术，语气专业简洁`
+                  : `催办工单 ${ticket.id}`
               ),
           },
           {

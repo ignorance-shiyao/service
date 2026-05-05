@@ -61,7 +61,13 @@ export const FAQ_ITEMS: FaqItem[] = [
     explanation: '工单状态支持系统消息推送，关键节点会自动提醒。',
     suggestions: ['查看我的工单', '联系客户经理']
   },
-  { id: 'faq_7', q: '怎么导出月报', conclusion: '可在报告卡片内一键导出PDF或长图。', explanation: '系统会先生成摘要与趋势图，再返回下载链接。', suggestions: ['生成本月月报'] },
+  {
+    id: 'faq_7',
+    q: '怎么导出月报',
+    conclusion: '可在报告卡片内直接导出 Word、PDF 或长图。',
+    explanation: 'Word 适合正式编辑和归档，PDF 适合定稿发送，长图适合移动端快速转发；点击导出后会直接下载，不再额外生成对话卡片。',
+    suggestions: ['生成本月月报', '导出Word报告', '导出PDF报告']
+  },
   { id: 'faq_8', q: '告警太多怎么处理', conclusion: '建议先按业务与严重度分组，再执行根因聚类处理。', explanation: '批量去重和关联分析可显著提升处置效率。', suggestions: ['发起业务诊断'] },
   { id: 'faq_9', q: '如何联系客户经理', conclusion: '可在任意兜底卡或顶栏动作中发起联系。', explanation: '系统会带上当前会话上下文，便于快速介入。', suggestions: ['立即联系客户经理'] },
   { id: 'faq_10', q: '专线割接会中断吗', conclusion: '规范割接可将中断窗口压缩到秒级。', explanation: '关键在于预演与回退预案完备。', sourceId: 'line_4' },
