@@ -492,6 +492,31 @@ export const buildImpactSupplementPayload = (): QaPayload => ({
   followups: ['需要我生成报障描述吗？', '哪些材料最关键？', '客户侧怎么说明？'],
 });
 
+export const buildReportCustomerBriefPayload = (report: ReportItem, customer: CustomerContext): QaPayload => ({
+  conclusion: `${report.title}客户汇报话术`,
+  explanation: [
+    `${customer.name}本期运行整体可概括为：${report.summary}`,
+    report.metrics.length ? `核心指标：${report.metrics.map((item) => `${item.label}${item.value}`).join('，')}。` : '',
+    report.events.length ? `重点事件：${report.events.slice(0, 2).map((item) => `${item.time} ${item.text}`).join('；')}。` : '',
+    report.suggestions.length ? `后续建议：${report.suggestions.join('；')}` : '',
+    '对客户沟通时建议先说整体稳定性，再说明已处理事件和后续观察动作，避免直接堆叠内部技术指标。',
+  ].filter(Boolean).join(' '),
+  suggestions: ['导出报告', '列出风险项', '联系客户经理'],
+  followups: ['怎么给客户解释？', '哪些指标最需要关注？', '是否需要生成月报摘要？'],
+});
+
+export const buildFaultDescriptionPayload = (customer: CustomerContext): QaPayload => ({
+  conclusion: '可用于报障的描述模板',
+  explanation: [
+    `客户：${customer.name}（${customer.code}）。`,
+    '现象：业务访问出现异常，请根据实际情况补充“慢、断、丢包、接入失败”等表现。',
+    '影响：请补充受影响业务、站点、用户范围和开始时间。',
+    '诉求：请协助快速定位原因，给出预计恢复时间，并同步后续处理进展。',
+  ].join(' '),
+  suggestions: ['发起报障', '补充影响范围', '联系客户经理'],
+  followups: ['哪些材料最关键？', '是否需要升级处理？', '客户侧怎么说明？'],
+});
+
 
 const toValidSession = (value: any): AiConversationSession | null => {
   if (!value || typeof value !== 'object') return null;
@@ -971,6 +996,36 @@ export const useAiDock = () => {
     const input = inputRaw.toLowerCase();
     const resolvedIntent = resolveIntent(inputRaw, intent);
 
+    if (input.includes('二次提醒') || input.includes('再次提醒')) {
+      trackIntentHit('other', 0);
+      appendMessage({
+        role: 'system',
+        kind: 'systemNotice',
+        data: { title: '已再次提醒客户经理，并同步当前会话上下文。', progress: 100 },
+      });
+      appendMessage({
+        role: 'assistant',
+        kind: 'receiptCard',
+        data: {
+          title: '客户经理二次提醒回执',
+          fields: [
+            { label: '客户经理', value: `${activeCustomer.accountManager.name}（${activeCustomer.accountManager.phone}）` },
+            { label: '提醒结果', value: '已发送二次提醒' },
+            { label: '升级条件', value: `超过${activeCustomer.slas.responseMinutes}分钟仍无响应` },
+          ],
+          nextSteps: [
+            '等待客户经理回呼',
+            '超时未响应：升级至值班主管',
+            '问题仍在扩大：建议同步发起报障',
+          ],
+          actions: [
+            { key: 'fault', label: '发起报障', ask: '我要发起报障', tone: 'primary' },
+          ],
+        },
+      });
+      return;
+    }
+
     if (input.includes('联系客户经理') || input.includes('客户经理')) {
       trackIntentHit('other', 0);
       appendMessage({
@@ -1057,6 +1112,15 @@ export const useAiDock = () => {
         await generateBusinessDiagnosisBrief(latestReport.data as BusinessDiagnosisReportPayload);
         return;
       }
+      trackIntentHit('report', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildReportCustomerBriefPayload(activeReport, activeCustomer),
+        });
+      }, 240);
+      return;
     }
 
     if (input.includes('查看非正常业务')) {
@@ -1079,13 +1143,25 @@ export const useAiDock = () => {
       return;
     }
 
-    if (input.includes('是否超过sla') || input.includes('是否超时') || input.includes('超过sla')) {
+    if (input.includes('是否超过sla') || input.includes('是否超时') || input.includes('超过sla') || input.includes('需要催办吗') || input.includes('是否需要催办')) {
       trackIntentHit('ticket', 0);
       await appendCardWithThinking(() => {
         appendMessage({
           role: 'assistant',
           kind: 'qa',
           data: buildSlaCheckPayload(tickets[0] || TICKETS[0], activeCustomer),
+        });
+      }, 240);
+      return;
+    }
+
+    if (input.includes('生成报障描述') || input.includes('报障描述模板')) {
+      trackIntentHit('fault', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildFaultDescriptionPayload(activeCustomer),
         });
       }, 240);
       return;

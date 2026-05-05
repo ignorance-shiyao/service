@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildFaultDescriptionPayload,
   buildImpactSupplementPayload,
   buildQaExpansionPayload,
+  buildReportCustomerBriefPayload,
   buildSlaCheckPayload,
   normalizeCustomerContext,
   parsePersistedSessions,
 } from './useAiDock';
 import type { TicketItem } from '../../../../mock/assistant';
+import { REPORTS } from '../../../../mock/assistant';
 
 describe('ai dock persisted session hardening', () => {
   it('fills missing customer fields from a stable fallback', () => {
@@ -109,5 +112,25 @@ describe('ai dock action payload completeness', () => {
     expect(payload.explanation).toContain('是否可复现');
     expect(payload.suggestions).toContain('发起报障');
     expect(payload.suggestions).toContain('联系客户经理');
+  });
+
+  it('builds customer-facing report brief when no diagnosis report exists', () => {
+    const customer = normalizeCustomerContext({ name: '测试客户', code: 'CUST-TEST' }, 0);
+    const payload = buildReportCustomerBriefPayload(REPORTS[0], customer);
+
+    expect(payload.conclusion).toContain('客户汇报话术');
+    expect(payload.explanation).toContain('测试客户');
+    expect(payload.explanation).toContain(REPORTS[0].summary);
+    expect(payload.suggestions).toContain('导出报告');
+  });
+
+  it('builds a usable fault description template', () => {
+    const customer = normalizeCustomerContext({ name: '测试客户', code: 'CUST-TEST' }, 0);
+    const payload = buildFaultDescriptionPayload(customer);
+
+    expect(payload.explanation).toContain('客户：测试客户');
+    expect(payload.explanation).toContain('现象');
+    expect(payload.explanation).toContain('诉求');
+    expect(payload.suggestions).toContain('发起报障');
   });
 });
