@@ -517,6 +517,48 @@ export const buildFaultDescriptionPayload = (customer: CustomerContext): QaPaylo
   followups: ['哪些材料最关键？', '是否需要升级处理？', '客户侧怎么说明？'],
 });
 
+export const buildQuantumKeyHealthPayload = (): QaPayload => ({
+  conclusion: '量子密钥健康详情',
+  explanation: [
+    '当前密钥刷新与链路健康均处于正常范围，建议重点关注密钥池余量、刷新周期、QKD链路状态和策略同步状态。',
+    '如果出现密钥池下降过快、刷新失败或策略不同步，应先核对QKD链路，再评估是否临时切回经典加密。',
+  ].join(' '),
+  sourceId: 'sdwan_2',
+  sourceIds: ['sdwan_2', 'sdwan_4'],
+  sources: buildKnowledgeSources(['sdwan_2', 'sdwan_4']),
+  sourceUpdatedAt: '2026-04-20',
+  suggestions: ['查看量子链路拓扑', '发起SD-WAN诊断', '查看《密钥刷新周期》原始知识'],
+  followups: ['密钥异常怎么恢复？', '多久刷新一次合适？', '异常时怎么回退？'],
+});
+
+export const buildQuantumTopologyPayload = (): QaPayload => ({
+  conclusion: '量子链路拓扑查看建议',
+  explanation: [
+    '建议按“总部Hub、关键分支、普通分支”三层查看量子隧道覆盖，重点确认哪些业务走量子保护、哪些仍走普通隧道。',
+    '如果关键分支没有量子保护或隧道切换偏慢，应进入SD-WAN诊断确认选路策略和密钥策略是否一致。',
+  ].join(' '),
+  sourceId: 'sdwan_3',
+  sourceIds: ['sdwan_3', 'sdwan_1'],
+  sources: buildKnowledgeSources(['sdwan_3', 'sdwan_1']),
+  sourceUpdatedAt: '2026-04-15',
+  suggestions: ['发起SD-WAN诊断', '查看密钥健康详情', '查看《SD-WAN 选路策略》原始知识'],
+  followups: ['哪些地市启用了量子？', '普通隧道是否有风险？', '异常时怎么回退？'],
+});
+
+export const getPrimaryQaSourceId = (payload?: QaPayload): string | null =>
+  payload?.sources?.[0]?.id || payload?.sourceIds?.[0] || payload?.sourceId || null;
+
+export const getRelatedKnowledgeForQa = (payload?: QaPayload): KnowledgeItem[] => {
+  const primaryId = getPrimaryQaSourceId(payload);
+  if (!primaryId) return [];
+  const primary = KNOWLEDGE_ITEMS.find((item) => item.id === primaryId);
+  if (!primary) return [];
+  const usedIds = new Set([primaryId, ...(payload?.sourceIds || []), ...(payload?.sources || []).map((source) => source.id)]);
+  return KNOWLEDGE_ITEMS
+    .filter((item) => item.business === primary.business && !usedIds.has(item.id))
+    .slice(0, 2);
+};
+
 
 const toValidSession = (value: any): AiConversationSession | null => {
   if (!value || typeof value !== 'object') return null;
@@ -1099,6 +1141,63 @@ export const useAiDock = () => {
       return;
     }
 
+    if (input.includes('查看idc报告')) {
+      trackIntentHit('report', 0);
+      const idcReport = REPORTS.find((report) => report.title.includes('月报')) || activeReport;
+      await appendCardWithThinking(() => {
+        appendMessage({ role: 'assistant', kind: 'reportCard', data: idcReport });
+      }, 280);
+      return;
+    }
+
+    if (input.includes('查看密钥健康详情')) {
+      trackIntentHit('qa', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildQuantumKeyHealthPayload(),
+        });
+      }, 240);
+      return;
+    }
+
+    if (input.includes('查看量子链路拓扑')) {
+      trackIntentHit('qa', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildQuantumTopologyPayload(),
+        });
+      }, 240);
+      return;
+    }
+
+    if (input.includes('查看pdu告警知识')) {
+      trackIntentHit('knowledge', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildKnowledgeQaPayload(matchKnowledge('PDU 告警含义')),
+        });
+      }, 240);
+      return;
+    }
+
+    if (input.includes('查看智算失败原因')) {
+      trackIntentHit('knowledge', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildKnowledgeQaPayload(matchKnowledge('任务失败常见原因')),
+        });
+      }, 240);
+      return;
+    }
+
     if (input.includes('导出报告')) {
       trackIntentHit('report', 0);
       await runReportExport('pdf');
@@ -1180,14 +1279,59 @@ export const useAiDock = () => {
     }
 
     const lastQaMessage = [...messages].reverse().find((message) => message.kind === 'qa' && message.data);
-    if (isQaExpansionIntent(input) && lastQaMessage?.data) {
-      const previous = lastQaMessage.data as QaPayload;
+    const lastQaPayload = lastQaMessage?.data as QaPayload | undefined;
+
+    if ((input.includes('原始知识') || input.includes('查看排查知识') || input.includes('看详细的')) && lastQaPayload) {
+      const sourceId = getPrimaryQaSourceId(lastQaPayload);
+      const source = sourceId ? KNOWLEDGE_ITEMS.find((item) => item.id === sourceId) : null;
+      if (source) {
+        trackIntentHit('knowledge', 0);
+        setDrawer({ type: 'knowledge', item: source });
+        appendMessage({
+          role: 'system',
+          kind: 'systemNotice',
+          data: { title: `已打开知识《${source.title}》。`, progress: 100 },
+        });
+        return;
+      }
+    }
+
+    if ((input.includes('输出执行步骤') || input.includes('执行步骤')) && lastQaPayload) {
       trackIntentHit('qa', 0);
       await appendCardWithThinking(() => {
         appendMessage({
           role: 'assistant',
           kind: 'qa',
-          data: buildQaExpansionPayload(previous, input),
+          data: buildQaExpansionPayload(lastQaPayload, '生成实施清单'),
+        });
+      }, 240);
+      return;
+    }
+
+    if (input.includes('继续推荐同类知识') && lastQaPayload) {
+      const relatedKnowledge = getRelatedKnowledgeForQa(lastQaPayload);
+      if (relatedKnowledge.length > 0) {
+        trackIntentHit('knowledge', 0);
+        await appendCardWithThinking(() => {
+          relatedKnowledge.forEach((item) => {
+            appendMessage({
+              role: 'assistant',
+              kind: 'knowledgeCard',
+              data: item,
+            });
+          });
+        }, 240);
+        return;
+      }
+    }
+
+    if (isQaExpansionIntent(input) && lastQaMessage?.data) {
+      trackIntentHit('qa', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: buildQaExpansionPayload(lastQaPayload as QaPayload, input),
         });
       }, 240);
       return;

@@ -3,8 +3,12 @@ import {
   buildFaultDescriptionPayload,
   buildImpactSupplementPayload,
   buildQaExpansionPayload,
+  buildQuantumKeyHealthPayload,
+  buildQuantumTopologyPayload,
   buildReportCustomerBriefPayload,
   buildSlaCheckPayload,
+  getPrimaryQaSourceId,
+  getRelatedKnowledgeForQa,
   normalizeCustomerContext,
   parsePersistedSessions,
 } from './useAiDock';
@@ -80,6 +84,22 @@ describe('ai dock qa expansion payload', () => {
     expect(payload.explanation).toContain('主要风险包括');
     expect(payload.suggestions).toContain('生成实施清单');
   });
+
+  it('resolves primary and related knowledge from qa sources', () => {
+    const payload = {
+      conclusion: '量子链路安全建议 [1]',
+      explanation: '建议先小范围验证 [1]',
+      sourceId: 'sdwan_1',
+      sourceIds: ['sdwan_1'],
+      sources: [{ id: 'sdwan_1', title: '量子加密保护是什么' }],
+    };
+
+    expect(getPrimaryQaSourceId(payload)).toBe('sdwan_1');
+    const related = getRelatedKnowledgeForQa(payload);
+    expect(related.length).toBeGreaterThan(0);
+    expect(related.every((item) => item.business === 'SDWAN')).toBe(true);
+    expect(related.some((item) => item.id === 'sdwan_1')).toBe(false);
+  });
 });
 
 describe('ai dock action payload completeness', () => {
@@ -132,5 +152,23 @@ describe('ai dock action payload completeness', () => {
     expect(payload.explanation).toContain('现象');
     expect(payload.explanation).toContain('诉求');
     expect(payload.suggestions).toContain('发起报障');
+  });
+
+  it('builds quantum key health details with knowledge sources', () => {
+    const payload = buildQuantumKeyHealthPayload();
+
+    expect(payload.conclusion).toContain('密钥健康');
+    expect(payload.sources?.length).toBeGreaterThan(0);
+    expect(payload.suggestions).toContain('查看量子链路拓扑');
+    expect(payload.suggestions).toContain('发起SD-WAN诊断');
+  });
+
+  it('builds quantum topology guidance with diagnostic next action', () => {
+    const payload = buildQuantumTopologyPayload();
+
+    expect(payload.conclusion).toContain('量子链路拓扑');
+    expect(payload.explanation).toContain('量子隧道覆盖');
+    expect(payload.sources?.length).toBeGreaterThan(0);
+    expect(payload.suggestions).toContain('发起SD-WAN诊断');
   });
 });
