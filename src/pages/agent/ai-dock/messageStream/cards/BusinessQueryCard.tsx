@@ -23,6 +23,7 @@ interface BusinessQueryCardProps {
   categories: BusinessQueryCategory[];
   onCopy?: (text: string) => void;
   onAsk?: (text: string) => void;
+  renderInstant?: boolean;
 }
 
 const PAGE_SIZE = 14;
@@ -75,7 +76,7 @@ const nowFlowTime = () =>
     second: '2-digit',
   });
 
-export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories, onCopy, onAsk }) => {
+export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories, onCopy, onAsk, renderInstant = false }) => {
   const [activeCode, setActiveCode] = useState(categories[0]?.code || '');
   const [expandedItemId, setExpandedItemId] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -152,6 +153,22 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
     };
 
     const boot = async () => {
+      if (renderInstant) {
+        setTypeText(summary.typeLine);
+        setCountText(summary.countLine);
+        setRegionText(summary.regionLine);
+        setChipVisibleCount(categories.length);
+        setListEnabled(true);
+        setShowTypeSection(true);
+        setShowListSection(true);
+        setStreamedCount(activeCategory?.items.length || PAGE_SIZE);
+        setFlow({
+          phase: 'done',
+          status: 'done',
+          logs: [{ time: nowFlowTime(), text: '业务清单已加载完成' }],
+        });
+        return;
+      }
       setFlow({
         phase: 'summary',
         status: 'running',
@@ -197,14 +214,14 @@ export const BusinessQueryCard: React.FC<BusinessQueryCardProps> = ({ categories
     return () => {
       cancelled = true;
     };
-  }, [categories, summary.countLine, summary.regionLine, summary.typeLine]);
+  }, [activeCategory?.items.length, categories, renderInstant, summary.countLine, summary.regionLine, summary.typeLine]);
 
   useEffect(() => {
     if (!listEnabled) return;
     setVisibleCount(PAGE_SIZE);
-    setStreamedCount(STREAM_STEP);
+    setStreamedCount(renderInstant ? activeCategory?.items.length || PAGE_SIZE : STREAM_STEP);
     setExpandedItemId('');
-  }, [activeCode, listEnabled]);
+  }, [activeCategory?.items.length, activeCode, listEnabled, renderInstant]);
 
   const targetItems = useMemo(
     () => (activeCategory?.items || []).slice(0, visibleCount),

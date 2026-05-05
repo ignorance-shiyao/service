@@ -21,13 +21,14 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   type SizeMode = 'medium' | 'max';
   type ResizeMode = 'left' | 'right' | 'top' | 'bottom' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | null;
   const getMediumPreset = () => {
-    const width = Math.min(1120, Math.max(760, Math.round(window.innerWidth * 0.58)));
+    const availableWidth = Math.max(360, window.innerWidth - 16);
+    const width = Math.min(1120, Math.max(Math.min(760, availableWidth), Math.round(window.innerWidth * 0.58)));
     const height = Math.min(window.innerHeight - 16, Math.max(560, Math.round(window.innerHeight * 0.74)));
     return { width, height };
   };
 
   const [input, setInput] = useState('');
-  const [historyOpen, setHistoryOpen] = useState(true);
+  const [historyOpen, setHistoryOpen] = useState(() => (typeof window === 'undefined' ? true : window.innerWidth >= 720));
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [resizeMode, setResizeMode] = useState<ResizeMode>(null);
@@ -102,14 +103,25 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
     [viewport.height, viewport.width]
   );
 
-  const renderSize = sizeMode === 'max' ? fullSize : store.windowSize;
+  const mediumSize = useMemo(
+    () => ({
+      width: Math.min(store.windowSize.width, Math.max(360, viewport.width - 16)),
+      height: Math.min(store.windowSize.height, Math.max(420, viewport.height - 16)),
+    }),
+    [store.windowSize.height, store.windowSize.width, viewport.height, viewport.width]
+  );
+
+  const renderSize = sizeMode === 'max' ? fullSize : mediumSize;
 
   const style = useMemo(() => {
     if (sizeMode === 'max') return { left: 8, top: 8 };
-    const x = store.position.x || Math.max(16, window.innerWidth - (store.windowSize.width + 40));
-    const y = store.position.y || Math.max(16, window.innerHeight - (store.windowSize.height + 40));
-    return { left: x, top: y };
-  }, [sizeMode, store.position.x, store.position.y, store.windowSize.height, store.windowSize.width]);
+    const desiredX = store.position.x || Math.max(16, viewport.width - (renderSize.width + 40));
+    const desiredY = store.position.y || Math.max(16, viewport.height - (renderSize.height + 40));
+    return {
+      left: Math.min(Math.max(8, desiredX), Math.max(8, viewport.width - renderSize.width - 8)),
+      top: Math.min(Math.max(8, desiredY), Math.max(8, viewport.height - renderSize.height - 8)),
+    };
+  }, [renderSize.height, renderSize.width, sizeMode, store.position.x, store.position.y, viewport.height, viewport.width]);
 
   const clamp = (x: number, y: number, width = store.windowSize.width, height = store.windowSize.height) => {
     return {

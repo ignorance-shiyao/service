@@ -39,9 +39,14 @@ const hashMs = (id: string, base: number, span: number) => {
 export const ProgressiveCardShell: React.FC<ProgressiveCardShellProps> = ({ message, children }) => {
   const phases = useMemo(() => PHASE_MAP[message.kind] || ['理解问题上下文', '检索关联数据', '整理输出结构'], [message.kind]);
   const timeline = useMemo(() => TIMELINE_MAP[message.kind] || [500, 1400, 2860], [message.kind]);
-  const [stage, setStage] = useState(0);
+  const shouldRenderFinalImmediately = Date.now() - message.createdAt > 8_000;
+  const [stage, setStage] = useState(() => (shouldRenderFinalImmediately ? 3 : 0));
 
   useEffect(() => {
+    if (shouldRenderFinalImmediately) {
+      setStage(3);
+      return;
+    }
     setStage(0);
     const t1 = window.setTimeout(() => setStage(1), hashMs(message.id, timeline[0], 210));
     const t2 = window.setTimeout(() => setStage(2), hashMs(message.id, timeline[1], 280));
@@ -51,7 +56,7 @@ export const ProgressiveCardShell: React.FC<ProgressiveCardShellProps> = ({ mess
       window.clearTimeout(t2);
       window.clearTimeout(t3);
     };
-  }, [message.id, timeline]);
+  }, [message.id, shouldRenderFinalImmediately, timeline]);
 
   if (stage >= 3) {
     return <div className="ai-dock-card-reveal">{children}</div>;

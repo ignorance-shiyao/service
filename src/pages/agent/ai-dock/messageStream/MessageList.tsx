@@ -69,6 +69,8 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
     </ProgressiveCardShell>
   );
 
+  const shouldRenderInstant = (message: AiMessage) => Date.now() - message.createdAt > 8_000;
+
   return (
     <div className="space-y-2 px-3 py-3">
       {messages.map((message, index) => {
@@ -141,6 +143,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, store }) => 
                   categories={message.data}
                   onCopy={copyMessage}
                   onAsk={store.sendUserText}
+                  renderInstant={shouldRenderInstant(message)}
                 />
               )
             )}

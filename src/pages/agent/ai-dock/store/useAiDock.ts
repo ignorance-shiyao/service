@@ -71,6 +71,7 @@ export type QaPayload = {
   suggestions?: string[];
   sourceId?: string;
   sourceIds?: string[];
+  sources?: Array<{ id: string; title: string; updatedAt?: string }>;
   sourceUpdatedAt?: string;
   followups?: string[];
 };
@@ -160,6 +161,17 @@ const STREAM_PACE = {
   normalSpan: 52,
 };
 
+const buildKnowledgeSources = (ids: Array<string | undefined>) =>
+  ids
+    .filter((id): id is string => Boolean(id))
+    .map((id) => KNOWLEDGE_ITEMS.find((item) => item.id === id))
+    .filter((item): item is KnowledgeItem => Boolean(item))
+    .map((item) => ({
+      id: item.id,
+      title: item.title,
+      updatedAt: item.updatedAt,
+    }));
+
 type FlowStatus = 'running' | 'done' | 'stopped';
 type FlowLogEntry = { time: string; text: string };
 
@@ -244,6 +256,118 @@ const parseSlashCommand = (input: string): { prompt: string; intent?: IntentType
     prompt: args ? `${hit.base}：${args}` : hit.base,
     intent: hit.intent,
   };
+};
+
+const isExplicitFeedbackIntent = (input: string) =>
+  input.includes('反馈') ||
+  input.includes('意见') ||
+  input.includes('投诉') ||
+  input.includes('吐槽') ||
+  input.includes('产品建议') ||
+  input.includes('功能建议') ||
+  input.includes('体验建议') ||
+  input.includes('问题反馈');
+
+const isQaExpansionIntent = (input: string) =>
+  input.includes('深入了解') ||
+  input.includes('继续展开') ||
+  input.includes('实施清单') ||
+  input.includes('风险点') ||
+  input.includes('落地步骤') ||
+  input.includes('落地建议') ||
+  input.includes('适用场景') ||
+  input.includes('注意事项');
+
+const isContextAdviceIntent = (input: string) =>
+  input.includes('下一步') ||
+  input.includes('处理建议') ||
+  input.includes('处置建议') ||
+  input.includes('优化建议') ||
+  input.includes('重点建议') ||
+  input.includes('实施清单') ||
+  input.includes('风险点');
+
+const buildContextAdvicePayload = (message?: AiMessage): QaPayload | null => {
+  if (!message?.data) return null;
+
+  if (message.kind === 'diagnosisReport') {
+    const data = message.data as DiagnosisTemplate;
+    return {
+      conclusion: `${data.title}处置建议`,
+      explanation: [
+        `当前结论为“${data.conclusion}”，健康评分 ${data.score}。`,
+        data.findings.length ? `优先核对：${data.findings.join('；')}。` : '',
+        data.suggestions.length ? `建议动作：${data.suggestions.join('；')}。` : '',
+        '如影响仍在扩大，建议直接发起报障并携带本次诊断结果。',
+      ].filter(Boolean).join(' '),
+      suggestions: ['发起报障', '查看诊断历史', '联系客户经理'],
+      followups: ['需要我整理给客户的话术吗？', '哪些指标需要持续观察？', '是否需要升级处理？'],
+    };
+  }
+
+  if (message.kind === 'receiptCard') {
+    const data = message.data as { title?: string; nextSteps?: string[] };
+    return {
+      conclusion: `${data.title || '服务进展'}的下一步处理建议`,
+      explanation: data.nextSteps?.length
+        ? `建议按当前回执的下一步继续推进：${data.nextSteps.join('；')}。如超过承诺时限仍未更新，可联系客户经理或触发升级提醒。`
+        : '建议先确认当前责任人与承诺时限，再补充影响范围、发生时间和可复现现象，便于继续处理。',
+      suggestions: ['继续追踪', '联系客户经理', '补充影响范围'],
+      followups: ['需要催办吗？', '是否超过SLA？', '需要整理客户说明吗？'],
+    };
+  }
+
+  if (message.kind === 'ticketCard') {
+    const data = message.data as TicketItem;
+    return {
+      conclusion: `工单 ${data.id} 的处理建议`,
+      explanation: `当前工单状态为“${data.status}”，责任人为 ${data.owner}。建议先确认最新处理进展与客户侧影响是否仍存在；如长时间未更新，可发起催办并同步SLA要求。`,
+      suggestions: ['催办工单', '查看工单详情', '联系客户经理'],
+      followups: ['是否需要二次升级？', '客户侧怎么说明？', '还需要补什么材料？'],
+    };
+  }
+
+  if (message.kind === 'reportCard') {
+    const data = message.data as ReportItem;
+    return {
+      conclusion: `《${data.title}》重点解读`,
+      explanation: `报告摘要为“${data.summary}”。建议先向客户说明整体趋势，再突出异常指标、已采取措施和后续观察项，避免只罗列技术数据。`,
+      suggestions: ['生成客户汇报话术', '导出报告', '列出风险项'],
+      followups: ['哪些指标最需要关注？', '怎么给客户解释？', '是否需要生成月报摘要？'],
+    };
+  }
+
+  if (message.kind === 'businessDiagnosisReport') {
+    const data = message.data as BusinessDiagnosisReportPayload;
+    const abnormal = data.results.filter((item) => item.level === '异常');
+    const warning = data.results.filter((item) => item.level === '关注');
+    return {
+      conclusion: '业务诊断结果的处置建议',
+      explanation: `本次共诊断 ${data.total} 条业务，平均健康评分 ${data.averageScore}。异常 ${abnormal.length} 条、关注 ${warning.length} 条。建议优先处理异常业务，再对关注业务设置7天观察，最后将健康业务维持常规巡检。`,
+      suggestions: ['为异常业务发起报障', '生成汇报说明', '联系客户经理'],
+      followups: ['哪些业务最优先？', '需要客户确认什么？', '怎么做回退预案？'],
+    };
+  }
+
+  if (message.kind === 'businessQuery') {
+    const categories = message.data as Array<{ label: string; items: BusinessQueryItem[] }>;
+    const total = categories.reduce((sum, category) => sum + category.items.length, 0);
+    const riskItems = categories.flatMap((category) =>
+      category.items
+        .filter((item) => item.details.some((detail) =>
+          /状态|健康|风险/.test(detail.label) && !/正常|健康|稳定/.test(detail.value)
+        ))
+        .map((item) => `${category.label}-${item.name}`)
+    );
+    return {
+      conclusion: '业务清单的重点建议',
+      explanation: `当前客户名下共 ${total} 条业务。建议先按业务类型确认关键业务，再优先查看非正常状态业务${riskItems.length ? `：${riskItems.slice(0, 3).join('、')}` : ''}。如客户要自助处理，可从业务诊断或运行月报入口继续。`,
+      suggestions: ['发起业务诊断', '生成运行月报', '查看非正常业务'],
+      followups: ['哪些业务风险最高？', '需要生成客户汇报吗？', '怎么安排巡检优先级？'],
+    };
+  }
+
+  return null;
 };
 
 
@@ -603,14 +727,18 @@ export const useAiDock = () => {
   }, [updateActiveSession]);
 
   const pushQa = useCallback((faq: FaqItem) => {
+    const sources = buildKnowledgeSources([faq.sourceId]);
     appendMessage({
       role: 'assistant',
       kind: 'qa',
       data: {
-        conclusion: faq.conclusion,
-        explanation: faq.explanation,
+        conclusion: sources.length ? `${faq.conclusion} [1]` : faq.conclusion,
+        explanation: sources.length ? `${faq.explanation} [1]` : faq.explanation,
         suggestions: faq.suggestions || [],
         sourceId: faq.sourceId,
+        sourceIds: sources.map((source) => source.id),
+        sources,
+        sourceUpdatedAt: sources[0]?.updatedAt,
         followups: faq.followups || [],
       } as QaPayload,
     });
@@ -753,7 +881,7 @@ export const useAiDock = () => {
       return;
     }
 
-    if (input.includes('反馈') || input.includes('意见') || input.includes('建议')) {
+    if (isExplicitFeedbackIntent(input)) {
       trackIntentHit('other', 0);
       appendMessage({
         role: 'system',
@@ -761,6 +889,48 @@ export const useAiDock = () => {
         data: { title: '反馈已记录，产品团队将在 1 个工作日内回访。', progress: 100 },
       });
       await streamAssistantText('感谢反馈，若您愿意我可以继续引导您描述复现步骤。');
+      return;
+    }
+
+    const lastQaMessage = [...messages].reverse().find((message) => message.kind === 'qa' && message.data);
+    if (isQaExpansionIntent(input) && lastQaMessage?.data) {
+      const previous = lastQaMessage.data as QaPayload;
+      trackIntentHit('qa', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: {
+            conclusion: `${previous.conclusion}的落地建议`,
+            explanation: [
+              previous.explanation,
+              '落地时建议先确认适用业务范围与当前风险，再按“先监测、再小范围验证、最后推广”的顺序执行。过程中保留回退方案，遇到指标持续异常时直接转人工客户经理确认。',
+            ].join(' '),
+            suggestions: ['生成实施清单', '列出风险点', '转人工客户经理确认'],
+            sourceId: previous.sourceId,
+            sourceIds: previous.sourceIds,
+            sources: previous.sources,
+            sourceUpdatedAt: previous.sourceUpdatedAt,
+            followups: ['需要哪些前置条件？', '如何判断落地效果？', '异常时怎么回退？'],
+          } as QaPayload,
+        });
+      }, 240);
+      return;
+    }
+
+    const lastActionableMessage = [...messages].reverse().find((message) =>
+      ['diagnosisReport', 'receiptCard', 'ticketCard', 'reportCard', 'businessDiagnosisReport', 'businessQuery'].includes(message.kind)
+    );
+    const contextAdvice = isContextAdviceIntent(input) ? buildContextAdvicePayload(lastActionableMessage) : null;
+    if (contextAdvice) {
+      trackIntentHit('qa', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'qa',
+          data: contextAdvice,
+        });
+      }, 280);
       return;
     }
 
@@ -967,7 +1137,7 @@ export const useAiDock = () => {
         },
       });
     }, 360);
-  }, [activeCustomer, activeReport, appendCardWithThinking, appendMessage, faultContext, faultContexts, pushQa, runDiagnosisFlow, ticketDraftFromDiagnosis, tickets]);
+  }, [activeCustomer, activeReport, appendCardWithThinking, appendMessage, faultContext, faultContexts, messages, pushQa, runDiagnosisFlow, ticketDraftFromDiagnosis, tickets]);
 
   const sendUserText = useCallback(async (text: string, forcedIntent?: IntentType) => {
     const slash = parseSlashCommand(text);

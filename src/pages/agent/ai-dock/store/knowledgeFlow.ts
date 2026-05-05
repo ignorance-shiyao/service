@@ -82,6 +82,11 @@ export const buildKnowledgeQaPayload = (item: KnowledgeItem) => {
     .filter((k) => k.business === item.business && k.id !== item.id)
     .slice(0, 2);
   const sourceIds = [item.id, ...relatedKnowledge.map((k) => k.id)];
+  const sources = [item, ...relatedKnowledge].map((source) => ({
+    id: source.id,
+    title: source.title,
+    updatedAt: source.updatedAt,
+  }));
   const relatedFaq = FAQ_ITEMS
     .filter((faq) => faq.sourceId === item.id || (faq.sourceId && faq.sourceId.startsWith(item.business.toLowerCase())))
     .slice(0, 5);
@@ -99,10 +104,11 @@ export const buildKnowledgeQaPayload = (item: KnowledgeItem) => {
   ], 3);
 
   return {
-    conclusion: coreLines[0] || item.summary,
-    explanation: coreLines.slice(1).join('；') || item.summary,
+    conclusion: `${coreLines[0] || item.summary} [1]`,
+    explanation: `${coreLines.slice(1).join('；') || item.summary} [1]`,
     sourceId: item.id,
     sourceIds,
+    sources,
     sourceUpdatedAt: item.updatedAt,
     suggestions: opSuggestions,
     followups,
