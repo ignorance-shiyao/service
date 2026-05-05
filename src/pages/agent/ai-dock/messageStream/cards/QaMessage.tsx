@@ -74,12 +74,15 @@ export const QaMessage: React.FC<QaMessageProps> = ({ data, onSendFollowup, onOp
         </div>
       )}
       {data.suggestions && data.suggestions.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          {data.suggestions.map((s) => (
-            <button key={s} type="button" onClick={() => onSendFollowup(s)} className="rounded border border-[#3f85c4] bg-[#174f8d] px-2 py-1 text-[11px] text-[#dff1ff]">
-              {s}
-            </button>
-          ))}
+        <div className="mt-2">
+          <div className="mb-1 text-[11px] text-[#9fd0f5]">可执行操作</div>
+          <div className="flex flex-wrap gap-2">
+            {data.suggestions.map((s) => (
+              <button key={s} type="button" onClick={() => onSendFollowup(s)} className="rounded border border-[#3f85c4] bg-[#174f8d] px-2 py-1 text-[11px] text-[#dff1ff]">
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       )}
       {data.followups && data.followups.length > 0 && (

@@ -892,6 +892,56 @@ export const useAiDock = () => {
       return;
     }
 
+    if (input.includes('查看诊断历史')) {
+      trackIntentHit('diagnosis', 0);
+      setDrawer({ type: 'diagnosisHistory', list: DIAGNOSIS_TEMPLATES });
+      appendMessage({
+        role: 'system',
+        kind: 'systemNotice',
+        data: { title: '已打开诊断历史，可查看历史诊断结果与模板。', progress: 100 },
+      });
+      return;
+    }
+
+    if (input.includes('查看工单详情') || input.includes('打开工单详情')) {
+      trackIntentHit('ticket', 0);
+      const targetTicket = tickets[0] || TICKETS[0];
+      setDrawer({ type: 'ticket', item: targetTicket });
+      appendMessage({
+        role: 'system',
+        kind: 'systemNotice',
+        data: { title: `已打开工单 ${targetTicket.id} 详情。`, progress: 100 },
+      });
+      return;
+    }
+
+    if (input.includes('导出报告')) {
+      trackIntentHit('report', 0);
+      await runReportExport('pdf');
+      return;
+    }
+
+    if (input.includes('生成客户汇报话术') || input.includes('整理给客户的话术')) {
+      const latestReport = [...messages].reverse().find((message) => message.kind === 'businessDiagnosisReport' && message.data);
+      if (latestReport?.data) {
+        trackIntentHit('report', 0);
+        await generateBusinessDiagnosisBrief(latestReport.data as BusinessDiagnosisReportPayload);
+        return;
+      }
+    }
+
+    if (input.includes('查看非正常业务')) {
+      trackIntentHit('business', 0);
+      await appendCardWithThinking(() => {
+        appendMessage({
+          role: 'assistant',
+          kind: 'businessQuery',
+          data: buildBusinessQueryData(activeCustomer),
+        });
+      }, 280);
+      return;
+    }
+
     const lastQaMessage = [...messages].reverse().find((message) => message.kind === 'qa' && message.data);
     if (isQaExpansionIntent(input) && lastQaMessage?.data) {
       const previous = lastQaMessage.data as QaPayload;
@@ -1137,7 +1187,7 @@ export const useAiDock = () => {
         },
       });
     }, 360);
-  }, [activeCustomer, activeReport, appendCardWithThinking, appendMessage, faultContext, faultContexts, messages, pushQa, runDiagnosisFlow, ticketDraftFromDiagnosis, tickets]);
+  }, [activeCustomer, activeReport, appendCardWithThinking, appendMessage, faultContext, faultContexts, generateBusinessDiagnosisBrief, messages, pushQa, runDiagnosisFlow, runReportExport, ticketDraftFromDiagnosis, tickets]);
 
   const sendUserText = useCallback(async (text: string, forcedIntent?: IntentType) => {
     const slash = parseSlashCommand(text);
