@@ -32,7 +32,7 @@ export const getLossStatus = (value: number): HealthMetricStatus =>
   byLowerBetter(value, { normalMax: 0.1, warningMax: 0.3 });
 
 export const getScoreStatus = (value: number): HealthMetricStatus =>
-  byHigherBetter(value, { normalMin: 88, warningMin: 78 });
+  byHigherBetter(value, { normalMin: 98, warningMin: 90 });
 
 export const getLevelByScore = (value: number): '健康' | '关注' | '异常' => {
   const status = getScoreStatus(value);
@@ -57,4 +57,3 @@ export const getManagedBusinessStatus = (input: {
     getLatencyStatus(input.latency),
     getLossStatus(input.loss),
   ]);
-

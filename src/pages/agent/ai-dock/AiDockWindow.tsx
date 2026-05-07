@@ -47,6 +47,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const stickToBottomRef = useRef(true);
+  const lastAutoScrollMessageIdRef = useRef<string | null>(null);
   const heroTips = useMemo(
     () => [
       {
@@ -78,10 +79,23 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   );
 
   useEffect(() => {
-    if (!listRef.current) return;
-    if (stickToBottomRef.current) {
+    if (!listRef.current || store.messages.length === 0) return;
+    const lastMessage = store.messages[store.messages.length - 1];
+    const isAgentReply = lastMessage.role === 'assistant' || lastMessage.role === 'system';
+    const isNewMessage = lastAutoScrollMessageIdRef.current !== lastMessage.id;
+    if (!isAgentReply || !isNewMessage) return;
+
+    const scrollToLatest = () => {
+      if (!listRef.current) return;
       listRef.current.scrollTop = listRef.current.scrollHeight;
-    }
+      stickToBottomRef.current = true;
+      setShowScrollToBottom(false);
+    };
+
+    scrollToLatest();
+    requestAnimationFrame(scrollToLatest);
+    setTimeout(scrollToLatest, 80);
+    lastAutoScrollMessageIdRef.current = lastMessage.id;
   }, [store.messages]);
 
   useEffect(() => {
@@ -418,11 +432,17 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
       </div>
 
       <div className="min-h-0 flex flex-1 flex-col overflow-hidden">
-        <div className="border-b border-[#275c95] bg-[linear-gradient(90deg,rgba(18,66,108,0.92)_0%,rgba(13,54,95,0.92)_100%)] px-3 py-1.5 text-[11px] text-[#b8dbf3]">
+        <div className="border-b border-[#2f6ea8] bg-[linear-gradient(90deg,rgba(16,59,103,0.95)_0%,rgba(14,71,122,0.95)_45%,rgba(14,55,99,0.95)_100%)] px-3 py-1.5 text-[11px] text-[#b8dbf3]">
           <div className={`${contentWrapClass} flex min-w-0 items-center justify-between gap-2`}>
-            <div className="truncate">客户编码：{store.activeCustomer.code}</div>
-            <div className="truncate">业务类型：{activeBusinessTypes}</div>
-            <div className="truncate">SLA：{store.activeCustomer.slas.responseMinutes}分钟响应 / {store.activeCustomer.slas.restoreHours}小时恢复</div>
+            <div className="truncate rounded-full border border-[#4f84ca] bg-[linear-gradient(90deg,rgba(37,97,170,0.48)_0%,rgba(28,82,152,0.38)_100%)] px-2.5 py-1 text-[#d9edff] shadow-[inset_0_0_0_1px_rgba(140,190,245,0.12)]">
+              <span className="text-[#a6d5ff]">客户编码：</span>{store.activeCustomer.code}
+            </div>
+            <div className="truncate rounded-full border border-[#3b8ea4] bg-[linear-gradient(90deg,rgba(34,137,156,0.42)_0%,rgba(23,100,132,0.35)_100%)] px-2.5 py-1 text-[#d9fbff] shadow-[inset_0_0_0_1px_rgba(153,237,255,0.12)]">
+              <span className="text-[#9de9ff]">业务类型：</span>{activeBusinessTypes}
+            </div>
+            <div className="truncate rounded-full border border-[#4e9a76] bg-[linear-gradient(90deg,rgba(45,138,92,0.45)_0%,rgba(33,100,74,0.35)_100%)] px-2.5 py-1 text-[#e0fff0] shadow-[inset_0_0_0_1px_rgba(180,250,217,0.14)]">
+              <span className="text-[#b8f7d8]">SLA：</span>{store.activeCustomer.slas.responseMinutes}分钟响应 / {store.activeCustomer.slas.restoreHours}小时恢复
+            </div>
           </div>
         </div>
         <div className="min-h-0 flex flex-1 overflow-hidden">

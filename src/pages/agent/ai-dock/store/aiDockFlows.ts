@@ -144,6 +144,12 @@ export const submitFaultTicketFlow = async (args: {
 }) => {
   const { payload, setIsResponding, appendMessage, updateActiveSession, createSystemNoticeFlow, advanceSystemNoticeFlow } = args;
   setIsResponding(true);
+  const firstTimelineTime = new Date().toLocaleTimeString('zh-CN', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
   const selectedBusinesses = Array.from(new Set((payload.businesses && payload.businesses.length > 0 ? payload.businesses : [payload.business]).filter(Boolean)));
   const baseTs = Date.now();
   const createdTickets: TicketItem[] = selectedBusinesses.map((business, index) => {
@@ -158,20 +164,13 @@ export const submitFaultTicketFlow = async (args: {
       updatedAt: new Date().toLocaleString(),
       detail: payload.desc,
       timeline: [
-        { time: '刚刚', text: '工单已提交，等待运维人员受理。' },
+        { time: firstTimelineTime, text: '工单已提交，等待运维人员受理。' },
       ],
     };
   });
 
   await delay(420);
   appendMessage({ role: 'assistant', kind: 'ticketCard', data: createdTickets[0] });
-  if (selectedBusinesses.length > 1) {
-    appendMessage({
-      role: 'assistant',
-      kind: 'text',
-      text: `已批量提交 ${selectedBusinesses.length} 条报障工单，当前展示首条工单，剩余工单可在工单追踪中查看。`,
-    });
-  }
 
   updateActiveSession((session) => ({
     ...session,

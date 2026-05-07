@@ -49,12 +49,19 @@ export const buildBusinessDiagnosisReport = (targets: BusinessDiagnosisTarget[])
     const level: BusinessDiagnosisResult['level'] =
       riskSeed < 1 ? '异常' : riskSeed < 7 ? '关注' : '健康';
 
+    const severeFault = level === '异常' && seed % 10 === 0;
+    const majorFault = level === '异常' && !severeFault && seed % 3 !== 0;
+    const veryMajorFault = level === '异常' && !severeFault && !majorFault;
     const score =
       level === '健康'
-        ? 89 + (seed % 9)
+        ? 100
         : level === '关注'
-          ? 80 + (seed % 8)
-          : 72 + (seed % 6);
+          ? 98 + (seed % 2)
+          : severeFault
+            ? 68 + (seed % 12)
+            : veryMajorFault
+              ? 80 + (seed % 10)
+              : 90 + (seed % 8);
 
     const latency =
       level === '健康'
@@ -88,7 +95,11 @@ export const buildBusinessDiagnosisReport = (targets: BusinessDiagnosisTarget[])
         ? '核心指标稳定，当前未发现明显风险。'
         : level === '关注'
           ? '存在轻微波动，建议纳入重点观察。'
-          : '存在质量异常，需要尽快排查处理。';
+          : severeFault
+            ? '存在严重故障迹象，需立即处置并升级跟进。'
+            : veryMajorFault
+              ? '存在特大质量问题，需要优先组织联调处置。'
+              : '存在较大质量异常，需要尽快排查处理。';
 
     return {
       id: target.item.id,
@@ -107,11 +118,11 @@ export const buildBusinessDiagnosisReport = (targets: BusinessDiagnosisTarget[])
       ],
       findings: [
         level === '健康' ? '近24小时关键指标处于稳定区间' : '近24小时存在指标波动，峰值集中在业务高峰时段',
-        `${target.item.region} 接入侧链路质量${level === '异常' ? '低于基线' : '符合当前业务基线'}`,
+        `${target.item.region} 接入侧链路质量${level === '异常' ? (severeFault ? '明显低于基线并伴随故障征兆' : '低于基线') : '符合当前业务基线'}`,
         `业务安装点「${target.item.site}」最近一次资料更新时间为 ${target.item.updatedAt}`,
       ],
       suggestions: [
-        level === '异常' ? '建议立即发起报障并关联本次诊断结果' : '建议保持当前巡检策略并持续观察趋势',
+        level === '异常' ? (severeFault ? '建议立即发起高优先级报障并升级值守响应' : '建议尽快发起报障并关联本次诊断结果') : '建议保持当前巡检策略并持续观察趋势',
         level === '健康' ? '可纳入低频巡检清单' : '建议提高该业务未来7天巡检频次',
         '如需进一步定位，可继续发起单业务深度诊断',
       ],
@@ -137,4 +148,3 @@ export const buildBusinessDiagnosisReport = (targets: BusinessDiagnosisTarget[])
     ],
   };
 };
-

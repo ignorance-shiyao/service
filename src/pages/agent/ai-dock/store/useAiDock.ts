@@ -192,18 +192,18 @@ type CustomerContext = {
   name: string;
   code: string;
   businessTypes: Array<'LINE' | '5G' | 'IDC' | 'SDWAN' | 'AIC'>;
-  accountManager: { name: string; phone: string };
+  accountManager: { name: string; phone: string; email: string };
   slas: { responseMinutes: number; restoreHours: number };
 };
 
 const CUSTOMER_POOL: CustomerContext[] = [
-  { name: '安徽交控集团', code: 'CUST-AHJT-0001', businessTypes: ['LINE', 'SDWAN', 'IDC'], accountManager: { name: '李明', phone: '138****5678' }, slas: { responseMinutes: 15, restoreHours: 2 } },
-  { name: '合肥工业大学', code: 'CUST-HFUT-0002', businessTypes: ['LINE', '5G', 'IDC'], accountManager: { name: '王婷', phone: '139****2088' }, slas: { responseMinutes: 20, restoreHours: 4 } },
-  { name: '奇瑞汽车股份', code: 'CUST-CHERY-0003', businessTypes: ['LINE', '5G', 'AIC', 'SDWAN'], accountManager: { name: '赵凯', phone: '137****9221' }, slas: { responseMinutes: 10, restoreHours: 2 } },
-  { name: '科大讯飞股份', code: 'CUST-IFLYTEK-0004', businessTypes: ['AIC', 'SDWAN', 'LINE'], accountManager: { name: '周宁', phone: '136****1123' }, slas: { responseMinutes: 15, restoreHours: 3 } },
-  { name: '安徽电力公司', code: 'CUST-STATEGRID-0005', businessTypes: ['LINE', 'IDC', '5G'], accountManager: { name: '陈璐', phone: '135****0029' }, slas: { responseMinutes: 15, restoreHours: 2 } },
-  { name: '中国声谷园区', code: 'CUST-SOUNDVALLEY-0006', businessTypes: ['5G', 'SDWAN', 'AIC'], accountManager: { name: '许航', phone: '188****8712' }, slas: { responseMinutes: 20, restoreHours: 4 } },
-  { name: '芜湖港航集团', code: 'CUST-WHPORT-0007', businessTypes: ['LINE', 'SDWAN'], accountManager: { name: '何晶', phone: '189****6619' }, slas: { responseMinutes: 30, restoreHours: 6 } },
+  { name: '安徽交控集团', code: 'CUST-AHJT-0001', businessTypes: ['LINE', 'SDWAN', 'IDC'], accountManager: { name: '李明', phone: '13800005678', email: 'liming@ahjt.example.com' }, slas: { responseMinutes: 45, restoreHours: 8 } },
+  { name: '合肥工业大学', code: 'CUST-HFUT-0002', businessTypes: ['LINE', '5G', 'IDC'], accountManager: { name: '王婷', phone: '13900002088', email: 'wangting@hfut.example.com' }, slas: { responseMinutes: 60, restoreHours: 8 } },
+  { name: '奇瑞汽车股份', code: 'CUST-CHERY-0003', businessTypes: ['LINE', '5G', 'AIC', 'SDWAN'], accountManager: { name: '赵凯', phone: '13700009221', email: 'zhaokai@chery.example.com' }, slas: { responseMinutes: 45, restoreHours: 8 } },
+  { name: '科大讯飞股份', code: 'CUST-IFLYTEK-0004', businessTypes: ['AIC', 'SDWAN', 'LINE'], accountManager: { name: '周宁', phone: '13600001123', email: 'zhouning@iflytek.example.com' }, slas: { responseMinutes: 45, restoreHours: 8 } },
+  { name: '安徽电力公司', code: 'CUST-STATEGRID-0005', businessTypes: ['LINE', 'IDC', '5G'], accountManager: { name: '陈璐', phone: '13500000029', email: 'chenlu@stategrid.example.com' }, slas: { responseMinutes: 45, restoreHours: 8 } },
+  { name: '中国声谷园区', code: 'CUST-SOUNDVALLEY-0006', businessTypes: ['5G', 'SDWAN', 'AIC'], accountManager: { name: '许航', phone: '18800008712', email: 'xuhang@soundvalley.example.com' }, slas: { responseMinutes: 60, restoreHours: 8 } },
+  { name: '芜湖港航集团', code: 'CUST-WHPORT-0007', businessTypes: ['LINE', 'SDWAN'], accountManager: { name: '何晶', phone: '18900006619', email: 'hejing@whport.example.com' }, slas: { responseMinutes: 90, restoreHours: 12 } },
 ];
 
 const randomCustomerContext = (seed?: number): CustomerContext => {
@@ -232,6 +232,9 @@ export const normalizeCustomerContext = (value: unknown, seed?: number): Custome
       phone: typeof raw.accountManager?.phone === 'string' && raw.accountManager.phone.trim()
         ? raw.accountManager.phone
         : fallback.accountManager.phone,
+      email: typeof raw.accountManager?.email === 'string' && raw.accountManager.email.trim()
+        ? raw.accountManager.email
+        : fallback.accountManager.email,
     },
     slas: {
       responseMinutes: typeof raw.slas?.responseMinutes === 'number'
@@ -1714,16 +1717,12 @@ export const useAiDock = () => {
       upsertLatestReceiptCard(
         (message) => String(message.data?.title || '').includes('客户经理'),
         {
-          title: '客户经理联络回执',
+          title: '客户经理联系方式',
           fields: [
-            { label: '客户经理', value: `${activeCustomer.accountManager.name}（${activeCustomer.accountManager.phone}）` },
-            { label: '通知渠道', value: '应用内通知 + 短信提醒' },
-            { label: '预计回呼', value: '5分钟内' },
-          ],
-          nextSteps: [
-            '5分钟无回呼：自动二次提醒',
-            `超过${activeCustomer.slas.responseMinutes}分钟：升级至值班主管`,
-            '仍无响应：转二线专家组介入',
+            { label: '客户经理', value: activeCustomer.accountManager.name },
+            { label: '电话', value: activeCustomer.accountManager.phone },
+            { label: '邮件', value: activeCustomer.accountManager.email },
+            { label: '提示', value: `可直接电话联系，或等待${activeCustomer.slas.responseMinutes}分钟内回访。` },
           ],
           actions: [
             { key: 'remind', label: '立即二次提醒', ask: '请立即二次提醒客户经理并回传结果', tone: 'primary' },
@@ -2141,41 +2140,14 @@ export const useAiDock = () => {
     if (input.includes('催办') && input.includes('工单')) {
       trackIntentHit('ticket', 0);
       const targetTicket = tickets[0] || TICKETS[0];
-      const { id: urgeNoticeId, logs: urgeLogs0 } = createSystemNoticeFlow(
-        `工单 ${targetTicket.id} 催办处理中`,
-        '已提交催办请求至责任人',
-        35
-      );
-      await delay(320);
-      const urgeLogs1 = advanceSystemNoticeFlow(urgeNoticeId, {
-        logs: urgeLogs0,
-        logText: '已同步客户SLA承诺与当前处理时限',
-        progress: 72,
-        title: `工单 ${targetTicket.id} 催办处理中`,
-      });
-      await delay(280);
-      advanceSystemNoticeFlow(urgeNoticeId, {
-        logs: urgeLogs1,
-        logText: '催办完成，预计10分钟内反馈处理进展',
-        progress: 100,
-        status: 'done',
-        title: `工单 ${targetTicket.id} 催办已送达`,
-      });
       appendMessage({
         role: 'assistant',
         kind: 'receiptCard',
         data: {
-          title: '工单催办回执',
+          title: '工单催办结果',
           fields: [
             { label: '工单号', value: targetTicket.id },
-            { label: '当前跟进', value: targetTicket.owner },
-            { label: '催办结果', value: '已送达责任人并同步值班群' },
-            { label: 'SLA时限', value: `${activeCustomer.slas.responseMinutes}分钟响应` },
-          ],
-          nextSteps: [
-            '等待责任人反馈最新处理进展',
-            '若超时未更新：自动升级至值班主管',
-            '必要时直接转二线专家组接管',
+            { label: '催办结果', value: `已催办，预计${activeCustomer.slas.restoreHours}小时内完成处理。` },
           ],
           actions: [
             { key: 'track', label: '继续追踪', ask: `继续追踪工单 ${targetTicket.id} 的处理进展`, tone: 'primary' },
@@ -2220,11 +2192,16 @@ export const useAiDock = () => {
     if (resolvedIntent === 'ticket') {
       trackIntentHit('ticket', 0);
       await appendCardWithThinking(() => {
-        appendMessage({ role: 'assistant', kind: 'ticketCard', data: tickets[0] || TICKETS[0] });
+        const list = (tickets.length > 0 ? tickets : TICKETS).slice(0, 8);
         appendMessage({
           role: 'assistant',
-          kind: 'text',
-          text: `当前SLA承诺：${activeCustomer.slas.responseMinutes}分钟响应 / ${activeCustomer.slas.restoreHours}小时恢复。可直接发送“催办工单”触发升级提醒。`,
+          kind: 'ticketCard',
+          data: {
+            mode: 'list',
+            title: `最近工单进度（共${list.length}条）`,
+            slaText: `SLA承诺：${activeCustomer.slas.responseMinutes}分钟响应 / ${activeCustomer.slas.restoreHours}小时恢复`,
+            tickets: list,
+          },
         });
       }, 420);
       return;

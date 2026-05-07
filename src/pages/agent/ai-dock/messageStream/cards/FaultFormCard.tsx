@@ -49,6 +49,8 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
   const [desc, setDesc] = useState(defaultDesc);
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [precheckResult, setPrecheckResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const showValidationAlert = !canSubmit || Boolean(submitError);
   const riskBusinessSet = new Set(contexts.map((item) => item.business).filter(Boolean));
   if (context?.business) riskBusinessSet.add(context.business);
   const sortedBusinessOptions = businessOptions
@@ -102,6 +104,21 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
     }
   };
 
+  const runPrecheck = () => {
+    const misses: string[] = [];
+    if (!title.trim()) misses.push('请填写工单标题');
+    if (businesses.length === 0) misses.push('请至少选择 1 条业务');
+    if (desc.trim().length < 8) misses.push('问题描述不少于 8 个字');
+    if (misses.length > 0) {
+      const text = misses.join('；');
+      setSubmitError(text);
+      setPrecheckResult({ ok: false, text });
+      return;
+    }
+    setSubmitError('');
+    setPrecheckResult({ ok: true, text: '校验通过，可直接提交工单。' });
+  };
+
   return (
     <div className="rounded-xl border border-[#3f77ab] bg-[linear-gradient(180deg,#0e3360_0%,#0f2f5b_100%)] p-3 shadow-[0_12px_22px_rgba(6,29,62,0.35)]">
       <div className="flex items-center justify-between gap-2">
@@ -132,11 +149,17 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="h-9 w-full rounded-md border border-[#3d77af] bg-[#174473] px-2.5 text-sm text-[#e7f4ff] placeholder:text-[#91bbdd] outline-none focus:border-[#5eb2ff]"
+          className={`h-9 w-full rounded-md border bg-[#174473] px-2.5 text-sm text-[#e7f4ff] placeholder:text-[#91bbdd] outline-none focus:border-[#5eb2ff] ${
+            showValidationAlert && title.trim().length === 0
+              ? 'border-[#ef8f7a] ai-dock-field-alert'
+              : 'border-[#3d77af]'
+          }`}
           placeholder="请输入工单标题"
         />
         {businessOptions.length > 0 ? (
-          <div className="rounded-md border border-[#3d77af] bg-[#174473] px-2 py-2">
+          <div className={`rounded-md border bg-[#174473] px-2 py-2 ${
+            showValidationAlert && businesses.length === 0 ? 'border-[#ef8f7a] ai-dock-field-alert' : 'border-[#3d77af]'
+          }`}>
             <div className="mb-1 flex items-center justify-between gap-2">
               <div className="text-xs font-semibold text-[#cbe7ff]">选择报障业务（可多选）</div>
               <div className="text-[11px] text-[#9fd0f5]">已选 {businesses.length}</div>
@@ -206,13 +229,21 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
         <textarea
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
-          className="min-h-[86px] w-full rounded-md border border-[#3d77af] bg-[#174473] px-2.5 py-2 text-sm text-[#dff1ff] placeholder:text-[#91bbdd] outline-none focus:border-[#5eb2ff]"
+          className={`min-h-[86px] w-full rounded-md border bg-[#174473] px-2.5 py-2 text-sm text-[#dff1ff] placeholder:text-[#91bbdd] outline-none focus:border-[#5eb2ff] ${
+            showValidationAlert && desc.trim().length < 8 ? 'border-[#ef8f7a] ai-dock-field-alert' : 'border-[#3d77af]'
+          }`}
           placeholder="请描述问题现象（建议包含影响范围、发生时间、是否可复现）"
         />
-        {(!canSubmit || submitError) && (
-          <div className="inline-flex items-center gap-1 text-[11px] text-[#ffcfaf]">
-            <AlertTriangle size={12} />
-            {submitError || '请至少选择 1 条业务，并补充有效问题描述后再提交'}
+        {showValidationAlert && (
+          <div className="ai-dock-validate-alert mt-1 flex items-center gap-2 rounded-md border px-2.5 py-2 text-[12px] font-semibold text-[#fff1e8]">
+            <AlertTriangle size={15} className="ai-dock-validate-icon shrink-0" />
+            <span>{submitError || '请至少选择 1 条业务，并补充有效问题描述后再提交'}</span>
+          </div>
+        )}
+        {precheckResult?.ok && (
+          <div className="mt-1 flex items-center gap-2 rounded-md border border-[#68c69d] bg-[rgba(32,106,76,0.55)] px-2.5 py-2 text-[12px] font-semibold text-[#e8fff4]">
+            <CheckCircle2 size={15} className="shrink-0 text-[#9df2c9]" />
+            <span>{precheckResult.text}</span>
           </div>
         )}
       </div>
@@ -236,7 +267,7 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
           {
             key: 'check',
             label: '提交前校验',
-            onClick: () => onAsk?.(`请校验这次报障是否信息完整：标题=${title || '未填写'}；业务=${businesses.join('、') || '未选择'}；紧急程度=${severity}；描述=${desc || '未填写'}`),
+            onClick: runPrecheck,
           },
           {
             key: 'submit',
