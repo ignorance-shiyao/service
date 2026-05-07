@@ -127,7 +127,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
       if (!apiKey) {
-        showAppToast('未配置 VITE_GEMINI_API_KEY，已使用本地模板生成简报。', {
+        showAppToast('当前未启用 AI 生成能力，已使用本地模板生成简报。', {
           title: 'AI 能力未启用',
           tone: 'warning',
           duration: 2800,

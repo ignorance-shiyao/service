@@ -40,6 +40,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<'all' | 'diagnosis' | 'ticket' | 'report' | 'business'>('all');
   const [historyKeyword, setHistoryKeyword] = useState('');
+  const [heroTipIndex, setHeroTipIndex] = useState(0);
   const dragRef = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
   const resizeRef = useRef<{ x: number; y: number; left: number; top: number; width: number; height: number } | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -254,6 +255,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
     await store.sendUserText(value);
   };
   const hasUserMessage = store.messages.some((m) => m.role === 'user');
+  const activeHeroTip = heroTips[heroTipIndex] || heroTips[0];
 
   const formatSessionTime = (ts: number) => {
     return formatRelativeTime(ts, { fallback: '--' });
@@ -329,6 +331,14 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
     chip_fault: 'border-[#da944d] bg-[#bc6f24] text-[#fff0dc]',
     chip_manager: 'border-[#4cb68a] bg-[#229569] text-[#e7fff3]',
   };
+
+  useEffect(() => {
+    if (hasUserMessage || heroTips.length <= 1) return;
+    const timer = window.setInterval(() => {
+      setHeroTipIndex((prev) => (prev + 1) % heroTips.length);
+    }, 3200);
+    return () => window.clearInterval(timer);
+  }, [hasUserMessage, heroTips.length]);
 
   const tagToneClass: Record<'blue' | 'cyan' | 'indigo' | 'green' | 'amber', string> = {
     blue: 'border-[#4c8fc4] bg-[#1a4f82] text-[#d8eeff]',
@@ -596,22 +606,16 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
                     <img src={robotEntryIcon} alt="智能体图标" className="ai-dock-hero-robot h-7 w-7" draggable={false} />
                   </div>
                   <div className="ai-dock-hero-title text-xl font-semibold text-[#ebf7ff]">{`您好，${activeCustomerName}`}</div>
-                  <div className="mt-1 text-[11px] text-[#9ec9e9]">
-                    {store.activeCustomer.code} · 客户经理 {store.activeCustomer.accountManager.name}（{store.activeCustomer.accountManager.phone}）
-                  </div>
-                  <div className="mt-1 text-[11px] text-[#8fc0e5]">
-                    SLA承诺：{store.activeCustomer.slas.responseMinutes}分钟响应 / {store.activeCustomer.slas.restoreHours}小时恢复
-                  </div>
                   <div className="mt-2 flex justify-center">
                     <button
                       type="button"
-                      onClick={() => store.sendUserText(heroTips[0].prompt)}
+                      onClick={() => store.sendUserText(activeHeroTip.prompt)}
                       className="ai-dock-hero-rotator inline-flex max-w-[760px] items-center gap-2 rounded-full border border-[#66a9de] bg-[linear-gradient(135deg,rgba(23,86,136,0.94)_0%,rgba(33,98,154,0.94)_56%,rgba(33,92,146,0.94)_100%)] px-3 py-2 text-[12px] text-[#ecf7ff] shadow-[0_16px_30px_rgba(6,32,61,0.28)]"
                     >
-                      <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${heroTagToneClass[heroTips[0].chip]}`}>
-                        {heroTips[0].tag}
+                      <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${heroTagToneClass[activeHeroTip.chip]}`}>
+                        {activeHeroTip.tag}
                       </span>
-                      <span className="ai-dock-hero-tip truncate text-left">{heroTips[0].summary}</span>
+                      <span className="ai-dock-hero-tip truncate text-left">{activeHeroTip.summary}</span>
                     </button>
                   </div>
                 </div>

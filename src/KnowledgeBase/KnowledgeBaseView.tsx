@@ -66,7 +66,7 @@ export const KnowledgeBaseView: React.FC<KBProps> = ({ mode, onToggleMode, onClo
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
       if (!apiKey) {
         setAiResponse('当前未启用 AI 引擎。您可以先使用关键词筛选下方知识条目，或联系客户经理获取人工支持。');
-        showAppToast('请在 .env.local 配置 VITE_GEMINI_API_KEY。', {
+        showAppToast('当前环境未启用 AI 引擎。', {
           title: 'AI 能力未启用',
           tone: 'warning',
           duration: 2800,
