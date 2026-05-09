@@ -50,6 +50,7 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [precheckResult, setPrecheckResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const canSubmit = businesses.length > 0 && title.trim().length > 0 && desc.trim().length >= 8;
   const showValidationAlert = !canSubmit || Boolean(submitError);
   const riskBusinessSet = new Set(contexts.map((item) => item.business).filter(Boolean));
   if (context?.business) riskBusinessSet.add(context.business);
@@ -62,7 +63,6 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
     .sort((a, b) => Number(Boolean(b.risk)) - Number(Boolean(a.risk)) || a.type.localeCompare(b.type, 'zh-CN'));
   const selectedOptions = sortedBusinessOptions.filter((option) => businesses.includes(option.value));
   const primaryBusiness = selectedOptions[0]?.value || businesses[0] || defaultBusiness;
-  const canSubmit = businesses.length > 0 && title.trim().length > 0 && desc.trim().length >= 8;
 
   const applyTemplate = () => {
     const location = context?.region || selectedOptions[0]?.region || '客户业务现场';
@@ -78,6 +78,7 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
 
   const toggleBusiness = (value: string) => {
     setSubmitError('');
+    setPrecheckResult(null);
     setBusinesses((prev) => {
       if (prev.includes(value)) return prev.filter((item) => item !== value);
       return [...prev, value];
@@ -148,7 +149,10 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
       <div className="mt-2 space-y-2">
         <input
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            setPrecheckResult(null);
+          }}
           className={`h-9 w-full rounded-md border bg-[#174473] px-2.5 text-sm text-[#e7f4ff] placeholder:text-[#91bbdd] outline-none focus:border-[#5eb2ff] ${
             showValidationAlert && title.trim().length === 0
               ? 'border-[#ef8f7a] ai-dock-field-alert'
@@ -185,6 +189,7 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
                       toggleBusiness(option.value);
                       if (!context) {
                         setTitle(`${option.type}${option.region}业务异常报障`);
+                        setPrecheckResult(null);
                       }
                     }}
                   />
@@ -228,7 +233,10 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
         </div>
         <textarea
           value={desc}
-          onChange={(e) => setDesc(e.target.value)}
+          onChange={(e) => {
+            setDesc(e.target.value);
+            setPrecheckResult(null);
+          }}
           className={`min-h-[86px] w-full rounded-md border bg-[#174473] px-2.5 py-2 text-sm text-[#dff1ff] placeholder:text-[#91bbdd] outline-none focus:border-[#5eb2ff] ${
             showValidationAlert && desc.trim().length < 8 ? 'border-[#ef8f7a] ai-dock-field-alert' : 'border-[#3d77af]'
           }`}
@@ -257,6 +265,8 @@ export const FaultFormCard: React.FC<FaultFormCardProps> = ({
               setBusinesses(defaultBusinesses.length > 0 ? defaultBusinesses : [defaultBusiness]);
               setSeverity(defaultSeverity);
               setDesc(defaultDesc);
+              setSubmitError('');
+              setPrecheckResult(null);
             },
           },
           {

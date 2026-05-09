@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AI_DOCK_SESSION_STORAGE_KEY, useAiDock } from './store/useAiDock';
+import { useAiDock } from './store/useAiDock';
 import { AiDockWindow } from './AiDockWindow';
 import robotEntryIcon from '../../../assets/robot-entry.svg';
 import './aiDockEntry.css';
@@ -23,37 +23,16 @@ class AiDockErrorBoundary extends React.Component<React.PropsWithChildren, AiDoc
     console.error('[AiDock] 智能体渲染失败，已启用兜底入口。', error);
   }
 
+  componentDidUpdate(prevProps: React.PropsWithChildren) {
+    // Let transient render errors recover on next state/message update.
+    if (this.state.hasError && prevProps.children !== this.props.children) {
+      this.setState({ hasError: false });
+    }
+  }
+
   render() {
     if (this.state.hasError) {
-      return (
-        <div className="fixed bottom-5 right-5 z-[230] rounded-2xl border border-cyan-300/35 bg-[#0d3764] px-3 py-2 text-xs text-[#d8efff] shadow-[0_12px_30px_rgba(8,18,38,0.38)]">
-          <div className="font-semibold text-white">智能体暂不可用</div>
-          <div className="mt-0.5 text-[#9fc9e9]">大屏已保护，可刷新后重试。</div>
-          <div className="mt-2 flex gap-2">
-            <button
-              type="button"
-              className="rounded-md border border-[#4f8bbd] bg-[#1a5286] px-2 py-1 text-[11px] text-[#e4f2ff] hover:bg-[#23639e]"
-              onClick={() => {
-                this.setState({ hasError: false });
-                window.location.reload();
-              }}
-            >
-              刷新
-            </button>
-            <button
-              type="button"
-              className="rounded-md border border-[#8aa1bd] bg-[#17314f] px-2 py-1 text-[11px] text-[#d7e8f7] hover:bg-[#21466d]"
-              onClick={() => {
-                window.localStorage.removeItem(AI_DOCK_SESSION_STORAGE_KEY);
-                this.setState({ hasError: false });
-                window.location.reload();
-              }}
-            >
-              重置会话
-            </button>
-          </div>
-        </div>
-      );
+      return null;
     }
 
     return this.props.children;

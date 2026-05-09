@@ -621,7 +621,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
               <div className={`${contentWrapClass} min-w-0`}>
                 {!hasUserMessage && (
                   <div className="px-1 pt-4">
-                <div className="ai-dock-welcome-card mx-auto w-full max-w-[900px] rounded-2xl border border-[#2f6fad] p-4 text-center">
+                <div className="ai-dock-welcome-card mx-auto w-fit max-w-full rounded-2xl border border-[#2f6fad] p-4 text-center">
                   <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-[#6fc2ff] bg-[#2f77c9] text-[#e9f6ff] shadow-[0_0_20px_rgba(83,174,248,0.35)]">
                     <img src={robotEntryIcon} alt="智能体图标" className="ai-dock-hero-robot h-7 w-7" draggable={false} />
                   </div>
@@ -630,12 +630,12 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
                     <button
                       type="button"
                       onClick={() => store.sendUserText(activeHeroTip.prompt)}
-                      className="ai-dock-hero-rotator inline-flex max-w-[760px] items-center gap-2 rounded-full border border-[#66a9de] bg-[linear-gradient(135deg,rgba(23,86,136,0.94)_0%,rgba(33,98,154,0.94)_56%,rgba(33,92,146,0.94)_100%)] px-3 py-2 text-[12px] text-[#ecf7ff] shadow-[0_16px_30px_rgba(6,32,61,0.28)]"
+                      className="ai-dock-hero-rotator inline-flex max-w-[min(760px,calc(100vw-120px))] items-start gap-2 rounded-2xl border border-[#66a9de] bg-[linear-gradient(135deg,rgba(23,86,136,0.94)_0%,rgba(33,98,154,0.94)_56%,rgba(33,92,146,0.94)_100%)] px-3 py-2 text-[12px] text-[#ecf7ff] shadow-[0_16px_30px_rgba(6,32,61,0.28)]"
                     >
                       <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${heroTagToneClass[activeHeroTip.chip]}`}>
                         {activeHeroTip.tag}
                       </span>
-                      <span className="ai-dock-hero-tip truncate text-left">{activeHeroTip.summary}</span>
+                      <span className="ai-dock-hero-tip text-left whitespace-normal break-words">{activeHeroTip.summary}</span>
                     </button>
                   </div>
                 </div>
