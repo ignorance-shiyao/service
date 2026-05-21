@@ -1,121 +1,152 @@
-import React, { useEffect, useState } from 'react';
-import { LayoutGrid, Map, Server, Network, Activity, ChevronRight, Home, ShieldCheck, PlayCircle, FileText } from 'lucide-react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
+import { Home, ChevronRight, ShieldCheck, PlayCircle, FileText, Network, Activity } from 'lucide-react';
 import { OverviewView } from './views/OverviewView';
 import { AreaView } from './views/AreaView';
 import { RackView } from './views/RackView';
 import { TopologyView } from './views/TopologyView';
 import { DeductionView } from './views/DeductionView';
 
-type ViewKey = 'overview' | 'area' | 'rack' | 'topology' | 'deduction';
+export type DtViewKey = 'overview' | 'area' | 'rack' | 'topology' | 'deduction';
 
-const VIEWS: { key: ViewKey; label: string; icon: React.ComponentType<any> }[] = [
-  { key: 'overview', label: '总览', icon: LayoutGrid },
-  { key: 'area', label: '区域', icon: Map },
-  { key: 'rack', label: '机柜', icon: Server },
-  { key: 'topology', label: '拓扑', icon: Network },
-  { key: 'deduction', label: '推演', icon: Activity },
-];
+// ── 视图导航 Context ────────────────────────────────────────────────────
+interface DtNavCtx {
+  view: DtViewKey;
+  setView: (v: DtViewKey) => void;
+}
+const NavContext = createContext<DtNavCtx>({ view: 'overview', setView: () => {} });
+export const useDtNav = () => useContext(NavContext);
 
-const breadcrumbMap: Record<ViewKey, string[]> = {
-  overview: ['总览'],
-  area: ['总览', '3号机房', 'B区'],
-  rack: ['总览', '3号机房', 'B区', 'B03机柜'],
-  topology: ['总览', '网络拓扑'],
+const breadcrumbs: Record<DtViewKey, string[]> = {
+  overview:  ['总览'],
+  area:      ['总览', '3号机房', 'B区'],
+  rack:      ['总览', '3号机房', 'B区', 'B03机柜'],
+  topology:  ['总览', '网络拓扑'],
   deduction: ['总览', '故障推演'],
 };
 
-const useNow = () => {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+const healthByView: Record<DtViewKey, number> = {
+  overview: 92.6, area: 82.4, rack: 76.8, topology: 84.7, deduction: 76.8,
+};
+
+const crumbToView: Record<string, DtViewKey> = {
+  '总览': 'overview',
+  '3号机房': 'area',
+  'B区': 'area',
+  'B03机柜': 'rack',
+  '网络拓扑': 'topology',
+  '故障推演': 'deduction',
+};
+
+// ── 顶部导航条 ─────────────────────────────────────────────────────────
+const DtTopBar: React.FC<{ view: DtViewKey; setView: (v: DtViewKey) => void; health: number }> = ({ view, setView, health }) => {
+  const crumbs = breadcrumbs[view];
+  const healthColor = health >= 90 ? '#6ce09a' : health >= 80 ? '#f5d263' : '#ff7d7d';
+  return (
+    <div className="flex h-9 shrink-0 items-center justify-between gap-3 rounded-md border border-[#1b4378] bg-[linear-gradient(180deg,#0a2547_0%,#082040_100%)] px-3">
+      {/* 左：面包屑 */}
+      <div className="flex min-w-0 items-center gap-2 text-[12.5px] text-[#a9c8ee]">
+        <Home
+          size={14}
+          className="cursor-pointer text-[#79d0ff] shrink-0 hover:text-[#cfe9ff]"
+          onClick={() => setView('overview')}
+        />
+        {crumbs.map((c, i) => (
+          <React.Fragment key={i}>
+            <ChevronRight size={12} className="text-[#3f86c8] shrink-0" />
+            <span
+              className={`cursor-pointer truncate ${i === crumbs.length - 1 ? 'font-semibold text-[#e8f3ff]' : 'hover:text-[#cfe9ff]'}`}
+              onClick={() => { const t = crumbToView[c]; if (t) setView(t); }}
+            >{c}</span>
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* 右：健康度 + 视图切换 + 操作 */}
+      <div className="flex shrink-0 items-center gap-1.5">
+        {/* 健康度 */}
+        <div className="flex h-7 items-center gap-1.5 rounded border border-[#244871] bg-[#0d2a52]/85 px-2.5">
+          <ShieldCheck size={12} className="text-[#79d0ff]" />
+          <span className="text-[10.5px] text-[#a9c8ee]">健康度</span>
+          <span
+            className="font-mono text-[14px] font-black leading-none"
+            style={{ color: healthColor, textShadow: `0 0 6px ${healthColor}88` }}
+          >{health.toFixed(1)}</span>
+        </div>
+
+        {/* 拓扑 / 推演 视图快捷 */}
+        <button
+          type="button"
+          onClick={() => setView('topology')}
+          className={`inline-flex h-7 items-center gap-1.5 rounded border px-2.5 text-[12px] font-semibold transition ${
+            view === 'topology'
+              ? 'border-[#4fc1ff] bg-[#114a8a] text-[#cfe9ff] shadow-[0_0_8px_rgba(79,193,255,0.35)]'
+              : 'border-[#2b6aa8] bg-[#0d2e5b] text-[#a9c8ee] hover:border-[#4fc1ff] hover:text-[#cfe9ff]'
+          }`}
+        >
+          <Network size={12} />拓扑
+        </button>
+        <button
+          type="button"
+          onClick={() => setView('deduction')}
+          className={`inline-flex h-7 items-center gap-1.5 rounded border px-2.5 text-[12px] font-semibold transition ${
+            view === 'deduction'
+              ? 'border-[#4fc1ff] bg-[#114a8a] text-[#cfe9ff] shadow-[0_0_8px_rgba(79,193,255,0.35)]'
+              : 'border-[#2b6aa8] bg-[#0d2e5b] text-[#a9c8ee] hover:border-[#4fc1ff] hover:text-[#cfe9ff]'
+          }`}
+        >
+          <Activity size={12} />推演
+        </button>
+
+        {/* 主操作 */}
+        <div className="ml-1 h-5 w-px bg-[#1b4378]" />
+        <button
+          type="button"
+          onClick={() => setView('deduction')}
+          className="inline-flex h-7 items-center gap-1.5 rounded border-2 border-[#4fc1ff] bg-[linear-gradient(180deg,#114a8a_0%,#0a2f63_100%)] px-3 text-[12px] font-bold text-[#cfe9ff] shadow-[0_0_8px_rgba(79,193,255,0.32)] transition hover:brightness-110"
+        >
+          <PlayCircle size={13} className="text-[#79d0ff]" />进入故障推演
+        </button>
+        <button
+          type="button"
+          className="inline-flex h-7 items-center gap-1.5 rounded border-2 border-[#2b8a6a] bg-[linear-gradient(180deg,#0e4c3a_0%,#0a2f25_100%)] px-3 text-[12px] font-bold text-[#cfeedf] shadow-[0_0_8px_rgba(108,224,154,0.28)] transition hover:brightness-110"
+        >
+          <FileText size={13} className="text-[#6ce09a]" />生成巡检报告
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export const DigitalTwinDashboard: React.FC = () => {
-  const [view, setView] = useState<ViewKey>('overview');
-  const now = useNow();
-  const health = view === 'rack' ? '76.8' : view === 'area' ? '82.4' : view === 'deduction' ? '76.8' : view === 'topology' ? '84.7' : '92.6';
-  const crumbs = breadcrumbMap[view];
+  const [view, setView] = useState<DtViewKey>('overview');
+  const ctx = useMemo(() => ({ view, setView }), [view]);
+  const health = healthByView[view];
 
-  const ActiveView = (() => {
+  const ActiveView = useMemo(() => {
     switch (view) {
-      case 'overview': return <OverviewView />;
-      case 'area': return <AreaView />;
-      case 'rack': return <RackView />;
-      case 'topology': return <TopologyView />;
+      case 'overview':  return <OverviewView />;
+      case 'area':      return <AreaView />;
+      case 'rack':      return <RackView />;
+      case 'topology':  return <TopologyView />;
       case 'deduction': return <DeductionView />;
     }
-  })();
+  }, [view]);
 
   return (
-    <div className="flex h-full w-full flex-col gap-1.5 overflow-hidden rounded-lg border border-[#0c3d75] bg-[var(--sys-bg-page)] p-1.5">
-      {/* 顶部标题栏 */}
-      <div className="flex h-10 shrink-0 items-center justify-between rounded border border-[#16508f] bg-[linear-gradient(180deg,#0b2f61_0%,#082a59_100%)] px-3">
-        <div className="flex items-center gap-3 text-[12px] text-[#9bc4eb]">
-          <Home size={14} className="text-[#79d0ff]" />
-          {crumbs.map((c, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && <ChevronRight size={12} className="text-[#3f86c8]" />}
-              <span className={i === crumbs.length - 1 ? 'text-[#cfe9ff] font-semibold' : ''}>{c}</span>
-            </React.Fragment>
-          ))}
-        </div>
-        <div className="absolute left-1/2 -translate-x-1/2">
-          <span className="text-[18px] font-black tracking-[0.18em] text-[#cfe9ff]" style={{ textShadow: '0 0 12px rgba(79,193,255,0.45)' }}>
-            轻量数字孪生运维大屏
-          </span>
-        </div>
-        <div className="flex items-center gap-3 text-[12px]">
-          <span className="flex items-center gap-1 text-[#9bc4eb]"><span className="text-[#79d0ff]">●</span>{now}</span>
-          <span className="flex items-center gap-1.5 rounded border border-[#1d6a45] bg-[#0d3a26]/60 px-2 py-[2px] text-[#7dd6a4]">
-            <ShieldCheck size={12} /> 健康度 <span className="font-mono font-bold">{health}</span>
-          </span>
-          <span className="rounded border border-[#2d6ab1] bg-[#0b2f61] px-2 py-[2px] text-[#bde3ff]">半真实运行</span>
-          <span className="text-[#9bc4eb]">数据来源 <span className="text-[#7dd6a4]">●</span> 真实数据 / 模拟数据混合</span>
-        </div>
-      </div>
+    <NavContext.Provider value={ctx}>
+      <div
+        className="relative flex h-full w-full flex-col gap-1.5 overflow-hidden rounded-lg border border-[#0c3d75] p-1.5"
+        style={{
+          background: 'radial-gradient(ellipse at top, rgba(20,68,140,0.25) 0%, transparent 55%), linear-gradient(180deg, #03132a 0%, #021026 100%)',
+        }}
+      >
+        {/* 顶部导航条 */}
+        <DtTopBar view={view} setView={setView} health={health} />
 
-      {/* 主体视图 */}
-      <div className="flex-1 overflow-hidden">{ActiveView}</div>
-
-      {/* 底部视图导航 */}
-      <div className="flex h-[68px] shrink-0 items-center justify-between rounded border border-[#16508f] bg-[#072654]/96 px-3">
-        <div className="text-[12px] text-[#bedaf8]">
-          <div className="mb-0.5 text-[#79d0ff]">当前视图</div>
-          <div className="text-[11px] text-[#9bc4eb]">点击下方按钮在不同视图间切换</div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          {VIEWS.map(v => {
-            const active = v.key === view;
-            const Ic = v.icon;
-            return (
-              <button
-                key={v.key}
-                onClick={() => setView(v.key)}
-                className={`flex w-[80px] flex-col items-center justify-center gap-1 rounded border px-2 py-1.5 transition ${active ? 'border-[#4fc1ff] bg-[#0f3f7a] text-[#79d0ff] shadow-[0_0_10px_rgba(79,193,255,0.28)]' : 'border-[#2d6ab1] bg-[#0b2f61] text-[#bde3ff] hover:border-[#4ea4ff] hover:bg-[#12407e]'}`}
-              >
-                <Ic size={18} />
-                <span className="text-[11px] font-semibold">{v.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 rounded border border-[#4fc1ff] bg-[#0f3f7a] px-3 py-1.5 text-[12px] font-semibold text-[#79d0ff] hover:bg-[#12467f]">
-            <PlayCircle size={14} /> 进入故障推演
-          </button>
-          <button className="flex items-center gap-1.5 rounded border border-[#1d6a45] bg-[#0d3a26] px-3 py-1.5 text-[12px] font-semibold text-[#7dd6a4] hover:bg-[#0f4730]">
-            <FileText size={14} /> 生成巡检报告
-          </button>
-        </div>
+        {/* 主体视图 */}
+        <div className="relative min-h-0 flex-1 overflow-hidden">{ActiveView}</div>
       </div>
-      <div className="text-center text-[10px] text-[#7799c0]">
-        数据说明：<span className="text-[#ffb672]">橙色</span>角标表示模拟数据，<span className="text-[#7dd6a4]">绿色</span>角标表示真实数据
-      </div>
-    </div>
+    </NavContext.Provider>
   );
 };
 

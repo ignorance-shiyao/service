@@ -30,6 +30,22 @@ const LogManager = lazy(() => import('./pages/LogManager').then(module => ({ def
 const ComponentManager = lazy(() => import('./pages/ComponentManager').then(module => ({ default: module.ComponentManager })));
 const TemplateManager = lazy(() => import('./pages/TemplateManager').then(module => ({ default: module.TemplateManager })));
 
+// 全局时钟（仅渲染时间，秒级刷新）
+const GlobalClock: React.FC = () => {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const p = (n: number) => n.toString().padStart(2, '0');
+  return (
+    <div className="hidden lg:flex flex-col items-end leading-tight pr-2 mr-1 border-r border-slate-700">
+      <span className="font-mono text-[11px] text-[#cfe9ff]">{`${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())} ${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`}</span>
+      <span className="text-[9px] text-slate-500">{['日','一','二','三','四','五','六'][now.getDay()]} · 实时</span>
+    </div>
+  );
+};
+
 const PlaceholderPage: React.FC<{ title: string; subtitle: string }> = ({ title, subtitle }) => (
   <div className="h-full rounded-lg border border-[var(--sys-border-primary)] bg-[var(--sys-bg-card)] p-8">
     <div className="mb-4 text-2xl font-black text-[var(--sys-text-primary)]">{title}</div>
@@ -430,6 +446,8 @@ const App: React.FC = () => {
                 )}
             </div>
 
+	            <GlobalClock />
+
 	            <div className="flex items-center space-x-1.5 pl-2 border-l border-slate-700">
                 <div className="flex flex-col items-end">
 	                    <span className="text-[11px] font-medium text-white">{mode === 'fusion' ? '超级管理员' : (currentDomain?.manager)}</span>
@@ -507,6 +525,31 @@ const App: React.FC = () => {
 	              <ChevronRight size={12} className="mx-auto" />
             </button>
           )}
+
+          {/* 右端：大屏切换 + 全屏聚焦 */}
+          <div className="ml-auto flex items-center gap-1.5 pl-2 border-l border-[#1b4378]">
+            {isBigScreenPage && (
+              <button
+                type="button"
+                onClick={() => {
+                  setBigScreenKeyword('');
+                  setBigScreenView('preview');
+                  setSelectedBigScreenId(findBigScreenByPath(location.pathname).id);
+                  setIsBigScreenOpen(true);
+                }}
+                className="inline-flex h-7 items-center gap-1 rounded border border-[#2d6ab1] bg-[#0b2f61] px-2.5 text-[11px] font-semibold text-[#bde3ff] transition hover:border-[#4ea4ff] hover:bg-[#12407e] hover:text-white"
+              >
+                <LayoutGrid size={11} />大屏切换
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={toggleFocusMode}
+              className="inline-flex h-7 items-center gap-1 rounded border border-[#2d6ab1] bg-[#0b2f61] px-2.5 text-[11px] font-semibold text-[#bde3ff] transition hover:border-[#4ea4ff] hover:bg-[#12407e] hover:text-white"
+            >
+              <Maximize2 size={11} />全屏聚焦
+            </button>
+          </div>
         </div>
       </header>
       )}
@@ -530,29 +573,6 @@ const App: React.FC = () => {
                     业务类型限制生效中
                  </div>
                )}
-               {isBigScreenPage && (
-                 <button
-                   type="button"
-                   onClick={() => {
-                     setBigScreenKeyword('');
-                     setBigScreenView('preview');
-                     setSelectedBigScreenId(findBigScreenByPath(location.pathname).id);
-                     setIsBigScreenOpen(true);
-                   }}
-		                   className="inline-flex h-7 items-center gap-1.5 rounded border border-[#2d6ab1] bg-[#0b2f61] px-2.5 text-[11px] font-semibold text-[#bde3ff] transition hover:border-[#4ea4ff] hover:bg-[#12407e] hover:text-white"
-                 >
-		                   <LayoutGrid size={12} />
-                   大屏切换
-                 </button>
-               )}
-               <button
-                 type="button"
-                 onClick={toggleFocusMode}
-                 className="inline-flex h-7 items-center gap-1.5 rounded border border-[#2d6ab1] bg-[#0b2f61] px-2.5 text-[11px] font-semibold text-[#bde3ff] transition hover:border-[#4ea4ff] hover:bg-[#12407e] hover:text-white"
-               >
-                 <Maximize2 size={12} />
-                 全屏聚焦
-               </button>
              </div>
         </div>
         )}

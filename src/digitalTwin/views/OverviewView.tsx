@@ -1,140 +1,308 @@
 import React from 'react';
-import { BaseChart } from '../../components/BaseChart';
 import { Server, Wifi, Siren, Link as LinkIcon, LayoutGrid, Boxes, MapPin, Cpu, AlertTriangle } from 'lucide-react';
-import { dtPanel, DtSectionTitle, DtStatusBadge, DtAlarmTag } from '../shared';
-import { ASSET_OVERVIEW, BUSINESS_SYSTEMS, AREAS, CURRENT_ALARMS, ALARM_HISTORY_24H } from '../data';
+import { dtPanel, DtSectionTitle, DtStatusBadge, DtAlarmTag, DT } from '../shared';
+import { ASSET_OVERVIEW, BUSINESS_SYSTEMS, AREAS, CURRENT_ALARMS } from '../data';
+import { DtSceneDefs } from '../scenery';
+import { Scene3DCanvas, Box3D, GroundPlane, GroundShadow, Anchor3D, Line3D } from '../iso3d';
+import { useDtNav } from '../DigitalTwinDashboard';
 
+// ── 资产概览 ───────────────────────────────────────────────────────────
 const assetRows = [
-  { key: 'totalDevices', label: '设备总数', value: ASSET_OVERVIEW.totalDevices, icon: <Server size={14} />, tone: 'text-[#d8f1ff]' },
-  { key: 'online', label: '在线设备', value: ASSET_OVERVIEW.online, icon: <Wifi size={14} />, tone: 'text-[#6ce09a]' },
-  { key: 'alarming', label: '告警设备', value: ASSET_OVERVIEW.alarming, icon: <Siren size={14} />, tone: 'text-[#ff8a7a]' },
-  { key: 'offline', label: '离线设备', value: ASSET_OVERVIEW.offline, icon: <LinkIcon size={14} />, tone: 'text-[#ffb672]' },
-  { key: 'racks', label: '机柜数量', value: ASSET_OVERVIEW.racks, icon: <LayoutGrid size={14} />, tone: 'text-[#9cd3ff]' },
-  { key: 'biz', label: '业务系统数量', value: ASSET_OVERVIEW.bizSystems, icon: <Boxes size={14} />, tone: 'text-[#9cd3ff]' },
+  { key: 'totalDevices', label: '设备总数', value: ASSET_OVERVIEW.totalDevices, icon: Server,    tone: '#e8f3ff' },
+  { key: 'online',       label: '在线设备', value: ASSET_OVERVIEW.online,       icon: Wifi,      tone: '#6ce09a' },
+  { key: 'alarming',     label: '告警设备', value: ASSET_OVERVIEW.alarming,     icon: Siren,     tone: '#ff7d7d' },
+  { key: 'offline',      label: '离线设备', value: ASSET_OVERVIEW.offline,      icon: LinkIcon,  tone: '#ffb672' },
+  { key: 'racks',        label: '机柜数量', value: ASSET_OVERVIEW.racks,        icon: LayoutGrid, tone: '#e8f3ff' },
+  { key: 'biz',          label: '业务系统数量', value: ASSET_OVERVIEW.bizSystems, icon: Boxes,   tone: '#e8f3ff' },
 ];
 
-const alarmHistOption = {
-  grid: { top: 18, left: 30, right: 6, bottom: 22 },
-  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-  legend: { show: false },
-  xAxis: {
-    type: 'category',
-    data: ALARM_HISTORY_24H.hours,
-    axisLabel: { color: '#9fc8f2', fontSize: 9 },
-  },
-  yAxis: { type: 'value', axisLabel: { color: '#9fc8f2', fontSize: 9 } },
-  series: [
-    { name: '严重', type: 'bar', stack: 'a', data: ALARM_HISTORY_24H.critical, itemStyle: { color: '#ef5350' }, barWidth: 12 },
-    { name: '一般', type: 'bar', stack: 'a', data: ALARM_HISTORY_24H.warning, itemStyle: { color: '#f5b963' } },
-    { name: '提示', type: 'bar', stack: 'a', data: ALARM_HISTORY_24H.info, itemStyle: { color: '#3b8de1' } },
-  ],
+// ── 工厂建筑（3D 立方体） ──────────────────────────────────────────────
+const Factory3DBuilding: React.FC<{
+  cx: number; cz: number; w: number; h: number; d: number; alarm?: boolean; label: string;
+  onClick?: () => void;
+}> = ({ cx, cz, w, h, d, alarm, label, onClick }) => {
+  const colors = alarm ? {
+    top: '#c14238', front: '#7a1a14', back: '#5a0e0a', left: '#5a1410', right: '#3e0b08',
+  } : {
+    top: '#2f7ac4', front: '#1a4f86', back: '#0c3168', left: '#163f70', right: '#0d2c58',
+  };
+  const stroke = alarm ? '#ef5a4a' : '#3f86c8';
+
+  return (
+    <>
+      <GroundShadow cx={cx} cz={cz} rx={w / 2 + 4} rz={d / 2 + 4} />
+      <Box3D
+        cx={cx} cy={h / 2} cz={cz}
+        hw={w / 2} hh={h / 2} hd={d / 2}
+        colors={colors}
+        stroke={stroke}
+        strokeWidth={0.8}
+        onClick={onClick}
+        decorate={{
+          // 屋顶纹理 - 设备
+          top: (pts) => {
+            // 在顶面 4 顶点中找几何中心，画机械设备
+            const cxs = pts.reduce((s, p) => s + p.x, 0) / 4;
+            const cys = pts.reduce((s, p) => s + p.y, 0) / 4;
+            return (
+              <>
+                <rect x={cxs - 18} y={cys - 6} width={14} height={4} fill="#243a55" opacity={0.85} />
+                <rect x={cxs + 4} y={cys - 4} width={16} height={6} fill="#243a55" opacity={0.85} />
+              </>
+            );
+          },
+          // 正面 窗户矩阵
+          front: (pts) => {
+            // 用 4 个屏幕顶点构造矩形区域填窗户
+            const [tl, tr, br, bl] = pts;
+            const w = Math.hypot(tr.x - tl.x, tr.y - tl.y);
+            const h = Math.hypot(bl.x - tl.x, bl.y - tl.y);
+            const cols = Math.max(4, Math.round(w / 14));
+            const rows = Math.max(3, Math.round(h / 12));
+            // 用 transform 拼成网格（窗户必然平行于面）
+            const ux = (tr.x - tl.x) / cols, uy = (tr.y - tl.y) / cols;
+            const vx = (bl.x - tl.x) / rows, vy = (bl.y - tl.y) / rows;
+            const items: React.ReactNode[] = [];
+            for (let r = 1; r < rows - 0.5; r++) {
+              for (let c = 0.5; c < cols - 0.5; c++) {
+                const px = tl.x + ux * c + vx * r;
+                const py = tl.y + uy * c + vy * r;
+                const wcol = alarm ? '#ffd0c0' : '#9bd1ff';
+                items.push(<rect key={`${r}-${c}`} x={px - 3} y={py - 2.5} width={6} height={3.5} fill={wcol} opacity={0.55} />);
+              }
+            }
+            return <>{items}</>;
+          },
+          // 左/右侧面也加窗户行
+          left: (pts) => {
+            const [tl, tr, br, bl] = pts;
+            const w = Math.hypot(tr.x - tl.x, tr.y - tl.y);
+            const h = Math.hypot(bl.x - tl.x, bl.y - tl.y);
+            const cols = Math.max(3, Math.round(w / 14));
+            const rows = Math.max(3, Math.round(h / 12));
+            const ux = (tr.x - tl.x) / cols, uy = (tr.y - tl.y) / cols;
+            const vx = (bl.x - tl.x) / rows, vy = (bl.y - tl.y) / rows;
+            const items: React.ReactNode[] = [];
+            for (let r = 1; r < rows - 0.5; r++) {
+              for (let c = 0.5; c < cols - 0.5; c++) {
+                const px = tl.x + ux * c + vx * r;
+                const py = tl.y + uy * c + vy * r;
+                const wcol = alarm ? '#ffd0c0' : '#79b8e8';
+                items.push(<rect key={`${r}-${c}`} x={px - 2.5} y={py - 2} width={5} height={3} fill={wcol} opacity={0.45} />);
+              }
+            }
+            return <>{items}</>;
+          },
+          right: (pts) => {
+            const [tl, tr, br, bl] = pts;
+            const w = Math.hypot(tr.x - tl.x, tr.y - tl.y);
+            const h = Math.hypot(bl.x - tl.x, bl.y - tl.y);
+            const cols = Math.max(3, Math.round(w / 14));
+            const rows = Math.max(3, Math.round(h / 12));
+            const ux = (tr.x - tl.x) / cols, uy = (tr.y - tl.y) / cols;
+            const vx = (bl.x - tl.x) / rows, vy = (bl.y - tl.y) / rows;
+            const items: React.ReactNode[] = [];
+            for (let r = 1; r < rows - 0.5; r++) {
+              for (let c = 0.5; c < cols - 0.5; c++) {
+                const px = tl.x + ux * c + vx * r;
+                const py = tl.y + uy * c + vy * r;
+                const wcol = alarm ? '#ffd0c0' : '#79b8e8';
+                items.push(<rect key={`${r}-${c}`} x={px - 2.5} y={py - 2} width={5} height={3} fill={wcol} opacity={0.4} />);
+              }
+            }
+            return <>{items}</>;
+          },
+        }}
+      />
+      {/* 顶上漂浮标签 */}
+      <Anchor3D p={{ x: cx, y: h + 20, z: cz }}>
+        {(p) => (
+          <g>
+            <rect x={p.x - 75} y={p.y - 14} width={150} height={24} rx={3}
+              fill={alarm ? 'rgba(80,20,20,0.92)' : 'rgba(8,28,58,0.92)'}
+              stroke={alarm ? '#ef5a4a' : '#3f86c8'} strokeWidth={0.8} />
+            <text x={p.x} y={p.y + 3} textAnchor="middle" fontSize="12" fontWeight="bold"
+              fill={alarm ? '#ffe4df' : '#cfe5ff'}>{label}</text>
+          </g>
+        )}
+      </Anchor3D>
+    </>
+  );
 };
 
-// 工厂全景示意 SVG
-const FactoryScene: React.FC = () => (
-  <svg viewBox="0 0 800 420" className="h-full w-full">
-    <defs>
-      <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#0a2748" />
-        <stop offset="1" stopColor="#061a36" />
-      </linearGradient>
-      <linearGradient id="bldNormal" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#1c4f88" />
-        <stop offset="1" stopColor="#0d2f5d" />
-      </linearGradient>
-      <linearGradient id="bldAlarm" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#a93a2d" />
-        <stop offset="1" stopColor="#5a1410" />
-      </linearGradient>
-      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-        <path d="M40 0 L0 0 0 40" fill="none" stroke="#163d6c" strokeWidth="0.6" />
-      </pattern>
-    </defs>
-    <rect x="0" y="0" width="800" height="420" fill="url(#ground)" />
-    <rect x="0" y="0" width="800" height="420" fill="url(#grid)" />
+// ── 平台（ground slab，含上面的小物件） ─────────────────────────────
+const FactorySlab: React.FC<{
+  cx: number; cz: number; w: number; h: number; d: number; label: string;
+  children?: React.ReactNode;
+}> = ({ cx, cz, w, h, d, label, children }) => {
+  const colors = { top: '#1a3f6e', front: '#0d2e5b', back: '#082040', left: '#102e54', right: '#0a1f3d' };
+  return (
+    <>
+      <GroundShadow cx={cx} cz={cz} rx={w / 2 + 2} rz={d / 2 + 2} />
+      <Box3D
+        cx={cx} cy={h / 2} cz={cz}
+        hw={w / 2} hh={h / 2} hd={d / 2}
+        colors={colors} stroke="#3f86c8" strokeWidth={0.7}
+      />
+      {children}
+      <Anchor3D p={{ x: cx, y: -8, z: cz + d / 2 + 4 }}>
+        {(p) => (
+          <g>
+            <rect x={p.x - 70} y={p.y - 12} width={140} height={22} rx={3}
+              fill="rgba(8,28,58,0.92)" stroke="#3f86c8" strokeWidth={0.6} />
+            <text x={p.x} y={p.y + 4} textAnchor="middle" fontSize="11" fontWeight="bold" fill="#cfe5ff">{label}</text>
+          </g>
+        )}
+      </Anchor3D>
+    </>
+  );
+};
 
-    {/* 三栋主厂房 */}
-    <g>
-      {/* 1号产线 */}
-      <polygon points="60,180 220,180 240,210 80,210" fill="url(#bldNormal)" stroke="#3f86c8" />
-      <polygon points="60,180 60,260 80,290 80,210" fill="#0a2a52" stroke="#3f86c8" />
-      <polygon points="240,210 240,290 80,290 80,210" fill="#0d3567" stroke="#3f86c8" />
-      <text x="150" y="170" fill="#cce6ff" fontSize="11" textAnchor="middle">1号产线</text>
-      {/* 3号机房，告警高亮 */}
-      <polygon points="320,180 480,180 500,210 340,210" fill="url(#bldAlarm)" stroke="#ff5a4a" />
-      <polygon points="320,180 320,260 340,290 340,210" fill="#411414" stroke="#ff5a4a" />
-      <polygon points="500,210 500,290 340,290 340,210" fill="#5a1c1c" stroke="#ff5a4a" />
-      <text x="410" y="170" fill="#ffd4cf" fontSize="11" textAnchor="middle">3号机房</text>
-      <text x="410" y="252" fill="#ffe4df" fontSize="10" textAnchor="middle">B区 (告警 3)</text>
-      {/* 算力模块A */}
-      <polygon points="580,180 740,180 760,210 600,210" fill="url(#bldNormal)" stroke="#3f86c8" />
-      <polygon points="580,180 580,260 600,290 600,210" fill="#0a2a52" stroke="#3f86c8" />
-      <polygon points="760,210 760,290 600,290 600,210" fill="#0d3567" stroke="#3f86c8" />
-      <text x="670" y="170" fill="#cce6ff" fontSize="11" textAnchor="middle">算力模块A</text>
-    </g>
-
-    {/* 下排三个区域 */}
-    <g>
-      {/* AGV调度区 */}
-      <rect x="60" y="320" width="200" height="80" fill="#0d3567" stroke="#3f86c8" />
-      <text x="160" y="312" fill="#cce6ff" fontSize="11" textAnchor="middle">AGV调度区</text>
-      <path d="M80 380 Q120 340 200 360 T240 380" stroke="#4fc1ff" strokeDasharray="3 3" fill="none" />
-      <circle cx="120" cy="370" r="4" fill="#4fc1ff" />
-      <circle cx="190" cy="360" r="4" fill="#4fc1ff" />
-      {/* 视觉检测区 */}
-      <rect x="300" y="320" width="200" height="80" fill="#0d3567" stroke="#3f86c8" />
-      <text x="400" y="312" fill="#cce6ff" fontSize="11" textAnchor="middle">视觉检测区</text>
-      <g>
-        <rect x="320" y="350" width="20" height="30" fill="#1d4d85" stroke="#5ea6e5" />
-        <rect x="350" y="350" width="20" height="30" fill="#1d4d85" stroke="#5ea6e5" />
-        <rect x="380" y="350" width="20" height="30" fill="#1d4d85" stroke="#5ea6e5" />
-        <rect x="410" y="350" width="20" height="30" fill="#1d4d85" stroke="#5ea6e5" />
-        <rect x="440" y="350" width="20" height="30" fill="#1d4d85" stroke="#5ea6e5" />
-      </g>
-      {/* 办公网区 */}
-      <rect x="540" y="320" width="200" height="80" fill="#0d3567" stroke="#3f86c8" />
-      <text x="640" y="312" fill="#cce6ff" fontSize="11" textAnchor="middle">办公网区</text>
-    </g>
-
-    {/* 链路 */}
-    <g stroke="#4fc1ff" strokeWidth="1.2" fill="none">
-      <path d="M160 290 V320" />
-      <path d="M400 290 V320" />
-      <path d="M640 290 V320" />
-      <path d="M240 245 H320" />
-      <path d="M500 245 H580" />
-      <path d="M400 290 V305" />
-    </g>
-    <circle cx="400" cy="305" r="6" fill="#0e3e7e" stroke="#4fc1ff" />
-    <text x="400" y="308" fontSize="6" fill="#9cd3ff" textAnchor="middle">⇄</text>
-  </svg>
+// ── 工位（视觉检测）：小型立方体阵列 ──────────────────────────────
+const VisionWorkstation: React.FC<{ cx: number; cz: number }> = ({ cx, cz }) => (
+  <Box3D
+    cx={cx} cy={14} cz={cz}
+    hw={9} hh={14} hd={11}
+    colors={{ top: '#0e3a72', front: '#1a4f86', back: '#0a2547', left: '#102e54', right: '#0a1f3d' }}
+    stroke="#5fb4ff" strokeWidth={0.5}
+    decorate={{
+      front: (pts) => {
+        const [tl, tr, br, bl] = pts;
+        const cx = (tl.x + tr.x + br.x + bl.x) / 4;
+        const cy = (tl.y + tr.y + br.y + bl.y) / 4;
+        return <circle cx={cx} cy={cy} r={2.2} fill="#6ce09a" />;
+      }
+    }}
+  />
 );
+
+// ── 办公桌（小立方体） ─────────────────────────────────────────────
+const OfficeDesk: React.FC<{ cx: number; cz: number }> = ({ cx, cz }) => (
+  <Box3D
+    cx={cx} cy={6} cz={cz}
+    hw={14} hh={6} hd={6}
+    colors={{ top: '#1a4f86', front: '#0d2e5b', back: '#082040', left: '#102e54', right: '#0a1f3d' }}
+    stroke="#5fb4ff" strokeWidth={0.4}
+  />
+);
+
+// ── AGV 小车（立方体 + 上盖） ──────────────────────────────────────
+const AGVUnit: React.FC<{ cx: number; cz: number }> = ({ cx, cz }) => (
+  <Box3D
+    cx={cx} cy={6} cz={cz}
+    hw={12} hh={6} hd={8}
+    colors={{ top: '#2f7ac4', front: '#1f5a9b', back: '#0c3168', left: '#143f70', right: '#0a2c58' }}
+    stroke="#5fb4ff" strokeWidth={0.5}
+    decorate={{
+      top: (pts) => {
+        const cxv = pts.reduce((s, p) => s + p.x, 0) / 4;
+        const cyv = pts.reduce((s, p) => s + p.y, 0) / 4;
+        return (
+          <>
+            <rect x={cxv - 6} y={cyv - 2} width={12} height={4} fill="#03101e" />
+            <circle cx={cxv} cy={cyv} r={1.2} fill="#6ce09a" />
+          </>
+        );
+      }
+    }}
+  />
+);
+
+// ── 主舞台：基于真伪3D 的园区场景 ─────────────────────────────────────
+const FactoryScene: React.FC = () => {
+  const { setView } = useDtNav();
+  // 园区坐标系：x 横向，z 纵深（屏幕外为正），y 竖直
+  // 上排 3 个建筑（z=-80）、下排 3 个平台（z=+80）
+  const upZ = -80, downZ = 100;
+  const xs = [-260, 0, 260];
+  const drill = () => setView('area');
+
+  return (
+  <Scene3DCanvas width={960} height={560} cx={480} cy={330} defaultYaw={28} defaultPitch={48} defaultScale={0.9}
+    background={
+      <>
+        <defs>
+          <radialGradient id="ovGround" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stopColor="#0b2a55" />
+            <stop offset="60%" stopColor="#061a36" />
+            <stop offset="100%" stopColor="#020a18" />
+          </radialGradient>
+        </defs>
+        <rect width="960" height="560" fill="url(#ovGround)" />
+      </>
+    }
+  >
+    {/* 地面网格 */}
+    <GroundPlane x={-460} z={0} w={920} d={520} fill="#04162e" stroke="#163f70" />
+    {/* 水平/垂直路面 */}
+    <GroundPlane x={-460} z={10} w={920} d={22} fill="#15233e" />
+    <GroundPlane x={-12} z={-260} w={24} d={520} fill="#15233e" />
+
+    {/* === 上排：1号产线 / 3号机房（告警）/ 算力模块A === */}
+    <Factory3DBuilding cx={xs[0]} cz={upZ} w={150} h={100} d={110} label="1号产线"   onClick={drill} />
+    <Factory3DBuilding cx={xs[1]} cz={upZ} w={150} h={110} d={110} label="3号机房"   onClick={drill} alarm />
+    <Factory3DBuilding cx={xs[2]} cz={upZ} w={150} h={100} d={110} label="算力模块A" onClick={drill} />
+
+    {/* === 下排：3 个平台 === */}
+    <FactorySlab cx={xs[0]} cz={downZ} w={170} h={14} d={120} label="AGV调度区">
+      <AGVUnit cx={xs[0] - 40} cz={downZ - 20} />
+      <AGVUnit cx={xs[0] + 30} cz={downZ + 20} />
+    </FactorySlab>
+    <FactorySlab cx={xs[1]} cz={downZ} w={170} h={14} d={120} label="视觉检测区">
+      {[-3, -1, 1, 3].map(i => (
+        <VisionWorkstation key={i} cx={xs[1] + i * 22} cz={downZ} />
+      ))}
+    </FactorySlab>
+    <FactorySlab cx={xs[2]} cz={downZ} w={170} h={14} d={120} label="办公网区">
+      {[-1, 0, 1].map(r => [-1.5, -0.5, 0.5, 1.5].map(c => (
+        <OfficeDesk key={`${r}-${c}`} cx={xs[2] + c * 36} cz={downZ + r * 26} />
+      )))}
+    </FactorySlab>
+  </Scene3DCanvas>
+  );
+};
 
 export const OverviewView: React.FC = () => {
   return (
-    <div className="grid h-full grid-cols-12 gap-1.5">
-      {/* 左列 */}
-      <div className="col-span-3 flex flex-col gap-1.5">
-        <div className={dtPanel}>
+    <div
+      className="grid h-full min-h-0 gap-1.5"
+      style={{ gridTemplateColumns: 'minmax(220px, clamp(220px, 18vw, 320px)) minmax(0, 1fr) minmax(240px, clamp(260px, 20vw, 340px))' }}
+    >
+      {/* ===================== 左列 ===================== */}
+      <div className="flex min-h-0 flex-col gap-1.5">
+        {/* 资产概览 */}
+        <div className={dtPanel + ' flex-[6] min-h-0 overflow-hidden'}>
           <DtSectionTitle title="资产概览" />
           <div className="flex-1 space-y-1.5">
-            {assetRows.map(row => (
-              <div key={row.key} className="flex items-center justify-between rounded bg-[#0e3e7e]/70 px-2.5 py-1.5">
-                <div className="flex items-center gap-2 text-[12px] text-[#bedaf8]">
-                  <span className="text-[#9cd3ff]">{row.icon}</span>
-                  {row.label}
+            {assetRows.map(row => {
+              const Ic = row.icon;
+              return (
+                <div key={row.key} className="flex items-center justify-between rounded border border-[#143258] bg-[#081f3d]/65 px-3 py-2">
+                  <div className="flex items-center gap-2.5 text-[12.5px] text-[#a9c8ee]">
+                    <span className="flex h-6 w-6 items-center justify-center rounded border border-[#244871] bg-[#0d2a52] text-[#79d0ff]">
+                      <Ic size={13} />
+                    </span>
+                    {row.label}
+                  </div>
+                  <span className="font-mono text-[20px] font-black tracking-wide" style={{ color: row.tone }}>
+                    {row.value}
+                  </span>
                 </div>
-                <span className={`font-mono text-[18px] font-black ${row.tone}`}>{row.value}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
-        <div className={dtPanel}>
+
+        {/* 业务承载 */}
+        <div className={dtPanel + ' flex-[5] min-h-0 overflow-hidden'}>
           <DtSectionTitle title="业务承载" />
-          <div className="flex-1 space-y-1.5">
+          <div className="flex-1 space-y-1.5 overflow-auto custom-scrollbar pr-0.5">
             {BUSINESS_SYSTEMS.map(b => (
-              <div key={b.name} className="flex items-center justify-between rounded bg-[#0e3e7e]/55 px-2.5 py-1.5 text-[12px] text-[#d8eaff]">
-                <span>{b.name}</span>
+              <div key={b.name} className="flex items-center justify-between rounded border border-[#143258] bg-[#081f3d]/65 px-3 py-1.5 text-[12.5px] text-[#e8f3ff]">
+                <span className="flex items-center gap-2">
+                  <span className="text-[#79d0ff]">▣</span>
+                  {b.name}
+                </span>
                 <DtStatusBadge status={b.status} />
               </div>
             ))}
@@ -142,78 +310,62 @@ export const OverviewView: React.FC = () => {
         </div>
       </div>
 
-      {/* 中间主视图 */}
-      <div className="col-span-6 flex flex-col gap-1.5">
-        <div className={`${dtPanel} flex-1`}>
-          <DtSectionTitle title="数字孪生 — 总览" right={<span className="text-[10px] text-[#9bc4eb]">真实数据 / 模拟数据混合</span>} />
-          <div className="relative flex-1 overflow-hidden rounded border border-[#16508f] bg-[#03132a]">
-            <FactoryScene />
-            {/* 区域健康度浮窗 */}
-            <div className="pointer-events-none absolute inset-x-2 top-2 grid grid-cols-3 gap-1.5">
-              {AREAS.slice(0, 3).map(a => (
-                <div
-                  key={a.id}
-                  className={`rounded border px-2 py-1 text-[10px] leading-tight backdrop-blur-sm ${
-                    a.highlight ? 'border-[#ff5a4a] bg-[#481414]/85 text-[#ffe4df]' : 'border-[#2b6aa8] bg-[#0b2f61]/88 text-[#cfe5ff]'
-                  }`}
-                >
-                  <div className="text-[11px] font-bold">{a.name}</div>
-                  <div className="flex items-center justify-between">
-                    <span>健康度 <span className="font-mono">{a.health}</span></span>
-                    <span>告警 <span className={a.alarms ? 'text-[#ff7d7d]' : 'text-[#6ce09a]'}>{a.alarms}</span></span>
-                    <span>设备 {a.devices}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="pointer-events-none absolute inset-x-2 bottom-2 grid grid-cols-3 gap-1.5">
-              {AREAS.slice(3).map(a => (
-                <div key={a.id} className="rounded border border-[#2b6aa8] bg-[#0b2f61]/88 px-2 py-1 text-[10px] leading-tight text-[#cfe5ff] backdrop-blur-sm">
-                  <div className="text-[11px] font-bold">{a.name}</div>
-                  <div className="flex items-center justify-between">
-                    <span>健康度 <span className="font-mono">{a.health}</span></span>
-                    <span>告警 <span className={a.alarms ? 'text-[#ff7d7d]' : 'text-[#6ce09a]'}>{a.alarms}</span></span>
-                    <span>设备 {a.devices}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className={`${dtPanel}`} style={{ height: 168 }}>
-          <DtSectionTitle title="最近24小时告警数量变化" right={<div className="flex items-center gap-2 text-[10px] text-[#9fc8f2]"><span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#ef5350]"/>严重</span><span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#f5b963]"/>一般</span><span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#3b8de1]"/>提示</span></div>} />
-          <div className="flex-1 min-h-0">
-            <BaseChart option={alarmHistOption} />
-          </div>
+      {/* ===================== 中间主舞台 ===================== */}
+      <div className={dtPanel + ' min-h-0 overflow-hidden'}>
+        <DtSectionTitle title="园区数字孪生 — 总览" right={<span className="text-[10px] text-[#7e9fc8]">真实数据 / 模拟数据混合</span>} />
+        <div className="relative min-h-0 flex-1 overflow-hidden rounded border border-[#1b4378] bg-[#03132a]">
+          <FactoryScene />
         </div>
       </div>
 
-      {/* 右列 */}
-      <div className="col-span-3 flex flex-col gap-1.5">
-        <div className={dtPanel}>
-          <DtSectionTitle title="当前告警" right={<span className="cursor-pointer text-[10px] text-[#79d0ff] hover:underline">更多 ›</span>} />
-          <div className="flex-1 space-y-1.5">
-            {CURRENT_ALARMS.map(al => (
-              <div key={al.id} className="rounded border-l-4 border-l-[#ef5350] bg-[#0c2f5e]/85 px-2 py-1.5 text-[11px]" style={{
-                borderLeftColor: al.level === 'critical' ? '#ef5350' : al.level === 'warning' ? '#f5b963' : '#3b8de1'
-              }}>
-                <div className="mb-0.5 flex items-center justify-between">
-                  <DtAlarmTag level={al.level} />
-                  <span className="text-[10px] text-[#9bc4eb]">{al.time}</span>
+      {/* ===================== 右列 ===================== */}
+      <div className="flex min-h-0 flex-col gap-1.5">
+        {/* 当前告警 */}
+        <div className={dtPanel + ' flex-[3] min-h-0 overflow-hidden'}>
+          <DtSectionTitle title="当前告警" right={<button className="text-[11px] text-[#79d0ff] hover:underline">更多 ›</button>} />
+          <div className="flex-1 space-y-1.5 overflow-auto custom-scrollbar pr-0.5">
+            {CURRENT_ALARMS.map(al => {
+              const borderColor = al.level === 'critical' ? '#ef5350' : al.level === 'warning' ? '#f5b963' : '#3b8de1';
+              return (
+                <div
+                  key={al.id}
+                  className="rounded border bg-[#0a1f3d]/85 p-2"
+                  style={{ borderColor: `${borderColor}55`, borderLeftWidth: 4, borderLeftColor: borderColor }}
+                >
+                  <div className="mb-1 flex items-center justify-between">
+                    <DtAlarmTag level={al.level} />
+                    <span className="font-mono text-[11px] text-[#7e9fc8]">{al.time}</span>
+                  </div>
+                  <div className="text-[12.5px] font-semibold text-[#e8f3ff]">{al.title}</div>
+                  <div className="mt-0.5 text-[11px] text-[#7e9fc8]">影响范围：{al.scope}</div>
                 </div>
-                <div className="text-[12px] font-semibold text-[#eaf6ff]">{al.title}</div>
-                <div className="text-[10px] text-[#9bc4eb]">影响范围：{al.scope}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
-        <div className={dtPanel}>
+
+        {/* 影响总览 */}
+        <div className={dtPanel + ' flex-[2] min-h-0 overflow-hidden'}>
           <DtSectionTitle title="影响总览" />
-          <div className="flex-1 space-y-1.5 text-[11px] text-[#d8eaff]">
-            <div className="flex items-center justify-between rounded bg-[#0e3e7e]/55 px-2.5 py-1.5"><span className="flex items-center gap-1.5"><MapPin size={12}/>受影响区域</span><span className="text-[#ff8a7a] font-semibold">A区视觉检测工位</span></div>
-            <div className="flex items-center justify-between rounded bg-[#0e3e7e]/55 px-2.5 py-1.5"><span className="flex items-center gap-1.5"><Cpu size={12}/>受影响设备</span><span className="text-[#ff8a7a] font-semibold">8台终端</span></div>
-            <div className="flex items-center justify-between rounded bg-[#0e3e7e]/55 px-2.5 py-1.5"><span className="flex items-center gap-1.5"><Boxes size={12}/>受影响业务</span><span className="text-[#f5b963]">视觉检测、AGV调度、视频监控</span></div>
-            <div className="flex items-center justify-between rounded bg-[#0e3e7e]/55 px-2.5 py-1.5"><span className="flex items-center gap-1.5"><AlertTriangle size={12}/>风险等级</span><DtStatusBadge status="告警" /></div>
+          <div className="flex-1 space-y-1.5 overflow-auto text-[12px] custom-scrollbar pr-0.5">
+            {[
+              { icon: <MapPin size={12} />, label: '受影响区域', value: 'A区视觉检测工位', tone: '#ff8a7a' },
+              { icon: <Cpu size={12} />,    label: '受影响设备', value: '8台终端',           tone: '#ff8a7a' },
+              { icon: <Boxes size={12} />,  label: '受影响业务', value: '视觉检测、AGV调度、视频监控', tone: '#f5d263' },
+            ].map(r => (
+              <div key={r.label} className="flex items-center justify-between rounded border border-[#143258] bg-[#081f3d]/65 px-2.5 py-1.5">
+                <span className="flex items-center gap-1.5 text-[#a9c8ee]">
+                  <span className="text-[#79d0ff]">{r.icon}</span>{r.label}
+                </span>
+                <span className="font-semibold" style={{ color: r.tone }}>{r.value}</span>
+              </div>
+            ))}
+            <div className="flex items-center justify-between rounded border border-[#143258] bg-[#081f3d]/65 px-2.5 py-1.5">
+              <span className="flex items-center gap-1.5 text-[#a9c8ee]">
+                <AlertTriangle size={12} className="text-[#ff8a7a]" />风险等级
+              </span>
+              <DtStatusBadge status="严重" />
+            </div>
           </div>
         </div>
       </div>
