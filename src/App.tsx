@@ -16,6 +16,7 @@ import { NotificationMatrix } from './Assistant/NotificationMatrix';
 import { AiDock } from './pages/agent/ai-dock';
 import { AppFeedbackHost } from './components/AppFeedback';
 import { useAppData } from './context/AppDataContext';
+import { DigitalTwinDashboard } from './digitalTwin/DigitalTwinDashboard';
 
 // --- Lazy Load Pages ---
 const DomainManager = lazy(() => import('./pages/DomainManager').then(module => ({ default: module.DomainManager })));
@@ -159,6 +160,7 @@ const BIG_SCREENS: BigScreenItem[] = [
   { id: 'screen-5g-private', name: '5G专网管家', subtitle: '5G专网性能、预警与业务质量总览', path: '/screen/5g' },
   { id: 'screen-idc', name: 'IDC管家', subtitle: 'IDC资源与运行态势看板', path: '/screen/idc' },
   { id: 'screen-cloud-network', name: '算网管家', subtitle: '算力网络协同运营看板', path: '/screen/cloud-network' },
+  { id: 'screen-digital-twin', name: '数字孪生运维', subtitle: '园区数字孪生 / 区域 / 机柜 / 拓扑 / 推演', path: '/screen/digital-twin' },
 ];
 
 const modalPanelClass =
@@ -564,6 +566,7 @@ const App: React.FC = () => {
                     <Route path="/screen/idc" element={<IDCOverview />} />
                     <Route path="/screen/cloud-network" element={<CloudNetworkOverview />} />
                     <Route path="/screen/sdwan" element={<QuantumSDWANOverview />} />
+                    <Route path="/screen/digital-twin" element={<DigitalTwinDashboard />} />
 
                     <Route
                       path="/visual/performance"
