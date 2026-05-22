@@ -1,7 +1,8 @@
 import React from 'react';
 import { BaseChart } from '../../components/BaseChart';
-import { dtPanel, DtSectionTitle, DtStatusBadge, DtProgress } from '../shared';
+import { dtPanel, DtSectionTitle, DtStatusBadge, DtProgress, DtAlarm24hPanel } from '../shared';
 import { Server, Cpu, Camera, Car, Monitor, CheckCircle2 } from 'lucide-react';
+import { DtSceneHeader } from '../DigitalTwinDashboard';
 
 const scaleDonut = {
   series: [{
@@ -223,20 +224,11 @@ export const TopologyView: React.FC = () => {
 
       {/* ===== 中间拓扑 ===== */}
       <div className={dtPanel + ' min-h-0 overflow-hidden'}>
-        <DtSectionTitle title="网络拓扑" />
+        <DtSceneHeader />
         <div className="relative mb-1.5 min-h-0 flex-[4] overflow-hidden rounded border border-[#1b4378] bg-[#03132a]">
           <TopoSvg />
         </div>
-        <div className="flex min-h-0 flex-[1] shrink-0 flex-col rounded border border-[#1b4378] bg-[#081c3a] p-2">
-          <div className="mb-1 flex items-center justify-between">
-            <div className="flex items-center text-[11.5px] text-[#a9c8ee]">
-              <span className="mr-2 inline-block h-2.5 w-[3px] rounded-sm bg-[#4fc1ff]" />
-              最近24小时告警数量变化
-            </div>
-            <span className="text-[10px] text-[#7e9fc8]">告警数 <span className="text-[#ff8a7a] font-bold">7</span></span>
-          </div>
-          <div className="min-h-0 flex-1"><BaseChart option={alarmLine} /></div>
-        </div>
+        <DtAlarm24hPanel />
       </div>
 
       {/* ===== 右列 ===== */}

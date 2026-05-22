@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { dtPanel, DtSectionTitle, DtStatusBadge } from '../shared';
 import { DEDUCE_TIMELINE, DEDUCE_PLANS } from '../data';
 import { Target, Clock, AlertOctagon, Activity, GitBranch, Database, Play, Save, FileText, Scale, CheckCircle2 } from 'lucide-react';
+import { DtSceneHeader } from '../DigitalTwinDashboard';
 
 const StatusDot: React.FC<{ s: 'normal' | 'warning' | 'critical' | 'recovered' }> = ({ s }) => {
   const c = s === 'normal' ? '#6ce09a' : s === 'warning' ? '#f5b963' : s === 'critical' ? '#ef5350' : '#6ce09a';
@@ -266,9 +267,9 @@ export const DeductionView: React.FC = () => {
 
       {/* ===== 中间推演场景 ===== */}
       <div className={dtPanel + ' min-h-0 overflow-hidden'}>
-        <DtSectionTitle
-          title="区域与网络关系视图（A区产线）"
-          right={<button className="rounded border border-[#2b6aa8] bg-[#0d2e5b] px-2 py-[2px] text-[11px] text-[#a9c8ee] hover:border-[#4fc1ff]">切换区域</button>}
+        <DtSceneHeader
+          title="A区产线 · 区域/网络关系"
+          right={<button className="ml-1.5 rounded border border-[#2b6aa8] bg-[#0d2e5b] px-2 py-[3px] text-[11px] text-[#a9c8ee] hover:border-[#4fc1ff]">切换区域</button>}
         />
         <div className="relative mb-1.5 min-h-0 flex-[4] overflow-hidden rounded border border-[#1b4378] bg-[#03132a]">
           <DeduceScene />

@@ -1,0 +1,158 @@
+{
+  "version": "1.0",
+  "source": "design/icons transparent components",
+  "png_dir": "/Users/ignorance/WebstormProjects/digital_twin/design/png/buildings",
+  "svg_dir": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/buildings",
+  "assets": [
+    {
+      "name": "park_factory_building",
+      "label": "生产厂房",
+      "png": "/Users/ignorance/WebstormProjects/digital_twin/design/png/buildings/park_factory_building.png",
+      "svg": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/buildings/park_factory_building.svg",
+      "size": {
+        "width": 768,
+        "height": 576
+      },
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "name": "zone_datacenter",
+      "label": "机房/算力中心",
+      "png": "/Users/ignorance/WebstormProjects/digital_twin/design/png/buildings/zone_datacenter.png",
+      "svg": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/buildings/zone_datacenter.svg",
+      "size": {
+        "width": 768,
+        "height": 574
+      },
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "name": "park_office_building",
+      "label": "办公楼",
+      "png": "/Users/ignorance/WebstormProjects/digital_twin/design/png/buildings/park_office_building.png",
+      "svg": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/buildings/park_office_building.svg",
+      "size": {
+        "width": 768,
+        "height": 694
+      },
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "name": "park_loading_dock",
+      "label": "物流装卸区",
+      "png": "/Users/ignorance/WebstormProjects/digital_twin/design/png/buildings/park_loading_dock.png",
+      "svg": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/buildings/park_loading_dock.svg",
+      "size": {
+        "width": 768,
+        "height": 604
+      },
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "name": "park_security_gatehouse",
+      "label": "园区门岗",
+      "png": "/Users/ignorance/WebstormProjects/digital_twin/design/png/buildings/park_security_gatehouse.png",
+      "svg": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/buildings/park_security_gatehouse.svg",
+      "size": {
+        "width": 768,
+        "height": 708
+      },
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "name": "park_transformer_substation",
+      "label": "箱变/能源区",
+      "png": "/Users/ignorance/WebstormProjects/digital_twin/design/png/buildings/park_transformer_substation.png",
+      "svg": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/buildings/park_transformer_substation.svg",
+      "size": {
+        "width": 768,
+        "height": 594
+      },
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "name": "park_hvac_chiller",
+      "label": "冷却设备区",
+      "png": "/Users/ignorance/WebstormProjects/digital_twin/design/png/buildings/park_hvac_chiller.png",
+      "svg": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/buildings/park_hvac_chiller.svg",
+      "size": {
+        "width": 768,
+        "height": 648
+      },
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "name": "park_ev_charger_parking",
+      "label": "充电停车位",
+      "png": "/Users/ignorance/WebstormProjects/digital_twin/design/png/buildings/park_ev_charger_parking.png",
+      "svg": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/buildings/park_ev_charger_parking.svg",
+      "size": {
+        "width": 768,
+        "height": 614
+      },
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "name": "park_ev_charger_parking_alt",
+      "label": "充电停车位_备用",
+      "png": "/Users/ignorance/WebstormProjects/digital_twin/design/png/buildings/park_ev_charger_parking_alt.png",
+      "svg": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/buildings/park_ev_charger_parking_alt.svg",
+      "size": {
+        "width": 768,
+        "height": 609
+      },
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "name": "zone_factory",
+      "label": "智能制造车间模块",
+      "png": "/Users/ignorance/WebstormProjects/digital_twin/design/png/buildings/zone_factory.png",
+      "svg": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/buildings/zone_factory.svg",
+      "size": {
+        "width": 768,
+        "height": 532
+      },
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    }
+  ]
+}

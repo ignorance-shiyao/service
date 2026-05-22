@@ -1,4 +1,52 @@
 import React from 'react';
+import { BaseChart } from '../components/BaseChart';
+
+// ── 24h 告警折线图（每个视图主面板底部固定展示）─────────────────────────
+const alarmTrend24h = {
+  grid: { top: 18, left: 30, right: 12, bottom: 22 },
+  tooltip: { trigger: 'axis' },
+  legend: { show: false },
+  xAxis: {
+    type: 'category',
+    data: ['14:30','16:30','18:30','20:30','22:30','00:30','02:30','04:30','06:30','08:30','10:30','12:30','14:30'],
+    axisLine: { lineStyle: { color: '#234c7c' } },
+    axisLabel: { color: '#7e9fc8', fontSize: 9 },
+  },
+  yAxis: {
+    type: 'value', max: 30,
+    splitLine: { lineStyle: { color: 'rgba(35,76,124,0.4)' } },
+    axisLabel: { color: '#7e9fc8', fontSize: 9 },
+  },
+  series: [
+    { name: '严重', type: 'line', data: [2,4,6,8,10,6,4,5,3,4,5,7,3], smooth: true, symbol: 'none',
+      lineStyle: { color: '#ef5350', width: 1.5 }, areaStyle: { color: 'rgba(239,83,80,0.12)' } },
+    { name: '一般', type: 'line', data: [5,8,12,18,22,14,10,12,9,13,14,16,8], smooth: true, symbol: 'none',
+      lineStyle: { color: '#f5b963', width: 1.5 } },
+    { name: '提示', type: 'line', data: [3,6,11,17,25,18,12,14,15,17,13,15,15], smooth: true, symbol: 'none',
+      lineStyle: { color: '#3b8de1', width: 1.5 } },
+  ],
+};
+
+// 固定显示在主舞台面板底部的"最近 24 小时告警"小图
+export const DtAlarm24hPanel: React.FC = () => (
+  <div className="flex min-h-0 flex-[1] shrink-0 flex-col rounded border border-[#1b4378] bg-[#081c3a] p-2">
+    <div className="mb-1 flex items-center justify-between">
+      <div className="flex items-center text-[11.5px] text-[#a9c8ee]">
+        <span className="mr-2 inline-block h-2.5 w-[3px] rounded-sm bg-[#4fc1ff] shadow-[0_0_4px_#4fc1ff]" />
+        最近 24 小时告警数量变化
+      </div>
+      <div className="flex items-center gap-3 text-[10px] text-[#7e9fc8]">
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#ef5350]" />严重 <b className="text-[#ff8a7a]">3</b></span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#f5b963]" />一般 <b className="text-[#f5d263]">8</b></span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#3b8de1]" />提示 <b className="text-[#79d0ff]">15</b></span>
+      </div>
+    </div>
+    <div className="min-h-0 flex-1">
+      <BaseChart option={alarmTrend24h} />
+    </div>
+  </div>
+);
+
 
 // 数字孪生大屏 - 共享样式与小组件（依据 public/cut 设计稿精细对齐）
 

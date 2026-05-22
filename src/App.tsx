@@ -17,6 +17,7 @@ import { AiDock } from './pages/agent/ai-dock';
 import { AppFeedbackHost } from './components/AppFeedback';
 import { useAppData } from './context/AppDataContext';
 import { DigitalTwinDashboard } from './digitalTwin/DigitalTwinDashboard';
+import { DigitalTwinEditor } from './digitalTwin/DigitalTwinEditor';
 
 // --- Lazy Load Pages ---
 const DomainManager = lazy(() => import('./pages/DomainManager').then(module => ({ default: module.DomainManager })));
@@ -77,6 +78,12 @@ const NAV_ITEMS = [
     title: '业务总览',
     icon: Home,
     path: '/screen/sdwan',
+  },
+  {
+    id: 'digital-twin-edit',
+    title: '数字孪生',
+    icon: Boxes,
+    path: '/digital-twin/edit',
   },
   {
     id: 'performance-view',
@@ -587,6 +594,7 @@ const App: React.FC = () => {
                     <Route path="/screen/cloud-network" element={<CloudNetworkOverview />} />
                     <Route path="/screen/sdwan" element={<QuantumSDWANOverview />} />
                     <Route path="/screen/digital-twin" element={<DigitalTwinDashboard />} />
+                    <Route path="/digital-twin/edit" element={<DigitalTwinEditor />} />
 
                     <Route
                       path="/visual/performance"
