@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { BaseChart } from '../../components/BaseChart';
-import { dtPanel, DtSectionTitle, DtStatusBadge, DtAlarmTag, DtProgress } from '../shared';
+import { dtPanel, DtSectionTitle, DtStatusBadge, DtAlarmTag, DtProgress, DtAlarm24hPanel } from '../shared';
 import { RACK_LAYOUT, RACK_DETAIL } from '../data';
 import { Zap, Thermometer, Database, Camera, Car, X } from 'lucide-react';
-import { DtSceneDefs, ServerRack3D, RackUnit } from '../scenery';
+import { SceneStage, SceneSprite, SceneAlarmPulse, SceneLabel, ASSETS } from '../sceneAssets';
+import { DtSceneHeader } from '../DigitalTwinDashboard';
 
 // 把 data.ts 中的 RACK_LAYOUT 映射成写实 3D 机柜 units
 const RACK_UNITS: RackUnit[] = [
@@ -92,6 +93,7 @@ const KvRow: React.FC<{ k: string; v: React.ReactNode }> = ({ k, v }) => (
 
 export const RackView: React.FC = () => {
   const [showDetail, setShowDetail] = useState(true);
+  const [opened, setOpened] = useState(false);
   return (
     <div
       className="grid h-full min-h-0 gap-1.5"
@@ -163,40 +165,82 @@ export const RackView: React.FC = () => {
 
       {/* ===== 中间机柜 ===== */}
       <div className={dtPanel + ' min-h-0 overflow-hidden'}>
-        <DtSectionTitle title="B03 机柜" />
+        <DtSceneHeader right={
+          <button
+            type="button"
+            onClick={() => setOpened(o => !o)}
+            className="ml-1.5 inline-flex h-7 items-center gap-1 rounded border border-[#2b6aa8] bg-[#0d2e5b] px-2.5 text-[11px] font-semibold text-[#a9c8ee] hover:border-[#4fc1ff] hover:text-[#cfe9ff]"
+          >
+            {opened ? '关闭机柜' : '打开机柜'}
+          </button>
+        } />
         <div className="relative mb-1.5 flex min-h-0 flex-[4] gap-4 overflow-hidden rounded border border-[#1b4378] bg-[#03132a] p-4">
-          {/* 写实机柜（静态） */}
-          <div className="flex-1 max-w-[420px]">
-            <svg viewBox="0 0 280 580" className="h-full w-full" preserveAspectRatio="xMidYMid meet">
-              <DtSceneDefs />
-              {/* 地板格 */}
-              <pattern id="rkFloor" width="20" height="20" patternUnits="userSpaceOnUse">
-                <rect width="20" height="20" fill="#04162e" />
-                <path d="M0 0 L20 0 M0 0 L0 20" stroke="rgba(79,193,255,0.1)" strokeWidth={0.4} />
-              </pattern>
-              <rect width="280" height="580" fill="url(#rkFloor)" />
-              {/* 机柜（底部对齐，y=560） */}
-              <g transform="translate(36 0)">
-                <ServerRack3D
-                  x={0}
-                  y={560}
-                  height={32}
-                  units={RACK_UNITS}
-                />
-              </g>
-              {/* U 位刻度（右侧） */}
-              <g fontFamily="monospace">
-                {[1, 4, 8, 12, 16, 20, 24, 28, 32].map(u => {
-                  const yy = 560 - 26 - (32 - u) * 0 - (u - 1) * (528 / 32);
-                  return (
-                    <g key={u}>
-                      <text x={252} y={yy + 3} fontSize="9" fill="#7e9fc8">{u}U</text>
-                      <line x1={244} y1={yy} x2={248} y2={yy} stroke="#3a557a" strokeWidth={0.5} />
-                    </g>
-                  );
-                })}
-              </g>
-            </svg>
+          {/* 机柜区（点击切换开/关） */}
+          <div className="relative flex-1 max-w-[460px]" onClick={() => setOpened(o => !o)} style={{ cursor: 'pointer' }} title={opened ? '点击关闭机柜' : '点击打开机柜'}>
+            <SceneStage width={400} height={620} className="bg-[radial-gradient(ellipse_at_center,#082a55_0%,#04132c_70%,#020a18_100%)]">
+              <SceneSprite asset="floorRoomSlab" x={50} y={94} width={94} z={1} anchorBottom={false} />
+              <SceneSprite asset="rackSingle"   x={50} y={88} width={42} z={20} title="B03 机柜"
+                opacity={opened ? 0.35 : 1}
+                filter={opened ? 'grayscale(0.4)' : undefined} />
+              <SceneSprite asset="pduStrip" x={80} y={86} width={6} z={18} title="PDU" opacity={opened ? 0.5 : 1} />
+              {!opened && <SceneAlarmPulse x={50} y={48} size={10} z={40} />}
+              {!opened && <SceneLabel x={50} y={18} z={70} tone="alarm">⚠ SW-B03-01 接入交换机离线</SceneLabel>}
+
+              {/* U 位刻度 */}
+              <div className="pointer-events-none absolute right-2 top-[8%] bottom-[18%] flex flex-col-reverse justify-between text-[10px] font-mono text-[#7e9fc8]" style={{ zIndex: 50 }}>
+                {[1, 4, 8, 12, 16, 20, 24, 28, 32].map(u => (
+                  <div key={u} className="flex items-center gap-1">
+                    <span className="h-[1px] w-2 bg-[#3a557a]" />{u}U
+                  </div>
+                ))}
+              </div>
+
+              {/* 开门：在机柜位置叠加 U 位列表 */}
+              {opened && (
+                <div
+                  className="pointer-events-auto absolute"
+                  style={{
+                    left: '30%', right: '22%',
+                    top: '8%', bottom: '13%',
+                    border: '2px solid #4fc1ff',
+                    background: 'linear-gradient(180deg,#0a1322 0%,#050a13 100%)',
+                    boxShadow: '0 0 24px rgba(79,193,255,0.45), inset 0 0 12px rgba(0,0,0,0.55)',
+                    borderRadius: 4,
+                    zIndex: 60,
+                  }}
+                >
+                  <div className="flex h-full flex-col gap-[2px] p-1.5">
+                    {RACK_UNITS.map((u, i) => {
+                      const colorMap = {
+                        normal:   { bg: '#0d2a52', border: '#244871', text: '#cfe9ff', led: '#6ce09a' },
+                        warning:  { bg: '#3a2c0d', border: '#7a5c1d', text: '#fff0d4', led: '#f5b963' },
+                        critical: { bg: '#3a0d0d', border: '#7a2e2e', text: '#ffd0c0', led: '#ef5350' },
+                        idle:     { bg: '#0a1322', border: '#1a2538', text: '#5a7393', led: '#1a2538' },
+                      } as const;
+                      const c = colorMap[u.status as keyof typeof colorMap] || colorMap.normal;
+                      return (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 rounded px-2 text-[11px] font-semibold"
+                          style={{
+                            flexGrow: u.height,
+                            background: c.bg,
+                            border: `1px solid ${c.border}`,
+                            color: c.text,
+                            boxShadow: u.selected ? '0 0 10px rgba(239,90,74,0.6)' : undefined,
+                            minHeight: 16,
+                          }}
+                        >
+                          <span className="inline-block h-2 w-2 rounded-full" style={{ background: c.led, boxShadow: `0 0 6px ${c.led}` }} />
+                          <span className="flex-1 truncate">{u.label}</span>
+                          <span className="font-mono text-[9.5px] opacity-70">{u.height}U</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </SceneStage>
           </div>
 
           {/* 设备详情卡 */}
@@ -238,20 +282,7 @@ export const RackView: React.FC = () => {
           )}
         </div>
 
-        {/* 24h 告警 */}
-        <div className="flex min-h-0 flex-[1] shrink-0 flex-col rounded border border-[#1b4378] bg-[#081c3a] p-2">
-          <div className="mb-1 flex items-center justify-between">
-            <div className="flex items-center text-[11.5px] text-[#a9c8ee]">
-              <span className="mr-2 inline-block h-2.5 w-[3px] rounded-sm bg-[#4fc1ff]" />
-              最近24小时告警数量变化
-            </div>
-            <div className="flex items-center gap-3 text-[10px] text-[#7e9fc8]">
-              <span>严重告警 <span className="text-[#ff8a7a] font-bold">12</span></span>
-              <span>一般告警 <span className="text-[#f5d263] font-bold">21</span></span>
-            </div>
-          </div>
-          <div className="min-h-0 flex-1"><BaseChart option={alarmCountOption} /></div>
-        </div>
+        <DtAlarm24hPanel />
       </div>
 
       {/* ===== 右列 ===== */}

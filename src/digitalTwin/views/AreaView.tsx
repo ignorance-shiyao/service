@@ -1,221 +1,10 @@
 import React from 'react';
 import { BaseChart } from '../../components/BaseChart';
-import { dtPanel, DtSectionTitle, DtStatusBadge, DtAlarmTag, DtProgress } from '../shared';
+import { dtPanel, DtSectionTitle, DtStatusBadge, DtAlarmTag, DtProgress, DtAlarm24hPanel } from '../shared';
 import { B_AREA_CATEGORIES, B_AREA_KPIS, B_AREA_ENV, CURRENT_ALARMS } from '../data';
 import { Gauge, Activity, Thermometer, Zap, Wifi, Network, Server, Camera, HardDrive, Wind, Cpu, Square, Database } from 'lucide-react';
-import { DtSceneDefs, DataRackRow, Scene3DContainer } from '../scenery';
-import { Scene3DCanvas, Box3D, GroundPlane, GroundShadow, Anchor3D } from '../iso3d';
-import { useDtNav } from '../DigitalTwinDashboard';
-
-// ── B 区机房（真3D） ─────────────────────────────────────────────────
-const Rack3DSingle: React.FC<{ cx: number; cz: number; alarm?: boolean; onClick?: () => void }> = ({ cx, cz, alarm, onClick }) => (
-  <Box3D
-    cx={cx} cy={28} cz={cz} hw={14} hh={28} hd={14}
-    colors={alarm
-      ? { top: '#c14238', front: '#7a1a14', back: '#3e0b08', left: '#5a1410', right: '#3e0b08' }
-      : { top: '#2f7ac4', front: '#0d2e5b', back: '#082040', left: '#102e54', right: '#0a1f3d' }}
-    stroke={alarm ? '#ef5a4a' : '#5fb4ff'} strokeWidth={0.6}
-    onClick={onClick}
-    decorate={{
-      front: (pts) => {
-        const [tl, tr, br, bl] = pts;
-        const items: React.ReactNode[] = [];
-        for (let i = 0.5; i < 6; i++) {
-          const py = tl.y + (bl.y - tl.y) * (i / 6);
-          const lx = tl.x + (bl.x - tl.x) * (i / 6);
-          const rx = tr.x + (br.x - tr.x) * (i / 6);
-          items.push(<line key={i} x1={lx + 2} y1={py} x2={rx - 2} y2={py} stroke={alarm ? '#3a1014' : '#0a1322'} strokeWidth={1.5} />);
-        }
-        items.push(<circle key="led" cx={tr.x - 4} cy={tl.y + 4} r={2} fill={alarm ? '#ef5350' : '#6ce09a'}>
-          {alarm && <animate attributeName="opacity" values="0.4;1;0.4" dur="1s" repeatCount="indefinite" />}
-        </circle>);
-        return <>{items}</>;
-      }
-    }}
-  />
-);
-
-const RackRow3D: React.FC<{ cx: number; cz: number; count?: number; alarmIdx?: number; onRackClick?: () => void }> = ({ cx, cz, count = 8, alarmIdx = -1, onRackClick }) => {
-  const items = [];
-  const startX = cx - (count - 1) * 32 / 2;
-  for (let i = 0; i < count; i++) {
-    items.push(<Rack3DSingle key={i} cx={startX + i * 32} cz={cz} alarm={i === alarmIdx} onClick={onRackClick} />);
-  }
-  return <>{items}</>;
-};
-
-const FaultSwitch3D: React.FC<{ cx: number; cz: number }> = ({ cx, cz }) => (
-  <>
-    <Box3D
-      cx={cx} cy={20} cz={cz} hw={90} hh={20} hd={36}
-      colors={{ top: '#c14238', front: '#5a1414', back: '#3a0d0d', left: '#7a1f18', right: '#4a1310' }}
-      stroke="#ef5a4a" strokeWidth={1.2}
-      decorate={{
-        front: (pts) => {
-          const [tl, tr, br, bl] = pts;
-          const items: React.ReactNode[] = [];
-          // LCD
-          items.push(<rect key="lcd" x={tl.x + 6} y={tl.y + 5} width={36} height={10} fill="#031022" stroke="#ef5350" strokeWidth={0.4} />);
-          items.push(<text key="lcdt" x={tl.x + 24} y={tl.y + 12} textAnchor="middle" fontSize="6" fill="#ef5350" fontFamily="monospace">ERR</text>);
-          // Ports row
-          for (let i = 0; i < 14; i++) {
-            const px = tl.x + 48 + i * 8;
-            items.push(<rect key={`p${i}`} x={px} y={tl.y + 5} width={5} height={12} fill="#0a1726" stroke="#1a2538" strokeWidth={0.3} />);
-            items.push(<circle key={`led${i}`} cx={px + 2.5} cy={tl.y + 8} r={0.8} fill={i % 3 === 0 ? '#ef5350' : '#3a1414'} />);
-          }
-          // Vents at bottom
-          for (let i = 0; i < 12; i++) {
-            const px = tl.x + 6 + i * 14;
-            items.push(<rect key={`v${i}`} x={px} y={bl.y - 14} width={10} height={10} fill="#0a1322" stroke="#1a2538" strokeWidth={0.3} />);
-          }
-          return <>{items}</>;
-        }
-      }}
-    />
-    {/* 脉冲圈（顶部漂浮） */}
-    <Anchor3D p={{ x: cx, y: 60, z: cz }}>
-      {(p) => (
-        <>
-          <circle cx={p.x} cy={p.y} r={20} fill="#ef5350" stroke="#fff" strokeWidth={1.5} />
-          <text x={p.x} y={p.y + 6} textAnchor="middle" fontSize="18" fontWeight="bold" fill="#fff">!</text>
-          <circle cx={p.x} cy={p.y} r={20} fill="none" stroke="#ef5350" strokeOpacity={0.6}>
-            <animate attributeName="r" values="18;38;18" dur="2.4s" repeatCount="indefinite" />
-            <animate attributeName="stroke-opacity" values="0.7;0;0.7" dur="2.4s" repeatCount="indefinite" />
-          </circle>
-        </>
-      )}
-    </Anchor3D>
-    <Anchor3D p={{ x: cx, y: -16, z: cz + 36 }}>
-      {(p) => (
-        <g>
-          <rect x={p.x - 100} y={p.y - 12} width={200} height={22} rx={3} fill="rgba(80,18,18,0.92)" stroke="#ef5a4a" strokeWidth={0.8} />
-          <text x={p.x} y={p.y + 4} textAnchor="middle" fontSize="11" fontWeight="bold" fill="#ffe4df">SW-A-01 接入交换机离线</text>
-        </g>
-      )}
-    </Anchor3D>
-  </>
-);
-
-const AccessSwitch3D: React.FC<{ cx: number; cz: number; label: string }> = ({ cx, cz, label }) => (
-  <>
-    <Box3D
-      cx={cx} cy={14} cz={cz} hw={40} hh={14} hd={20}
-      colors={{ top: '#2f7ac4', front: '#1a2538', back: '#0d1a2e', left: '#243a55', right: '#10182a' }}
-      stroke="#5fb4ff" strokeWidth={0.6}
-      decorate={{
-        front: (pts) => {
-          const [tl, tr, br, bl] = pts;
-          const items: React.ReactNode[] = [];
-          items.push(<rect key="lcd" x={tl.x + 4} y={tl.y + 4} width={14} height={6} fill="#031022" />);
-          for (let i = 0; i < 8; i++) {
-            items.push(<rect key={`p${i}`} x={tl.x + 22 + i * 7} y={tl.y + 4} width={5} height={10} fill="#0a1726" stroke="#1a2538" strokeWidth={0.3} />);
-            items.push(<circle key={`l${i}`} cx={tl.x + 24.5 + i * 7} cy={tl.y + 6} r={0.6} fill={i % 2 === 0 ? '#6ce09a' : '#1e5b3b'} />);
-          }
-          return <>{items}</>;
-        }
-      }}
-    />
-    <Anchor3D p={{ x: cx, y: -8, z: cz + 20 }}>
-      {(p) => <text x={p.x} y={p.y} textAnchor="middle" fontSize="10" fill="#cfe5ff">{label}</text>}
-    </Anchor3D>
-  </>
-);
-
-const PLC3D: React.FC<{ cx: number; cz: number; label: string }> = ({ cx, cz, label }) => (
-  <>
-    <Box3D
-      cx={cx} cy={22} cz={cz} hw={16} hh={22} hd={16}
-      colors={{ top: '#2f7ac4', front: '#1a2538', back: '#0d1a2e', left: '#243a55', right: '#10182a' }}
-      stroke="#5fb4ff" strokeWidth={0.5}
-      decorate={{
-        front: (pts) => {
-          const [tl, tr, br, bl] = pts;
-          const items: React.ReactNode[] = [];
-          for (let i = 0; i < 3; i++) {
-            const yy = tl.y + 6 + i * 12;
-            items.push(<rect key={i} x={tl.x + 4} y={yy} width={tr.x - tl.x - 8} height={8} fill="#0a1322" stroke="#3a557a" strokeWidth={0.4} />);
-            for (let j = 0; j < 5; j++) {
-              items.push(<circle key={`${i}-${j}`} cx={tl.x + 8 + j * 5} cy={yy + 4} r={0.8} fill="#6ce09a" />);
-            }
-          }
-          return <>{items}</>;
-        }
-      }}
-    />
-    <Anchor3D p={{ x: cx, y: -8, z: cz + 16 }}>
-      {(p) => <text x={p.x} y={p.y} textAnchor="middle" fontSize="10" fill="#cfe5ff">{label}</text>}
-    </Anchor3D>
-  </>
-);
-
-const Workstation3D: React.FC<{ cx: number; cz: number; label: string; alarm?: boolean }> = ({ cx, cz, label, alarm }) => (
-  <>
-    <Box3D
-      cx={cx} cy={14} cz={cz} hw={22} hh={14} hd={16}
-      colors={{ top: '#2f7ac4', front: '#1a2538', back: '#0d1a2e', left: '#243a55', right: '#10182a' }}
-      stroke={alarm ? '#ef5a4a' : '#5fb4ff'} strokeWidth={0.5}
-      decorate={{
-        front: (pts) => {
-          const [tl, tr, br, bl] = pts;
-          const cxv = (tl.x + tr.x) / 2;
-          return (
-            <>
-              <rect x={tl.x + 4} y={tl.y + 3} width={tr.x - tl.x - 8} height={10} fill="#031022" stroke="#3f86c8" strokeWidth={0.4} />
-              <text x={cxv} y={tl.y + 10} textAnchor="middle" fontSize="5" fill={alarm ? '#ef5350' : '#79d0ff'} fontFamily="monospace">{alarm ? 'OFFLINE' : 'RUNNING'}</text>
-              {alarm && <circle cx={tr.x - 3} cy={tl.y + 4} r={2} fill="#ef5350"><animate attributeName="opacity" values="0.4;1;0.4" dur="1s" repeatCount="indefinite" /></circle>}
-            </>
-          );
-        }
-      }}
-    />
-    <Anchor3D p={{ x: cx, y: -8, z: cz + 16 }}>
-      {(p) => <text x={p.x} y={p.y} textAnchor="middle" fontSize="10" fill={alarm ? '#ffd4cf' : '#cfe5ff'}>{label}</text>}
-    </Anchor3D>
-  </>
-);
-
-const BAreaScene3D: React.FC = () => {
-  const { setView } = useDtNav();
-  const drill = () => setView('rack');
-  return (
-  <Scene3DCanvas width={960} height={560} cx={480} cy={330} defaultYaw={20} defaultPitch={55} defaultScale={0.95}
-    background={
-      <>
-        <defs>
-          <radialGradient id="bAreaG" cx="50%" cy="50%" r="70%">
-            <stop offset="0%" stopColor="#0b2a55" />
-            <stop offset="100%" stopColor="#020a18" />
-          </radialGradient>
-        </defs>
-        <rect width="960" height="560" fill="url(#bAreaG)" />
-      </>
-    }
-  >
-    {/* 机房地板 */}
-    <GroundPlane x={-300} z={0} w={600} d={380} fill="#04162e" stroke="#163f70" />
-    {/* B01 / B02 机柜列（点击进入机柜内部） */}
-    <RackRow3D cx={0}  cz={-100} count={9} onRackClick={drill} />
-    <RackRow3D cx={0}  cz={-40}  count={9} onRackClick={drill} />
-    {/* 中央故障交换机 */}
-    <FaultSwitch3D cx={0} cz={40} />
-    {/* 左右接入交换机 */}
-    <AccessSwitch3D cx={-200} cz={40}  label="接入交换机-01" />
-    <AccessSwitch3D cx={200}  cz={40}  label="接入交换机-02" />
-    {/* PLC */}
-    <PLC3D cx={-140} cz={70} label="PLC-01" />
-    <PLC3D cx={140}  cz={70} label="PLC-02" />
-    {/* 视觉检测工位 */}
-    <Workstation3D cx={-110} cz={130} label="视觉工位-01" alarm />
-    <Workstation3D cx={0}    cz={130} label="视觉工位-02" alarm />
-    <Workstation3D cx={110}  cz={130} label="视觉工位-03" alarm />
-    {/* AGV 终端 */}
-    <Workstation3D cx={-220} cz={140} label="AGV 终端" />
-    {/* 精密空调 / UPS */}
-    <Workstation3D cx={170}  cz={140} label="精密空调-01" alarm />
-    <Workstation3D cx={240}  cz={140} label="UPS-01" />
-  </Scene3DCanvas>
-  );
-};
+import { useDtNav, DtSceneHeader } from '../DigitalTwinDashboard';
+import { SceneStage, SceneSprite, SceneLabel, SceneAlarmPulse } from '../sceneAssets';
 
 const categoryIcons = [Network, Server, Cpu, Camera, HardDrive, Wind];
 const kpiIcons = [Gauge, Activity, Wifi, Thermometer, Zap];
@@ -231,283 +20,316 @@ const sparkline = (data: number[], color: string) => ({
   }],
 });
 
-// B 区机房（写实风格：3D 机柜列 + 设备 + 走线 + 防静电地板）
-const BAreaScene: React.FC = () => (
-  <svg viewBox="0 0 960 560" className="h-full w-full" preserveAspectRatio="xMidYMid meet">
-    <DtSceneDefs />
-    <defs>
-      {/* 防静电地板格子 */}
-      <pattern id="aFloor" width="34" height="34" patternUnits="userSpaceOnUse">
-        <rect width="34" height="34" fill="#04162e" />
-        <path d="M0 0 L34 0 M0 0 L0 34" stroke="rgba(79,193,255,0.15)" strokeWidth="0.4" />
-        <circle cx="0.5" cy="0.5" r="0.5" fill="rgba(79,193,255,0.3)" />
-      </pattern>
-      <linearGradient id="aWall" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#0d2e5b" />
-        <stop offset="100%" stopColor="#05122a" />
-      </linearGradient>
-    </defs>
+// ── B 区机房内部（按真实平面图：墙体 / 机柜行 / 末端配电 / 入口走廊） ────
+const IdcInteriorScene: React.FC = () => {
+  const { setView } = useDtNav();
+  const drill = () => setView('rack');
+  return (
+    <SceneStage width={1200} height={720} className="bg-[radial-gradient(ellipse_at_center,#0e2f5a_0%,#061a36_60%,#020a18_100%)]">
+      {/* === 房间外框（实际机房四面墙体）=== */}
+      {/* 整间机房地板 */}
+      <div
+        className="pointer-events-none absolute"
+        style={{ left: '6%', right: '6%', top: '8%', bottom: '6%', background: '#04162e',
+                 border: '2px solid #2b6aa8', borderRadius: 6, zIndex: 1 }}
+      />
+      {/* 地板瓷砖纹理 */}
+      <SceneSprite asset="floorRaisedTile" x={50} y={66} width={84} z={2} anchorBottom={false} opacity={0.85} />
+      {/* 后墙带（顶端的墙体厚度示意） */}
+      <div
+        className="pointer-events-none absolute"
+        style={{ left: '6%', right: '6%', top: '8%', height: '4%',
+                 background: 'linear-gradient(180deg,#163b6d,#0e2a52)',
+                 borderBottom: '1px solid #2b6aa8', borderTopLeftRadius: 6, borderTopRightRadius: 6,
+                 zIndex: 3 }}
+      />
+      {/* 顶部桥架（沿后墙内侧） */}
+      <SceneSprite asset="cableTray" x={50} y={20} width={66} z={5} anchorBottom={false} opacity={0.8} />
 
-    {/* 房间地板（防静电地板） */}
-    <rect x="0" y="0" width="960" height="560" fill="url(#aFloor)" />
+      {/* === 后墙：左右监控摄像头（贴在墙上） === */}
+      <SceneSprite asset="deviceCamera" x={12} y={15} width={3.6} z={20} title="监控摄像头 北-1" />
+      <SceneSprite asset="deviceCamera" x={88} y={15} width={3.6} z={20} title="监控摄像头 北-2" />
 
-    {/* 房间四面墙（透视边框） */}
-    <polygon points="20,40 940,40 920,60 40,60" fill="url(#aWall)" stroke="#2b6aa8" strokeWidth={0.6} />
-    <polygon points="20,520 940,520 920,500 40,500" fill="url(#aWall)" stroke="#2b6aa8" strokeWidth={0.6} />
-    <polygon points="20,40 40,60 40,500 20,520" fill="#03132a" stroke="#2b6aa8" strokeWidth={0.6} />
-    <polygon points="940,40 920,60 920,500 940,520" fill="#03132a" stroke="#2b6aa8" strokeWidth={0.6} />
+      {/* === 主操作区：上下两排机柜，中间冷通道 === */}
+      {/* 行尾两台行内空调（在 B01/B02 行之间的两端） */}
+      <SceneSprite asset="acInrow" x={14} y={50} width={3.2} z={28} title="行内空调-A" />
+      <SceneSprite asset="acInrow" x={86} y={50} width={3.2} z={28} title="行内空调-B" />
 
-    {/* 顶部摄像头与控制柜 */}
-    <g>
-      {[{ x: 70, label: '摄像头-01' }, { x: 870, label: '摄像头-02' }].map(c => (
-        <g key={c.label}>
-          {/* 三脚架支柱 */}
-          <line x1={c.x} y1={88} x2={c.x} y2={104} stroke="#5a8fc9" strokeWidth={1.2} />
-          {/* 摄像头本体 */}
-          <rect x={c.x - 18} y={72} width={36} height={16} rx={3} fill="#243a55" stroke="#79d0ff" strokeWidth={0.6} />
-          <circle cx={c.x - 6} cy={80} r={4} fill="#03101e" stroke="#79d0ff" strokeWidth={0.6} />
-          <circle cx={c.x - 6} cy={80} r={1.5} fill="#5fb4ff" />
-          <circle cx={c.x + 8} cy={80} r={3} fill="#03101e" stroke="#79d0ff" strokeWidth={0.5} />
-          <circle cx={c.x + 16} cy={72} r={2.5} fill="#6ce09a">
-            <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
-          </circle>
-          <text x={c.x} y={118} textAnchor="middle" fontSize="10" fill="#cfe5ff">{c.label}</text>
-        </g>
-      ))}
-      {/* 控制柜 */}
-      <g transform="translate(820 70)">
-        <ellipse cx={20} cy={48} rx={26} ry={4} fill="rgba(0,0,0,0.5)" />
-        <polygon points="40,0 56,-10 56,40 40,50" fill="#0d1a2e" stroke="#3a557a" strokeWidth={0.5} />
-        <polygon points="0,0 40,0 56,-10 16,-10" fill="#1a2c45" stroke="#3a557a" strokeWidth={0.5} />
-        <rect x={0} y={0} width={40} height={50} fill="url(#rackBezel)" stroke="#3f86c8" strokeWidth={0.8} />
-        {/* 控制面板 */}
-        <rect x={4} y={5} width={32} height={14} fill="#03101e" stroke="#2a3a52" strokeWidth={0.4} />
-        <text x={20} y={15} textAnchor="middle" fontSize="6" fill="#79d0ff" fontFamily="monospace">CTRL</text>
-        {/* 按钮组 */}
-        {[0,1,2].map(i => (
-          <circle key={i} cx={10 + i * 10} cy={28} r={2.5} fill="#10202f" stroke="#5fb4ff" strokeWidth={0.4} />
-        ))}
-        <rect x={4} y={38} width={32} height={8} fill="#0a1726" stroke="#1a2538" strokeWidth={0.4} />
-        <circle cx={50} cy={4} r={2.5} fill="#6ce09a" />
-        <text x={20} y={66} textAnchor="middle" fontSize="10" fill="#cfe5ff">控制柜</text>
-      </g>
-    </g>
+      {/* B01 后排机柜 */}
+      <SceneSprite asset="rackRow" x={50} y={42} width={50} z={20} onClick={drill} title="B01 机柜行（8 台）" />
+      <SceneLabel  x={50} y={30} z={61}>B01 机柜行 · 8 台</SceneLabel>
 
-    {/* === B01 / B02 机柜阵列（3D 风格） === */}
-    <g>
-      <text x={480} y={150} textAnchor="middle" fontSize="11" fill="#79d0ff" fontWeight="bold">B01机柜 row</text>
-      <g transform="translate(200 156)">
-        <DataRackRow x={0} y={0} count={10} />
-      </g>
-    </g>
-    <g>
-      <text x={480} y={250} textAnchor="middle" fontSize="11" fill="#79d0ff" fontWeight="bold">B02机柜 row</text>
-      <g transform="translate(200 256)">
-        <DataRackRow x={0} y={0} count={10} />
-      </g>
-    </g>
+      {/* 冷通道指示 */}
+      <div
+        className="pointer-events-none absolute"
+        style={{ left: '25%', right: '25%', top: '46%', height: '5%',
+                 background: 'linear-gradient(180deg,rgba(79,193,255,0.16),rgba(79,193,255,0.04))',
+                 border: '1px dashed rgba(79,193,255,0.55)', borderRadius: 3, zIndex: 6 }}
+      >
+        <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2 text-[10px] font-semibold text-[#79d0ff] tracking-[0.2em]">冷 通 道</span>
+      </div>
 
-    {/* === 中央故障接入交换机（写实硬件外形） === */}
-    <g transform="translate(380 350)">
-      {/* 脉冲圈 */}
-      <circle cx={100} cy={28} r={84} fill="none" stroke="#ef5a4a" strokeOpacity={0.55}>
-        <animate attributeName="r" values="70;104;70" dur="2.4s" repeatCount="indefinite" />
-        <animate attributeName="stroke-opacity" values="0.8;0;0.8" dur="2.4s" repeatCount="indefinite" />
-      </circle>
-      {/* 阴影 */}
-      <ellipse cx={104} cy={66} rx={94} ry={6} fill="rgba(0,0,0,0.7)" />
-      {/* 立体外壳 */}
-      <polygon points="200,0 216,-10 216,52 200,62" fill="#3a0d0d" stroke="#ef5a4a" strokeWidth={0.8} />
-      <polygon points="0,0 200,0 216,-10 16,-10" fill="#5a1414" stroke="#ef5a4a" strokeWidth={0.8} />
-      <rect x={0} y={0} width={200} height={62} fill="#3a0d0d" stroke="#ef5a4a" strokeWidth={1.2} />
-      {/* LCD 面板 */}
-      <rect x={8} y={4} width={48} height={12} fill="#031022" stroke="#ef5a4a" strokeWidth={0.6} />
-      <text x={32} y={13} textAnchor="middle" fontSize="7" fill="#ef5350" fontFamily="monospace">! ERR</text>
-      {/* 端口阵列 */}
-      <rect x={64} y={6} width={130} height={26} fill="#0a1322" stroke="#3a0d0d" strokeWidth={0.5} />
-      {Array.from({ length: 16 }).map((_, i) => (
-        <g key={i}>
-          <rect x={68 + i * 8} y={10} width={6} height={18} fill="#0a1726" stroke="#1a2538" strokeWidth={0.3} />
-          <circle cx={71 + i * 8} cy={13} r={0.9} fill={i % 3 === 0 ? '#ef5350' : '#3a1414'} />
-        </g>
-      ))}
-      {/* 散热孔 */}
-      {Array.from({ length: 12 }).map((_, i) => (
-        <rect key={i} x={8 + i * 16} y={38} width={12} height={16} fill="#0a1322" stroke="#1a2538" strokeWidth={0.3} />
-      ))}
-      {/* 顶部告警圆 */}
-      <circle cx={208} cy={-14} r={11} fill="#ef5350" stroke="#fff" strokeWidth={1.5} />
-      <text x={208} y={-10} textAnchor="middle" fontSize="14" fill="#fff" fontWeight="bold">!</text>
-      {/* 告警标牌 */}
-      <rect x={0} y={72} width={200} height={22} rx={3} fill="rgba(80,18,18,0.92)" stroke="#ef5a4a" strokeWidth={0.8} />
-      <text x={100} y={88} textAnchor="middle" fontSize="11" fill="#ffe4df" fontWeight="bold">SW-A-01 接入交换机离线</text>
-    </g>
+      {/* B02 前排机柜 */}
+      <SceneSprite asset="rackRow" x={50} y={60} width={50} z={22} onClick={drill} title="B02 机柜行（8 台）" />
+      <SceneLabel  x={50} y={48} z={61}>B02 机柜行 · 8 台</SceneLabel>
 
-    {/* === 左右接入交换机（写实小机型） === */}
-    {[
-      { x: 60,  label: '接入交换机-01', alarm: false },
-      { x: 800, label: '接入交换机-02', alarm: false },
-    ].map(s => (
-      <g key={s.label} transform={`translate(${s.x} 360)`}>
-        <ellipse cx={50} cy={42} rx={50} ry={4} fill="rgba(0,0,0,0.45)" />
-        <polygon points="100,0 114,-8 114,36 100,44" fill="#0d1a2e" stroke="#3a557a" strokeWidth={0.5} />
-        <polygon points="0,0 100,0 114,-8 14,-8" fill="#1a2c45" stroke="#3a557a" strokeWidth={0.5} />
-        <rect x={0} y={0} width={100} height={44} fill="url(#rackBezel)" stroke="#5fb4ff" strokeWidth={0.8} />
-        {/* LCD */}
-        <rect x={5} y={6} width={20} height={10} fill="#031022" stroke="#2a3a52" strokeWidth={0.4} />
-        <text x={15} y={14} textAnchor="middle" fontSize="6" fill="#6ce09a" fontFamily="monospace">OK</text>
-        {/* 端口 */}
-        {Array.from({ length: 8 }).map((_, i) => (
-          <g key={i}>
-            <rect x={30 + i * 8} y={5} width={6} height={14} fill="#0a1726" stroke="#1a2538" strokeWidth={0.3} />
-            <circle cx={33 + i * 8} cy={8} r={0.9} fill={i % 2 === 0 ? '#6ce09a' : '#1e5b3b'} />
-          </g>
-        ))}
-        {/* 散热孔 */}
-        {Array.from({ length: 8 }).map((_, i) => (
-          <rect key={i} x={5 + i * 12} y={26} width={8} height={12} fill="#0a1322" stroke="#1a2538" strokeWidth={0.3} />
-        ))}
-        <circle cx={108} cy={-4} r={3.5} fill="#6ce09a" />
-        <text x={50} y={62} textAnchor="middle" fontSize="10" fill="#cfe5ff">{s.label}</text>
-      </g>
-    ))}
+      {/* 故障指示：定位到 B01 第 3 台机柜（SW-A-01 在该机柜中） */}
+      <SceneAlarmPulse x={38} y={36} size={7} z={50} />
+      <SceneLabel x={38} y={26} z={70} tone="alarm">⚠ SW-A-01 离线 · B01 / 3 号机柜</SceneLabel>
 
-    {/* === PLC（写实小柜） === */}
-    {[
-      { x: 200, label: 'PLC-01' },
-      { x: 660, label: 'PLC-02' },
-    ].map(p => (
-      <g key={p.label} transform={`translate(${p.x} 360)`}>
-        <ellipse cx={30} cy={84} rx={32} ry={4} fill="rgba(0,0,0,0.5)" />
-        <polygon points="60,0 74,-10 74,80 60,90" fill="#0d1a2e" stroke="#3a557a" strokeWidth={0.5} />
-        <polygon points="0,0 60,0 74,-10 14,-10" fill="#1a2c45" stroke="#3a557a" strokeWidth={0.5} />
-        <rect x={0} y={0} width={60} height={90} fill="url(#rackBezel)" stroke="#5fb4ff" strokeWidth={0.8} />
-        {/* 三段 I/O 模块 */}
-        {[12, 36, 60].map((yy, i) => (
-          <g key={i}>
-            <rect x={5} y={yy - 6} width={50} height={14} fill="#0a1322" stroke="#3a557a" strokeWidth={0.5} />
-            <text x={10} y={yy + 2} fontSize="6" fill="#79d0ff" fontFamily="monospace">DI/DO</text>
-            {/* 通道 LED */}
-            {Array.from({ length: 6 }).map((_, j) => (
-              <circle key={j} cx={30 + j * 4} cy={yy + 2} r={0.8} fill={j === 2 && i === 1 ? '#f5b963' : '#6ce09a'} />
-            ))}
-          </g>
-        ))}
-        <circle cx={68} cy={-4} r={3.5} fill="#6ce09a" />
-        <text x={30} y={108} textAnchor="middle" fontSize="10" fill="#cfe5ff">{p.label}</text>
-      </g>
-    ))}
+      {/* === 末端配电与制冷（沿房间下边墙整齐排列） === */}
+      {/* 左段：制冷 */}
+      <SceneSprite asset="acRoomPrecision"    x={14} y={82} width={6.5} z={42} title="精密空调-A" />
+      <SceneLabel  x={14} y={89} z={61}>精密空调 A</SceneLabel>
+      {/* 中段：UPS 与配电 */}
+      <SceneSprite asset="upsMain"            x={26} y={82} width={5}   z={42} title="UPS 主机" />
+      <SceneLabel  x={26} y={89} z={61}>UPS 主机</SceneLabel>
+      <SceneSprite asset="upsBattery"         x={35} y={82} width={4.5} z={42} title="电池柜" />
+      <SceneLabel  x={35} y={89} z={61}>电池柜</SceneLabel>
+      <SceneSprite asset="atsCabinet"         x={44} y={82} width={4.5} z={42} title="ATS 切换柜" />
+      <SceneLabel  x={44} y={89} z={61}>ATS</SceneLabel>
+      <SceneSprite asset="powerDistribution"  x={55} y={82} width={6}   z={42} title="低压配电柜" />
+      <SceneLabel  x={55} y={89} z={61}>配电柜</SceneLabel>
+      <SceneSprite asset="fireCylinders"      x={64} y={82} width={4}   z={42} title="气体灭火" />
+      <SceneLabel  x={64} y={89} z={61}>灭火</SceneLabel>
+      {/* 右段：制冷 + 动环主机 */}
+      <SceneSprite asset="devicePrecisionAcW" x={75} y={82} width={5}   z={42} title="精密空调-B（告警）" />
+      <SceneLabel  x={75} y={89} z={61} tone="alarm">精密空调 B</SceneLabel>
+      <SceneSprite asset="workshopCtrlCab"    x={84} y={82} width={3.6} z={42} title="动环主机" />
+      <SceneLabel  x={84} y={89} z={61}>动环主机</SceneLabel>
 
-    {/* === AGV 终端（写实小车形） === */}
-    <g transform="translate(60 460)">
-      <ellipse cx={36} cy={28} rx={36} ry={4} fill="rgba(0,0,0,0.5)" />
-      {/* 车体 */}
-      <polygon points="0,0 72,0 78,-6 6,-6" fill="#1a3a64" stroke="#5fb4ff" strokeWidth={0.6} />
-      <rect x={0} y={0} width={72} height={28} rx={4} fill="url(#bFront)" stroke="#5fb4ff" strokeWidth={0.8} />
-      {/* 顶面屏幕 */}
-      <rect x={14} y={-4} width={44} height={6} rx={1} fill="#03101e" stroke="#79d0ff" strokeWidth={0.4} />
-      {/* 货物指示灯 */}
-      <rect x={8} y={4} width={56} height={12} rx={1} fill="#03101e" stroke="#3a557a" strokeWidth={0.4} />
-      {Array.from({ length: 5 }).map((_, i) => (
-        <circle key={i} cx={14 + i * 11} cy={10} r={1.5} fill="#6ce09a" />
-      ))}
-      {/* 轮子 */}
-      <circle cx={14} cy={30} r={5} fill="#0a1322" stroke="#5fb4ff" strokeWidth={0.6} />
-      <circle cx={14} cy={30} r={2.5} fill="#1a2c45" />
-      <circle cx={58} cy={30} r={5} fill="#0a1322" stroke="#5fb4ff" strokeWidth={0.6} />
-      <circle cx={58} cy={30} r={2.5} fill="#1a2c45" />
-      {/* 顶部信号灯 */}
-      <circle cx={36} cy={-14} r={4} fill="#6ce09a" filter="url(#scGlow)" />
-      <text x={36} y={56} textAnchor="middle" fontSize="10" fill="#cfe5ff">AGV终端</text>
-    </g>
+      {/* === 入口：双开门在右下角的"前墙"上（不与机柜垂直对齐） === */}
+      <div
+        className="pointer-events-none absolute"
+        style={{ left: '88%', right: '6%', top: '8%', bottom: '6%',
+                 background: 'linear-gradient(180deg,#0e2a52,#0a1f3d)',
+                 borderLeft: '1px solid #2b6aa8', borderRadius: '0 6px 6px 0', zIndex: 3 }}
+      />
+      <SceneSprite asset="doorDouble" x={91.5} y={68} width={4} z={44} title="机房入口" />
+      <SceneLabel x={91.5} y={74} z={61}>入口</SceneLabel>
+    </SceneStage>
+  );
+};
 
-    {/* === 视觉检测工位 3（写实工位形） === */}
-    {[0, 1, 2].map(i => (
-      <g key={i} transform={`translate(${220 + i * 130} 450)`}>
-        <ellipse cx={48} cy={48} rx={48} ry={4} fill="rgba(0,0,0,0.55)" />
-        {/* 工位平台 */}
-        <polygon points="0,0 96,0 102,-6 6,-6" fill="#1a3a64" stroke="#5fb4ff" strokeWidth={0.5} />
-        <rect x={0} y={0} width={96} height={48} fill="url(#bFront)" stroke="#5fb4ff" strokeWidth={0.8} />
-        {/* 视觉显示器 */}
-        <rect x={6} y={4} width={50} height={26} fill="#03101e" stroke="#79d0ff" strokeWidth={0.5} />
-        <rect x={8} y={6} width={46} height={22} fill="#0a1f3d" />
-        <text x={31} y={20} textAnchor="middle" fontSize="7" fill="#ef5350" fontFamily="monospace">OFFLINE</text>
-        {/* 摄像支架 */}
-        <line x1={78} y1={4} x2={78} y2={-14} stroke="#5a8fc9" strokeWidth={1.5} />
-        <rect x={70} y={-22} width={20} height={8} fill="#243a55" stroke="#79d0ff" strokeWidth={0.5} />
-        <circle cx={80} cy={-18} r={2.5} fill="#03101e" stroke="#79d0ff" strokeWidth={0.4} />
-        {/* 物料平台 */}
-        <rect x={60} y={32} width={30} height={10} fill="#0a1322" stroke="#3a557a" strokeWidth={0.4} />
-        {/* 告警圆 */}
-        <circle cx={100} cy={-8} r={5} fill="#ef5350" stroke="#fff" strokeWidth={0.8}>
-          <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite" />
-        </circle>
-        <text x={48} y={68} textAnchor="middle" fontSize="10" fill="#ffd4cf">视觉检测工位-0{i + 1}</text>
-      </g>
-    ))}
+// ── 1号产线 内部（厂房：物料门在左墙 / 工艺自西向东 / 包装在前） ─────────
+const ProductionLineScene: React.FC = () => (
+  <SceneStage width={1200} height={720} className="bg-[radial-gradient(ellipse_at_center,#0b2a55_0%,#061a36_60%,#020a18_100%)]">
+    {/* 厂房外框 + 地坪 */}
+    <div
+      className="pointer-events-none absolute"
+      style={{ left: '6%', right: '6%', top: '8%', bottom: '6%', background: '#082040',
+               border: '2px solid #2b6aa8', borderRadius: 6, zIndex: 1 }}
+    />
+    <SceneSprite asset="floorRoomSlab" x={50} y={66} width={84} z={2} anchorBottom={false} opacity={0.9} />
+    {/* 后墙带 */}
+    <div
+      className="pointer-events-none absolute"
+      style={{ left: '6%', right: '6%', top: '8%', height: '4%',
+               background: 'linear-gradient(180deg,#143560,#0a1f3d)',
+               borderBottom: '1px solid #2b6aa8', borderTopLeftRadius: 6, borderTopRightRadius: 6, zIndex: 3 }}
+    />
+    {/* 后墙：监控（仅 2 台贴墙摄像头，避免与设备争位） */}
+    <SceneSprite asset="deviceCamera" x={12} y={15} width={3.6} z={20} title="摄像头" />
+    <SceneSprite asset="deviceCamera" x={88} y={15} width={3.6} z={20} title="摄像头" />
 
-    {/* === 精密空调（写实立式空调） === */}
-    <g transform="translate(620 440)">
-      <ellipse cx={45} cy={68} rx={48} ry={4} fill="rgba(0,0,0,0.55)" />
-      <polygon points="90,0 104,-10 104,60 90,70" fill="#0d1a2e" stroke="#3a557a" strokeWidth={0.5} />
-      <polygon points="0,0 90,0 104,-10 14,-10" fill="#1a2c45" stroke="#3a557a" strokeWidth={0.5} />
-      <rect x={0} y={0} width={90} height={70} fill="url(#rackBezel)" stroke="#5fb4ff" strokeWidth={0.8} />
-      {/* 出风格栅 */}
-      {Array.from({ length: 8 }).map((_, i) => (
-        <line key={i} x1={6} y1={8 + i * 7} x2={84} y2={8 + i * 7} stroke="#3a557a" strokeWidth={0.4} />
-      ))}
-      {/* 液晶显示 */}
-      <rect x={28} y={50} width={34} height={14} fill="#03101e" stroke="#79d0ff" strokeWidth={0.5} />
-      <text x={45} y={60} textAnchor="middle" fontSize="7" fill="#ef5350" fontFamily="monospace">31.2°C !</text>
-      {/* 告警 LED */}
-      <circle cx={98} cy={-4} r={4} fill="#ef5350">
-        <animate attributeName="opacity" values="0.4;1;0.4" dur="1s" repeatCount="indefinite" />
-      </circle>
-      <text x={45} y={88} textAnchor="middle" fontSize="10" fill="#ffd4cf">精密空调-01</text>
-    </g>
+    {/* === 入口（卷帘门）在左侧墙体上 === */}
+    <div
+      className="pointer-events-none absolute"
+      style={{ left: '6%', right: '92%', top: '8%', bottom: '6%',
+               background: 'linear-gradient(180deg,#0e2a52,#0a1f3d)',
+               borderRight: '1px solid #2b6aa8', borderRadius: '6px 0 0 6px', zIndex: 3 }}
+    />
+    <SceneSprite asset="doorDouble" x={8.5} y={84} width={4} z={44} title="物料入口（卷帘门）" />
+    <SceneLabel x={8.5} y={90} z={61}>物料入口</SceneLabel>
 
-    {/* === UPS（电池柜） === */}
-    <g transform="translate(800 444)">
-      <ellipse cx={28} cy={62} rx={32} ry={4} fill="rgba(0,0,0,0.5)" />
-      <polygon points="56,0 70,-10 70,56 56,66" fill="#0d1a2e" stroke="#3a557a" strokeWidth={0.5} />
-      <polygon points="0,0 56,0 70,-10 14,-10" fill="#1a2c45" stroke="#3a557a" strokeWidth={0.5} />
-      <rect x={0} y={0} width={56} height={66} fill="url(#rackBezel)" stroke="#5fb4ff" strokeWidth={0.8} />
-      {/* LCD */}
-      <rect x={4} y={4} width={48} height={12} fill="#031022" stroke="#2a3a52" strokeWidth={0.4} />
-      <text x={28} y={13} textAnchor="middle" fontSize="6.5" fill="#6ce09a" fontFamily="monospace">100% OK</text>
-      {/* 电池槽 */}
-      {[0, 1, 2, 3].map(i => (
-        <g key={i}>
-          <rect x={5} y={22 + i * 10} width={46} height={7} fill="#0a1322" stroke="#3a557a" strokeWidth={0.4} />
-          <rect x={6} y={23 + i * 10} width={38} height={5} fill="#1e5b3b" />
-        </g>
-      ))}
-      <circle cx={64} cy={-4} r={3} fill="#6ce09a" />
-      <text x={28} y={84} textAnchor="middle" fontSize="10" fill="#cfe5ff">UPS-01</text>
-    </g>
+    {/* === 工艺流水线：上料 → CNC → 装配 → 下料（横贯东西，避开门）=== */}
+    {/* 主传送带 */}
+    <SceneSprite asset="workshopConveyor" x={55} y={48} width={68} z={20} title="主装配线传送带" />
 
-    {/* === 走线（在地板槽内的电缆） === */}
-    <g fill="none" strokeWidth={1.4}>
-      {/* 正常链路 */}
-      <path d="M170 380 H380" stroke="#4fc1ff" strokeOpacity={0.85} />
-      <path d="M580 380 H800" stroke="#4fc1ff" strokeOpacity={0.85} />
-      <path d="M260 380 H380" stroke="#4fc1ff" strokeOpacity={0.7} />
-      <path d="M580 380 H660" stroke="#4fc1ff" strokeOpacity={0.7} />
-      {/* 异常链路（虚线 + 红） */}
-      <path d="M480 460 V470 H145 V465" stroke="#ef5350" strokeDasharray="5 3" />
-      <path d="M480 460 L296 460" stroke="#ef5350" strokeDasharray="5 3" />
-      <path d="M480 460 L470 450" stroke="#ef5350" strokeDasharray="5 3" />
-      <path d="M480 460 L680 460" stroke="#ef5350" strokeDasharray="5 3" opacity={0.6} />
-      {/* 流动光点 */}
-      <circle r="2.5" fill="#79d0ff">
-        <animateMotion path="M170 380 H380" dur="2s" repeatCount="indefinite" />
-      </circle>
-      <circle r="2.5" fill="#79d0ff">
-        <animateMotion path="M800 380 H580" dur="2.4s" repeatCount="indefinite" />
-      </circle>
-    </g>
-  </svg>
+    {/* ① 上料机械臂（紧挨入口） */}
+    <SceneSprite asset="workshopRobotArm" x={22} y={52} width={9}  z={32} title="上料机械臂" />
+    <SceneLabel  x={22} y={60} z={61}>① 上料</SceneLabel>
+
+    {/* ② CNC 加工区 */}
+    <SceneSprite asset="workshopCNC" x={40} y={54} width={11} z={31} title="CNC 数控机床 A" />
+    <SceneLabel  x={40} y={64} z={61}>② CNC-A</SceneLabel>
+    <SceneSprite asset="workshopCNC" x={56} y={54} width={11} z={31} title="CNC 数控机床 B" />
+    <SceneLabel  x={56} y={64} z={61}>② CNC-B</SceneLabel>
+
+    {/* ③ 装配 */}
+    <SceneSprite asset="workshopAssembly" x={72} y={54} width={10} z={32} title="装配工位" />
+    <SceneLabel  x={72} y={64} z={61}>③ 装配</SceneLabel>
+
+    {/* ④ 下料 */}
+    <SceneSprite asset="workshopRobotArm" x={86} y={52} width={9}  z={32} title="下料机械臂" />
+    <SceneLabel  x={86} y={60} z={61}>④ 下料</SceneLabel>
+
+    {/* === 前排：包装区 + 控制柜 + 出货 AGV === */}
+    <SceneSprite asset="workshopCtrlCab"  x={20} y={82} width={4}  z={42} title="车间主控柜" />
+    <SceneLabel  x={20} y={89} z={61}>主控柜</SceneLabel>
+    <SceneSprite asset="workshopAssembly" x={32} y={82} width={8}  z={40} title="包装工位 1" />
+    <SceneLabel  x={32} y={89} z={61}>包装工位 1</SceneLabel>
+    <SceneSprite asset="workshopAssembly" x={46} y={82} width={8}  z={40} title="包装工位 2" />
+    <SceneLabel  x={46} y={89} z={61}>包装工位 2</SceneLabel>
+    <SceneSprite asset="workshopAssembly" x={60} y={82} width={8}  z={40} title="包装工位 3" />
+    <SceneLabel  x={60} y={89} z={61}>包装工位 3</SceneLabel>
+    <SceneSprite asset="workshopCtrlCab"  x={72} y={82} width={4}  z={42} title="PLC 柜" />
+    <SceneLabel  x={72} y={89} z={61}>PLC 柜</SceneLabel>
+    <SceneSprite asset="deviceAgv"        x={84} y={82} width={9}  z={40} title="出货 AGV" />
+    <SceneLabel  x={84} y={89} z={61}>出货 AGV</SceneLabel>
+
+    {/* 安全栏沿主流水线前缘 */}
+    <SceneSprite asset="workshopFence" x={55} y={72} width={66} z={15} anchorBottom={false} opacity={0.5} />
+  </SceneStage>
 );
+
+// ── 算力模块A 内部（三排机柜 + 冷热通道 + 配电墙） ──────────────────────
+const ComputeModuleScene: React.FC = () => {
+  const { setView } = useDtNav();
+  const drill = () => setView('rack');
+  // 冷通道指示带组件
+  const Aisle = ({ y }: { y: number }) => (
+    <div
+      className="pointer-events-none absolute"
+      style={{ left: '20%', right: '20%', top: `${y}%`, height: '4.5%', background: 'linear-gradient(180deg,rgba(79,193,255,0.18),rgba(79,193,255,0.05))', border: '1px dashed rgba(79,193,255,0.4)', borderRadius: 3, zIndex: 6 }}
+    >
+      <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2 text-[9.5px] font-semibold text-[#79d0ff] tracking-wider">冷 通 道</span>
+    </div>
+  );
+  return (
+    <SceneStage width={1200} height={720} className="bg-[radial-gradient(ellipse_at_center,#0e2f5a_0%,#061a36_60%,#020a18_100%)]">
+      {/* 房间外框 + 地坪 */}
+      <div className="pointer-events-none absolute" style={{ left: '6%', right: '6%', top: '8%', bottom: '6%', background: '#04162e', border: '2px solid #2b6aa8', borderRadius: 6, zIndex: 1 }} />
+      <SceneSprite asset="floorRaisedTile" x={50} y={66} width={84} z={2} anchorBottom={false} opacity={0.85} />
+      {/* 后墙带 */}
+      <div className="pointer-events-none absolute" style={{ left: '6%', right: '6%', top: '8%', height: '4%', background: 'linear-gradient(180deg,#163b6d,#0e2a52)', borderBottom: '1px solid #2b6aa8', borderTopLeftRadius: 6, borderTopRightRadius: 6, zIndex: 3 }} />
+      {/* 顶部桥架 */}
+      <SceneSprite asset="cableTray" x={50} y={20} width={62} z={5} anchorBottom={false} opacity={0.8} />
+
+      {/* 后墙：仅摄像头 */}
+      <SceneSprite asset="deviceCamera" x={12} y={15} width={3.6} z={20} />
+      <SceneSprite asset="deviceCamera" x={88} y={15} width={3.6} z={20} />
+
+      {/* 行尾行内空调 */}
+      <SceneSprite asset="acInrow" x={14} y={56} width={3.2} z={28} title="行内空调-A" />
+      <SceneSprite asset="acInrow" x={86} y={56} width={3.2} z={28} title="行内空调-B" />
+
+      {/* 三排机柜 + 两条冷通道 */}
+      <SceneSprite asset="rackRow" x={50} y={34} width={50} z={20} onClick={drill} title="A01 机柜行" />
+      <SceneLabel  x={50} y={24} z={61}>A01 机柜行 · 8 台</SceneLabel>
+      <Aisle y={38} />
+      <SceneSprite asset="rackRow" x={50} y={50} width={50} z={22} onClick={drill} title="A02 机柜行" />
+      <SceneLabel  x={50} y={40} z={61}>A02 机柜行 · 8 台</SceneLabel>
+      <Aisle y={54} />
+      <SceneSprite asset="rackRow" x={50} y={66} width={50} z={24} onClick={drill} title="A03 机柜行" />
+      <SceneLabel  x={50} y={56} z={61}>A03 机柜行 · 8 台</SceneLabel>
+
+      {/* 末端配电与制冷（下边墙整齐排列，不与门冲突） */}
+      <SceneSprite asset="acRoomPrecision"   x={14} y={82} width={6.5} z={42} title="精密空调 A" />
+      <SceneLabel  x={14} y={89} z={61}>精密空调 A</SceneLabel>
+      <SceneSprite asset="upsMain"           x={26} y={82} width={5}   z={42} title="UPS" />
+      <SceneLabel  x={26} y={89} z={61}>UPS</SceneLabel>
+      <SceneSprite asset="upsBattery"        x={34} y={82} width={4.5} z={42} title="电池柜" />
+      <SceneLabel  x={34} y={89} z={61}>电池柜</SceneLabel>
+      <SceneSprite asset="atsCabinet"        x={43} y={82} width={4.5} z={42} title="ATS" />
+      <SceneLabel  x={43} y={89} z={61}>ATS</SceneLabel>
+      <SceneSprite asset="powerDistribution" x={53} y={82} width={6}   z={42} title="配电柜" />
+      <SceneLabel  x={53} y={89} z={61}>配电柜</SceneLabel>
+      <SceneSprite asset="fireCylinders"     x={62} y={82} width={4}   z={42} title="气体灭火" />
+      <SceneLabel  x={62} y={89} z={61}>灭火</SceneLabel>
+      <SceneSprite asset="acRoomPrecision"   x={73} y={82} width={6}   z={42} title="精密空调 B" />
+      <SceneLabel  x={73} y={89} z={61}>精密空调 B</SceneLabel>
+      <SceneSprite asset="workshopCtrlCab"   x={82} y={82} width={3.6} z={42} title="动环主机" />
+      <SceneLabel  x={82} y={89} z={61}>动环</SceneLabel>
+
+      {/* 入口在右墙（不在机柜正上方） */}
+      <div className="pointer-events-none absolute" style={{ left: '88%', right: '6%', top: '8%', bottom: '6%', background: 'linear-gradient(180deg,#0e2a52,#0a1f3d)', borderLeft: '1px solid #2b6aa8', borderRadius: '0 6px 6px 0', zIndex: 3 }} />
+      <SceneSprite asset="doorDouble" x={91.5} y={68} width={4} z={44} title="机房入口" />
+      <SceneLabel x={91.5} y={74} z={61}>入口</SceneLabel>
+    </SceneStage>
+  );
+};
+
+// ── AGV 调度区 内部 ─────────────────────────────────────────────────────
+const AgvDispatchScene: React.FC = () => (
+  <SceneStage width={1200} height={700} className="bg-[radial-gradient(ellipse_at_center,#0b2a55_0%,#061a36_60%,#020a18_100%)]">
+    <SceneSprite asset="floorRoomSlab" x={50} y={62} width={92} z={1} anchorBottom={false} />
+    {/* 充电区（后排） */}
+    <SceneSprite asset="parkEvCharger" x={30} y={38} width={22} z={20} title="充电桩 A" />
+    <SceneSprite asset="parkEvCharger" x={70} y={38} width={22} z={20} title="充电桩 B" />
+    <SceneLabel  x={50} y={20} z={61}>AGV 充电区（双侧）</SceneLabel>
+    {/* AGV 阵列（前排） */}
+    <SceneSprite asset="deviceAgv" x={15} y={78} width={8} z={40} title="AGV-01" />
+    <SceneSprite asset="deviceAgv" x={30} y={82} width={8} z={41} title="AGV-02" />
+    <SceneSprite asset="deviceAgv" x={45} y={78} width={8} z={40} title="AGV-03" />
+    <SceneSprite asset="deviceAgv" x={60} y={82} width={8} z={41} title="AGV-04（告警）"
+      filter="drop-shadow(0 0 6px rgba(255,180,114,0.55))" />
+    <SceneSprite asset="deviceAgv" x={75} y={78} width={8} z={40} title="AGV-05" />
+    <SceneSprite asset="deviceAgv" x={88} y={82} width={8} z={41} title="AGV-06" />
+    <SceneLabel  x={60} y={90} z={61} tone="warn">AGV-04 电量低</SceneLabel>
+    {/* 控制柜 + 摄像头 */}
+    <SceneSprite asset="workshopCtrlCab" x={6}  y={58} width={5}   z={42} title="调度控制柜" />
+    <SceneSprite asset="deviceCamera"    x={94} y={20} width={4.5} z={45} title="监控摄像头" />
+  </SceneStage>
+);
+
+// ── 视觉检测区 内部 ─────────────────────────────────────────────────────
+const VisionLineScene: React.FC = () => (
+  <SceneStage width={1200} height={700} className="bg-[radial-gradient(ellipse_at_center,#3a1a2c_0%,#1a0a18_60%,#020a18_100%)]">
+    <SceneSprite asset="floorRoomSlab" x={50} y={62} width={92} z={1} anchorBottom={false} />
+    {/* 来料传送带 */}
+    <SceneSprite asset="workshopConveyor" x={50} y={42} width={72} z={20} title="检测传送带" />
+    <SceneLabel  x={50} y={26} z={61}>检测传送带</SceneLabel>
+    {/* 5 台视觉工位均匀排列 */}
+    {[18, 33, 50, 67, 82].map((x, i) => (
+      <React.Fragment key={i}>
+        <SceneSprite asset="workstationVision" x={x} y={82} width={7} z={40} title={`视觉工位-0${i + 1}`}
+          filter={i === 1 || i === 3 ? 'drop-shadow(0 0 6px rgba(239,90,74,0.65))' : undefined} />
+        <SceneLabel x={x} y={88} z={61} tone={i === 1 || i === 3 ? 'alarm' : 'normal'}>
+          视觉-0{i + 1}
+        </SceneLabel>
+      </React.Fragment>
+    ))}
+    <SceneSprite asset="workshopCtrlCab" x={6}  y={58} width={5}   z={42} title="视觉控制柜" />
+    <SceneSprite asset="workshopCtrlCab" x={94} y={58} width={5}   z={42} title="视觉控制柜" />
+    <SceneLabel x={50} y={95} z={61} tone="alarm">视觉-02 / 04 告警 · 整体健康度 78.6</SceneLabel>
+  </SceneStage>
+);
+
+// ── 办公网区 内部 ───────────────────────────────────────────────────────
+const OfficeNetScene: React.FC = () => (
+  <SceneStage width={1200} height={700} className="bg-[radial-gradient(ellipse_at_center,#0b2a55_0%,#061a36_60%,#020a18_100%)]">
+    <SceneSprite asset="floorRoomSlab" x={50} y={62} width={92} z={1} anchorBottom={false} />
+    {/* 玻璃隔断 + 双开门 */}
+    <SceneSprite asset="glassPartition" x={50} y={42} width={64} z={15} title="玻璃隔断" opacity={0.85} />
+    <SceneSprite asset="doorDouble"     x={50} y={62} width={8}  z={20} title="双开门" />
+    <SceneLabel  x={50} y={22} z={61}>办公区主入口</SceneLabel>
+    {/* 网络/配电柜 */}
+    <SceneSprite asset="deviceServer2u"     x={15} y={88} width={9}  z={42} title="办公网汇聚交换机" />
+    <SceneLabel  x={15} y={94} z={61}>办公网交换机</SceneLabel>
+    <SceneSprite asset="powerDistribution"  x={32} y={92} width={6}  z={42} title="弱电柜" />
+    <SceneLabel  x={32} y={96} z={61}>弱电柜</SceneLabel>
+    <SceneSprite asset="atsCabinet"         x={50} y={92} width={6}  z={42} title="ATS" />
+    <SceneLabel  x={50} y={96} z={61}>ATS</SceneLabel>
+    <SceneSprite asset="upsMain"            x={68} y={92} width={5.5} z={42} title="办公网 UPS" />
+    <SceneLabel  x={68} y={96} z={61}>UPS</SceneLabel>
+    <SceneSprite asset="deviceCamera"       x={86} y={20} width={4.5} z={45} title="办公区监控" />
+  </SceneStage>
+);
+
+// 分发：根据 zone 选择内部场景
+const BAreaScene: React.FC = () => {
+  const { zone } = useDtNav();
+  switch (zone) {
+    case 'line1':  return <ProductionLineScene />;
+    case 'cmpA':   return <ComputeModuleScene />;
+    case 'agv':    return <AgvDispatchScene />;
+    case 'vision': return <VisionLineScene />;
+    case 'office': return <OfficeNetScene />;
+    case 'idc3':
+    default:       return <IdcInteriorScene />;
+  }
+};
 
 const alarmTrendOption = {
   grid: { top: 20, left: 28, right: 6, bottom: 22 },
@@ -590,32 +412,18 @@ export const AreaView: React.FC = () => {
 
       {/* ===== 中间主舞台 ===== */}
       <div className={dtPanel + ' min-h-0 overflow-hidden'}>
-        <DtSectionTitle
-          title="3号机房  B区"
+        <DtSceneHeader
           right={
-            <div className="flex items-center gap-2 text-[11px] text-[#7e9fc8]">
+            <div className="ml-2 flex items-center gap-2 text-[11px] text-[#7e9fc8]">
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#6ce09a]" />正常</span>
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#ef5350]" />严重</span>
             </div>
           }
         />
         <div className="relative mb-1.5 min-h-0 flex-[4] overflow-hidden rounded border border-[#1b4378] bg-[#03132a]">
-          <BAreaScene3D />
+          <BAreaScene />
         </div>
-        <div className="flex min-h-0 flex-[1] shrink-0 flex-col rounded border border-[#1b4378] bg-[#081c3a] p-2">
-          <div className="mb-1 flex items-center justify-between">
-            <div className="flex items-center text-[11.5px] text-[#a9c8ee]">
-              <span className="mr-2 inline-block h-2.5 w-[3px] rounded-sm bg-[#4fc1ff]" />
-              最近24小时告警数量变化
-            </div>
-            <div className="flex items-center gap-3 text-[10px] text-[#7e9fc8]">
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#ef5350]" />严重 <span className="text-[#ff8a7a] font-bold">3</span></span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#f5b963]" />一般 <span className="text-[#f5d263] font-bold">8</span></span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#3b8de1]" />提示 <span className="text-[#79d0ff] font-bold">15</span></span>
-            </div>
-          </div>
-          <div className="min-h-0 flex-1"><BaseChart option={alarmTrendOption} /></div>
-        </div>
+        <DtAlarm24hPanel />
       </div>
 
       {/* ===== 右列 ===== */}

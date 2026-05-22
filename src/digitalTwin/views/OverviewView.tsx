@@ -1,10 +1,10 @@
 import React from 'react';
 import { Server, Wifi, Siren, Link as LinkIcon, LayoutGrid, Boxes, MapPin, Cpu, AlertTriangle } from 'lucide-react';
-import { dtPanel, DtSectionTitle, DtStatusBadge, DtAlarmTag, DT } from '../shared';
+import { dtPanel, DtSectionTitle, DtStatusBadge, DtAlarmTag, DT, DtAlarm24hPanel } from '../shared';
 import { ASSET_OVERVIEW, BUSINESS_SYSTEMS, AREAS, CURRENT_ALARMS } from '../data';
-import { DtSceneDefs } from '../scenery';
-import { Scene3DCanvas, Box3D, GroundPlane, GroundShadow, Anchor3D, Line3D } from '../iso3d';
-import { useDtNav } from '../DigitalTwinDashboard';
+import { SceneStage, SceneSprite, SceneLabel, SceneAlarmPulse, SceneLot, ScenePath } from '../sceneAssets';
+import { loadLayout } from '../layoutStore';
+import { useDtNav, DtSceneHeader } from '../DigitalTwinDashboard';
 
 // ── 资产概览 ───────────────────────────────────────────────────────────
 const assetRows = [
@@ -16,251 +16,97 @@ const assetRows = [
   { key: 'biz',          label: '业务系统数量', value: ASSET_OVERVIEW.bizSystems, icon: Boxes,   tone: '#e8f3ff' },
 ];
 
-// ── 工厂建筑（3D 立方体） ──────────────────────────────────────────────
-const Factory3DBuilding: React.FC<{
-  cx: number; cz: number; w: number; h: number; d: number; alarm?: boolean; label: string;
-  onClick?: () => void;
-}> = ({ cx, cz, w, h, d, alarm, label, onClick }) => {
-  const colors = alarm ? {
-    top: '#c14238', front: '#7a1a14', back: '#5a0e0a', left: '#5a1410', right: '#3e0b08',
-  } : {
-    top: '#2f7ac4', front: '#1a4f86', back: '#0c3168', left: '#163f70', right: '#0d2c58',
-  };
-  const stroke = alarm ? '#ef5a4a' : '#3f86c8';
-
+// ── 主舞台：园区俯视图（基于伪3D SVG 素材） ────────────────────────────
+// 园区"绿色定位针"：参照参考图的小圆点 + 浮动标签
+const ParkPin: React.FC<{ x: number; y: number; label: string; onClick?: () => void; alarm?: boolean; tone?: 'normal' | 'alarm' | 'warn' }> = ({ x, y, label, onClick, alarm, tone = 'normal' }) => {
+  const dotColor = alarm ? '#ef5a4a' : tone === 'warn' ? '#f5b963' : '#6ce09a';
+  const bgColor = tone === 'alarm' ? 'rgba(80,20,20,0.95)' : tone === 'warn' ? 'rgba(80,60,16,0.95)' : 'rgba(8,28,58,0.95)';
+  const borderColor = tone === 'alarm' ? '#ef5a4a' : tone === 'warn' ? '#f5b963' : '#3f86c8';
+  const textColor = tone === 'alarm' ? '#ffe4df' : tone === 'warn' ? '#fff0d4' : '#cfe5ff';
   return (
-    <>
-      <GroundShadow cx={cx} cz={cz} rx={w / 2 + 4} rz={d / 2 + 4} />
-      <Box3D
-        cx={cx} cy={h / 2} cz={cz}
-        hw={w / 2} hh={h / 2} hd={d / 2}
-        colors={colors}
-        stroke={stroke}
-        strokeWidth={0.8}
-        onClick={onClick}
-        decorate={{
-          // 屋顶纹理 - 设备
-          top: (pts) => {
-            // 在顶面 4 顶点中找几何中心，画机械设备
-            const cxs = pts.reduce((s, p) => s + p.x, 0) / 4;
-            const cys = pts.reduce((s, p) => s + p.y, 0) / 4;
-            return (
-              <>
-                <rect x={cxs - 18} y={cys - 6} width={14} height={4} fill="#243a55" opacity={0.85} />
-                <rect x={cxs + 4} y={cys - 4} width={16} height={6} fill="#243a55" opacity={0.85} />
-              </>
-            );
-          },
-          // 正面 窗户矩阵
-          front: (pts) => {
-            // 用 4 个屏幕顶点构造矩形区域填窗户
-            const [tl, tr, br, bl] = pts;
-            const w = Math.hypot(tr.x - tl.x, tr.y - tl.y);
-            const h = Math.hypot(bl.x - tl.x, bl.y - tl.y);
-            const cols = Math.max(4, Math.round(w / 14));
-            const rows = Math.max(3, Math.round(h / 12));
-            // 用 transform 拼成网格（窗户必然平行于面）
-            const ux = (tr.x - tl.x) / cols, uy = (tr.y - tl.y) / cols;
-            const vx = (bl.x - tl.x) / rows, vy = (bl.y - tl.y) / rows;
-            const items: React.ReactNode[] = [];
-            for (let r = 1; r < rows - 0.5; r++) {
-              for (let c = 0.5; c < cols - 0.5; c++) {
-                const px = tl.x + ux * c + vx * r;
-                const py = tl.y + uy * c + vy * r;
-                const wcol = alarm ? '#ffd0c0' : '#9bd1ff';
-                items.push(<rect key={`${r}-${c}`} x={px - 3} y={py - 2.5} width={6} height={3.5} fill={wcol} opacity={0.55} />);
-              }
-            }
-            return <>{items}</>;
-          },
-          // 左/右侧面也加窗户行
-          left: (pts) => {
-            const [tl, tr, br, bl] = pts;
-            const w = Math.hypot(tr.x - tl.x, tr.y - tl.y);
-            const h = Math.hypot(bl.x - tl.x, bl.y - tl.y);
-            const cols = Math.max(3, Math.round(w / 14));
-            const rows = Math.max(3, Math.round(h / 12));
-            const ux = (tr.x - tl.x) / cols, uy = (tr.y - tl.y) / cols;
-            const vx = (bl.x - tl.x) / rows, vy = (bl.y - tl.y) / rows;
-            const items: React.ReactNode[] = [];
-            for (let r = 1; r < rows - 0.5; r++) {
-              for (let c = 0.5; c < cols - 0.5; c++) {
-                const px = tl.x + ux * c + vx * r;
-                const py = tl.y + uy * c + vy * r;
-                const wcol = alarm ? '#ffd0c0' : '#79b8e8';
-                items.push(<rect key={`${r}-${c}`} x={px - 2.5} y={py - 2} width={5} height={3} fill={wcol} opacity={0.45} />);
-              }
-            }
-            return <>{items}</>;
-          },
-          right: (pts) => {
-            const [tl, tr, br, bl] = pts;
-            const w = Math.hypot(tr.x - tl.x, tr.y - tl.y);
-            const h = Math.hypot(bl.x - tl.x, bl.y - tl.y);
-            const cols = Math.max(3, Math.round(w / 14));
-            const rows = Math.max(3, Math.round(h / 12));
-            const ux = (tr.x - tl.x) / cols, uy = (tr.y - tl.y) / cols;
-            const vx = (bl.x - tl.x) / rows, vy = (bl.y - tl.y) / rows;
-            const items: React.ReactNode[] = [];
-            for (let r = 1; r < rows - 0.5; r++) {
-              for (let c = 0.5; c < cols - 0.5; c++) {
-                const px = tl.x + ux * c + vx * r;
-                const py = tl.y + uy * c + vy * r;
-                const wcol = alarm ? '#ffd0c0' : '#79b8e8';
-                items.push(<rect key={`${r}-${c}`} x={px - 2.5} y={py - 2} width={5} height={3} fill={wcol} opacity={0.4} />);
-              }
-            }
-            return <>{items}</>;
-          },
-        }}
-      />
-      {/* 顶上漂浮标签 */}
-      <Anchor3D p={{ x: cx, y: h + 20, z: cz }}>
-        {(p) => (
-          <g>
-            <rect x={p.x - 75} y={p.y - 14} width={150} height={24} rx={3}
-              fill={alarm ? 'rgba(80,20,20,0.92)' : 'rgba(8,28,58,0.92)'}
-              stroke={alarm ? '#ef5a4a' : '#3f86c8'} strokeWidth={0.8} />
-            <text x={p.x} y={p.y + 3} textAnchor="middle" fontSize="12" fontWeight="bold"
-              fill={alarm ? '#ffe4df' : '#cfe5ff'}>{label}</text>
-          </g>
+    <div
+      className={`absolute -translate-x-1/2 ${onClick ? 'cursor-pointer' : ''}`}
+      style={{ left: `${x}%`, top: `${y}%`, zIndex: 80 }}
+      onClick={onClick}
+    >
+      {/* 标签气泡 */}
+      <div
+        className="absolute left-1/2 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded px-2.5 py-1 text-[12px] font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
+        style={{ background: bgColor, border: `1px solid ${borderColor}`, color: textColor, bottom: 14 }}
+      >
+        {label}
+      </div>
+      {/* 杆 */}
+      <div className="absolute left-1/2 -translate-x-1/2 -bottom-[1px]" style={{ width: 1, height: 12, background: dotColor }} />
+      {/* 圆点 */}
+      <div className="relative h-3 w-3 rounded-full" style={{ background: dotColor, boxShadow: `0 0 8px ${dotColor}` }}>
+        {alarm && (
+          <span className="absolute inset-0 rounded-full" style={{ border: `2px solid ${dotColor}`, animation: 'dtPulse 1.6s ease-out infinite' }} />
         )}
-      </Anchor3D>
-    </>
+      </div>
+    </div>
   );
 };
 
-// ── 平台（ground slab，含上面的小物件） ─────────────────────────────
-const FactorySlab: React.FC<{
-  cx: number; cz: number; w: number; h: number; d: number; label: string;
-  children?: React.ReactNode;
-}> = ({ cx, cz, w, h, d, label, children }) => {
-  const colors = { top: '#1a3f6e', front: '#0d2e5b', back: '#082040', left: '#102e54', right: '#0a1f3d' };
-  return (
-    <>
-      <GroundShadow cx={cx} cz={cz} rx={w / 2 + 2} rz={d / 2 + 2} />
-      <Box3D
-        cx={cx} cy={h / 2} cz={cz}
-        hw={w / 2} hh={h / 2} hd={d / 2}
-        colors={colors} stroke="#3f86c8" strokeWidth={0.7}
-      />
-      {children}
-      <Anchor3D p={{ x: cx, y: -8, z: cz + d / 2 + 4 }}>
-        {(p) => (
-          <g>
-            <rect x={p.x - 70} y={p.y - 12} width={140} height={22} rx={3}
-              fill="rgba(8,28,58,0.92)" stroke="#3f86c8" strokeWidth={0.6} />
-            <text x={p.x} y={p.y + 4} textAnchor="middle" fontSize="11" fontWeight="bold" fill="#cfe5ff">{label}</text>
-          </g>
-        )}
-      </Anchor3D>
-    </>
-  );
-};
 
-// ── 工位（视觉检测）：小型立方体阵列 ──────────────────────────────
-const VisionWorkstation: React.FC<{ cx: number; cz: number }> = ({ cx, cz }) => (
-  <Box3D
-    cx={cx} cy={14} cz={cz}
-    hw={9} hh={14} hd={11}
-    colors={{ top: '#0e3a72', front: '#1a4f86', back: '#0a2547', left: '#102e54', right: '#0a1f3d' }}
-    stroke="#5fb4ff" strokeWidth={0.5}
-    decorate={{
-      front: (pts) => {
-        const [tl, tr, br, bl] = pts;
-        const cx = (tl.x + tr.x + br.x + bl.x) / 4;
-        const cy = (tl.y + tr.y + br.y + bl.y) / 4;
-        return <circle cx={cx} cy={cy} r={2.2} fill="#6ce09a" />;
-      }
-    }}
-  />
-);
-
-// ── 办公桌（小立方体） ─────────────────────────────────────────────
-const OfficeDesk: React.FC<{ cx: number; cz: number }> = ({ cx, cz }) => (
-  <Box3D
-    cx={cx} cy={6} cz={cz}
-    hw={14} hh={6} hd={6}
-    colors={{ top: '#1a4f86', front: '#0d2e5b', back: '#082040', left: '#102e54', right: '#0a1f3d' }}
-    stroke="#5fb4ff" strokeWidth={0.4}
-  />
-);
-
-// ── AGV 小车（立方体 + 上盖） ──────────────────────────────────────
-const AGVUnit: React.FC<{ cx: number; cz: number }> = ({ cx, cz }) => (
-  <Box3D
-    cx={cx} cy={6} cz={cz}
-    hw={12} hh={6} hd={8}
-    colors={{ top: '#2f7ac4', front: '#1f5a9b', back: '#0c3168', left: '#143f70', right: '#0a2c58' }}
-    stroke="#5fb4ff" strokeWidth={0.5}
-    decorate={{
-      top: (pts) => {
-        const cxv = pts.reduce((s, p) => s + p.x, 0) / 4;
-        const cyv = pts.reduce((s, p) => s + p.y, 0) / 4;
-        return (
-          <>
-            <rect x={cxv - 6} y={cyv - 2} width={12} height={4} fill="#03101e" />
-            <circle cx={cxv} cy={cyv} r={1.2} fill="#6ce09a" />
-          </>
-        );
-      }
-    }}
-  />
-);
-
-// ── 主舞台：基于真伪3D 的园区场景 ─────────────────────────────────────
+// ── 主舞台：底图 + 用户布局（从 layoutStore 加载，可被编辑器覆盖） ────
 const FactoryScene: React.FC = () => {
-  const { setView } = useDtNav();
-  // 园区坐标系：x 横向，z 纵深（屏幕外为正），y 竖直
-  // 上排 3 个建筑（z=-80）、下排 3 个平台（z=+80）
-  const upZ = -80, downZ = 100;
-  const xs = [-260, 0, 260];
-  const drill = () => setView('area');
+  const { setView, setZone } = useDtNav();
+  const enter = (zone: string) => () => { setZone(zone); setView('area'); };
+  const layout = loadLayout('overview');
+  const baseSrc = layout.baseMap || '/svg/sim_park_base_map_no_buildings.svg';
 
   return (
-  <Scene3DCanvas width={960} height={560} cx={480} cy={330} defaultYaw={28} defaultPitch={48} defaultScale={0.9}
-    background={
-      <>
-        <defs>
-          <radialGradient id="ovGround" cx="50%" cy="50%" r="70%">
-            <stop offset="0%" stopColor="#0b2a55" />
-            <stop offset="60%" stopColor="#061a36" />
-            <stop offset="100%" stopColor="#020a18" />
-          </radialGradient>
-        </defs>
-        <rect width="960" height="560" fill="url(#ovGround)" />
-      </>
-    }
-  >
-    {/* 地面网格 */}
-    <GroundPlane x={-460} z={0} w={920} d={520} fill="#04162e" stroke="#163f70" />
-    {/* 水平/垂直路面 */}
-    <GroundPlane x={-460} z={10} w={920} d={22} fill="#15233e" />
-    <GroundPlane x={-12} z={-260} w={24} d={520} fill="#15233e" />
+    <SceneStage width={layout.width} height={layout.height} className="bg-[#020a18]">
+      {/* 底图 */}
+      <img
+        src={baseSrc}
+        alt="园区底图"
+        draggable={false}
+        className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
+        style={{ zIndex: 1 }}
+      />
 
-    {/* === 上排：1号产线 / 3号机房（告警）/ 算力模块A === */}
-    <Factory3DBuilding cx={xs[0]} cz={upZ} w={150} h={100} d={110} label="1号产线"   onClick={drill} />
-    <Factory3DBuilding cx={xs[1]} cz={upZ} w={150} h={110} d={110} label="3号机房"   onClick={drill} alarm />
-    <Factory3DBuilding cx={xs[2]} cz={upZ} w={150} h={100} d={110} label="算力模块A" onClick={drill} />
-
-    {/* === 下排：3 个平台 === */}
-    <FactorySlab cx={xs[0]} cz={downZ} w={170} h={14} d={120} label="AGV调度区">
-      <AGVUnit cx={xs[0] - 40} cz={downZ - 20} />
-      <AGVUnit cx={xs[0] + 30} cz={downZ + 20} />
-    </FactorySlab>
-    <FactorySlab cx={xs[1]} cz={downZ} w={170} h={14} d={120} label="视觉检测区">
-      {[-3, -1, 1, 3].map(i => (
-        <VisionWorkstation key={i} cx={xs[1] + i * 22} cz={downZ} />
+      {/* 建筑叠加 */}
+      {layout.items.map((b, i) => (
+        <SceneSprite
+          key={b.id}
+          asset={b.asset}
+          x={b.cx}
+          y={b.cy}
+          width={b.w}
+          z={20 + i}
+          rotate={b.rotate}
+          yaw={b.yaw ?? (b.sx === -1 ? 180 : 0)}
+          opacity={1}
+          onClick={b.zone ? enter(b.zone) : undefined}
+          filter={b.filter}
+          title={b.label ?? b.asset}
+          anchorBottom={b.anchorBottom !== false}
+        />
       ))}
-    </FactorySlab>
-    <FactorySlab cx={xs[2]} cz={downZ} w={170} h={14} d={120} label="办公网区">
-      {[-1, 0, 1].map(r => [-1.5, -0.5, 0.5, 1.5].map(c => (
-        <OfficeDesk key={`${r}-${c}`} cx={xs[2] + c * 36} cz={downZ + r * 26} />
-      )))}
-    </FactorySlab>
-  </Scene3DCanvas>
+
+      {/* 浮在建筑上方的绿色定位针 + 健康/告警标签 */}
+      {layout.items.filter(i => i.label && (i.zone || /主入口|入口|门岗/.test(i.label))).map(i => {
+        // 标签位于建筑顶部上方
+        const pinY = Math.max(2, i.cy - 16);
+        return (
+          <ParkPin
+            key={'pin-' + i.id}
+            x={i.cx}
+            y={pinY}
+            label={i.label!}
+            tone={i.tone}
+            alarm={i.alarm}
+            onClick={i.zone ? enter(i.zone) : undefined}
+          />
+        );
+      })}
+    </SceneStage>
   );
 };
+
+// ── 工厂建筑（已不再使用，保留占位） ──────────────────────────────────────
 
 export const OverviewView: React.FC = () => {
   return (
@@ -312,10 +158,11 @@ export const OverviewView: React.FC = () => {
 
       {/* ===================== 中间主舞台 ===================== */}
       <div className={dtPanel + ' min-h-0 overflow-hidden'}>
-        <DtSectionTitle title="园区数字孪生 — 总览" right={<span className="text-[10px] text-[#7e9fc8]">真实数据 / 模拟数据混合</span>} />
-        <div className="relative min-h-0 flex-1 overflow-hidden rounded border border-[#1b4378] bg-[#03132a]">
+        <DtSceneHeader title="园区数字孪生" right={<span className="ml-2 text-[10px] text-[#7e9fc8]">真实数据 / 模拟数据混合</span>} />
+        <div className="relative mb-1.5 min-h-0 flex-[4] overflow-hidden rounded border border-[#1b4378] bg-[#03132a]">
           <FactoryScene />
         </div>
+        <DtAlarm24hPanel />
       </div>
 
       {/* ===================== 右列 ===================== */}
