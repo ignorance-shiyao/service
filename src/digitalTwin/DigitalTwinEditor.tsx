@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Trash2, RotateCw, FlipHorizontal2, Save, RotateCcw, Plus, ChevronDown, ChevronUp, Eye, Copy, Image as ImageIcon } from 'lucide-react';
+import { Trash2, RotateCw, FlipHorizontal2, FlipVertical2, Save, RotateCcw, Plus, ChevronDown, ChevronUp, Eye, Copy, Image as ImageIcon } from 'lucide-react';
 import { ASSETS, AssetKey } from './sceneAssets';
 import {
   SceneId, SceneItem, SceneLayout,
@@ -23,14 +23,42 @@ export const DigitalTwinEditor: React.FC = () => {
   const rotateRef = useRef<{ id: string; centerX: number; centerY: number; startAngle: number; startRotate: number } | null>(null);
   const resizeRef = useRef<{ id: string; startX: number; startY: number; w: number; corner: string; rect: DOMRect; itemRect: DOMRect } | null>(null);
   const yawRef = useRef<{ id: string; startX: number; startYaw: number } | null>(null);
+  const pitchRef = useRef<{ id: string; startY: number; startPitch: number } | null>(null);
   const [paletteCollapsed, setPaletteCollapsed] = useState(false);
   const [dropPreview, setDropPreview] = useState<{ x: number; y: number } | null>(null);
+  const isInitialMount = useRef(true);
 
-  // 切换场景 → 重新加载
+  // 切换场景 → 重新加载（同时阻止下一次 layout 变化触发自动保存）
   useEffect(() => {
+    isInitialMount.current = true;
     setLayout(loadLayout(sceneId));
     setSelectedId(null);
   }, [sceneId]);
+
+  // ── 自动保存（debounce 400ms）：任何改动都持久化到 localStorage ────
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    const t = setTimeout(() => {
+      saveLayout(layout);
+      const el = document.getElementById('save-indicator');
+      if (el) {
+        el.textContent = '自动已保存';
+        el.style.opacity = '0.85';
+        setTimeout(() => { if (el) el.style.opacity = '0'; }, 900);
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [layout]);
+
+  // 页面卸载前强制保存一次
+  useEffect(() => {
+    const onUnload = () => saveLayout(layout);
+    window.addEventListener('beforeunload', onUnload);
+    return () => window.removeEventListener('beforeunload', onUnload);
+  }, [layout]);
 
   const selected = useMemo(() => layout.items.find(i => i.id === selectedId) || null, [layout, selectedId]);
 
@@ -104,11 +132,22 @@ export const DigitalTwinEditor: React.FC = () => {
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
-      // 优先处理 yaw（水平 Y 轴旋转）
+      // X 轴 pitch（纵向拖拽）
+      const p = pitchRef.current;
+      if (p) {
+        const dy = e.clientY - p.startY;
+        let next = p.startPitch + dy * 0.6;
+        while (next > 180) next -= 360;
+        while (next < -180) next += 360;
+        if (e.shiftKey) next = Math.round(next / 15) * 15;
+        updateItem(p.id, { pitch: next });
+        return;
+      }
+      // Y 轴 yaw（横向拖拽）
       const y = yawRef.current;
       if (y) {
         const dx = e.clientX - y.startX;
-        let next = y.startYaw + dx * 0.6; // 1 像素 ≈ 0.6°
+        let next = y.startYaw + dx * 0.6;
         while (next > 180) next -= 360;
         while (next < -180) next += 360;
         if (e.shiftKey) next = Math.round(next / 15) * 15;
@@ -152,7 +191,7 @@ export const DigitalTwinEditor: React.FC = () => {
         cy: Math.max(-20, Math.min(120, d.cy + dy)),
       });
     };
-    const onUp = () => { dragRef.current = null; rotateRef.current = null; resizeRef.current = null; yawRef.current = null; };
+    const onUp = () => { dragRef.current = null; rotateRef.current = null; resizeRef.current = null; yawRef.current = null; pitchRef.current = null; };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     return () => {
@@ -176,6 +215,13 @@ export const DigitalTwinEditor: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     yawRef.current = { id: item.id, startX: e.clientX, startYaw: item.yaw ?? 0 };
+  };
+
+  // X 轴 pitch 手柄拖拽（上下移动 = pitch）
+  const onPitchHandleDown = (e: React.MouseEvent, item: SceneItem) => {
+    e.preventDefault();
+    e.stopPropagation();
+    pitchRef.current = { id: item.id, startY: e.clientY, startPitch: item.pitch ?? 0 };
   };
 
   const onItemWheel = (e: React.WheelEvent, item: SceneItem) => {
@@ -370,7 +416,7 @@ export const DigitalTwinEditor: React.FC = () => {
                       top: `${item.cy}%`,
                       width: `${item.w}%`,
                       aspectRatio: `${a.w} / ${a.h}`,
-                      transform: `translate(-50%, ${item.anchorBottom !== false ? '-100%' : '-50%'}) rotate(${item.rotate ?? 0}deg) rotateY(${item.yaw ?? 0}deg)`,
+                      transform: `translate(-50%, ${item.anchorBottom !== false ? '-100%' : '-50%'}) rotate(${item.rotate ?? 0}deg) rotateY(${item.yaw ?? 0}deg) rotateX(${item.pitch ?? 0}deg)`,
                       transformOrigin: item.anchorBottom !== false ? '50% 100%' : '50% 50%',
                       transformStyle: 'preserve-3d',
                       zIndex: 10 + idx + (isSel ? 1000 : 0),
@@ -391,8 +437,9 @@ export const DigitalTwinEditor: React.FC = () => {
                     {isSel && (
                       <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 rounded bg-[#0a2547]/95 px-1.5 py-0.5 text-[10px] font-mono text-[#ffb672] whitespace-nowrap">
                         {item.label || item.asset} · ({item.cx.toFixed(1)},{item.cy.toFixed(1)}) · w{item.w.toFixed(1)}
-                        <span className="ml-1 text-[#79d0ff]">Z{Math.round(((item.rotate ?? 0) + 360) % 360)}°</span>
+                        <span className="ml-1 text-[#ffb672]">Z{Math.round(((item.rotate ?? 0) + 360) % 360)}°</span>
                         <span className="ml-1 text-[#6ce09a]">Y{Math.round(((item.yaw ?? 0) + 360) % 360)}°</span>
+                        <span className="ml-1 text-[#79d0ff]">X{Math.round(((item.pitch ?? 0) + 360) % 360)}°</span>
                       </div>
                     )}
 
@@ -420,6 +467,18 @@ export const DigitalTwinEditor: React.FC = () => {
                           style={{ userSelect: 'none' }}
                         >
                           <FlipHorizontal2 size={11} />
+                        </div>
+
+                        {/* X 轴俯仰旋转手柄：蓝色，建筑下方，上下拖拽 */}
+                        <div className="pointer-events-none absolute left-1/2 -bottom-5 -translate-x-1/2" style={{ width: 1, height: 20, background: '#4fc1ff' }} />
+                        <div
+                          onMouseDown={e => onPitchHandleDown(e, item)}
+                          title="X 轴俯仰旋转 · 上下拖拽 · Shift 吸附 15°"
+                          className="absolute left-1/2 -bottom-9 flex h-6 w-6 -translate-x-1/2 cursor-ns-resize items-center justify-center rounded-full border-2 border-[#4fc1ff] bg-[#0a2f63] text-[#cfe9ff] shadow-[0_0_8px_rgba(79,193,255,0.5)] active:cursor-grabbing hover:bg-[#13427d]"
+                          onClick={e => e.stopPropagation()}
+                          style={{ userSelect: 'none' }}
+                        >
+                          <FlipVertical2 size={11} />
                         </div>
                       </>
                     )}
@@ -456,9 +515,9 @@ export const DigitalTwinEditor: React.FC = () => {
 
           {/* 画布提示 */}
           <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-[#0a2547]/85 px-2 py-1 text-[10px] leading-relaxed text-[#7e9fc8]">
-            <span className="text-[#79d0ff]">素材库拖拽</span>到画布添加 · 拖拽建筑移动 · 滚轮调宽<br />
-            <span className="text-[#ffb672]">4 角手柄</span>调大小 · <span className="text-[#ffb672]">顶部 ⟳</span>Z 轴旋转 · <span className="text-[#6ce09a]">右侧 ⇆</span>Y 轴水平旋转 (左右拖拽)<br />
-            Shift+滚轮 Z 旋转 5° · Shift+Alt+滚轮 1° · 任意旋转按 Shift 吸附 15°
+            素材库拖拽到画布 · 建筑拖拽移动 · 滚轮调宽 · <span className="text-[#ffb672]">4 角手柄</span>缩放<br />
+            旋转：<span className="text-[#ffb672]">顶部 ⟳ Z 轴</span> · <span className="text-[#6ce09a]">右侧 ⇆ Y 轴</span>（左右拖） · <span className="text-[#4fc1ff]">底部 ⇅ X 轴</span>（上下拖）<br />
+            Shift 旋转吸附 15° · 自动保存（无需点保存按钮）
           </div>
         </div>
 
@@ -520,6 +579,14 @@ export const DigitalTwinEditor: React.FC = () => {
                       onChange={e => updateItem(selected.id, { yaw: +e.target.value })}
                       className="flex-1 accent-[#6ce09a]" />
                     <NumInput value={selected.yaw ?? 0} onChange={v => updateItem(selected.id, { yaw: v })} step={5} />
+                  </div>
+                </Row>
+                <Row label="X 旋转 (°)">
+                  <div className="flex items-center gap-1.5">
+                    <input type="range" min={-180} max={180} step={1} value={selected.pitch ?? 0}
+                      onChange={e => updateItem(selected.id, { pitch: +e.target.value })}
+                      className="flex-1 accent-[#4fc1ff]" />
+                    <NumInput value={selected.pitch ?? 0} onChange={v => updateItem(selected.id, { pitch: v })} step={5} />
                   </div>
                 </Row>
                 <Row label="水平翻转">

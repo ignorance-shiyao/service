@@ -78,6 +78,7 @@ const FactoryScene: React.FC = () => {
           z={20 + i}
           rotate={b.rotate}
           yaw={b.yaw ?? (b.sx === -1 ? 180 : 0)}
+          pitch={b.pitch}
           opacity={1}
           onClick={b.zone ? enter(b.zone) : undefined}
           filter={b.filter}

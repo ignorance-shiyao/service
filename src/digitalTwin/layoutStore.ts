@@ -14,6 +14,7 @@ export interface SceneItem {
   sx?: 1 | -1;         // 水平翻转（旧字段，等价于 yaw=180，保留兼容）
   rotate?: number;     // 平面 Z 轴旋转角度 (-180~180)
   yaw?: number;        // 水平 Y 轴 360° 无极旋转 (-180~180)
+  pitch?: number;      // X 轴 360° 无极旋转（前后俯仰，-180~180）
   filter?: string;     // CSS filter（着色/告警等）
   label?: string;      // 浮窗标签
   zone?: string;       // 点击下钻到的 zone（仅 overview 场景使用）
