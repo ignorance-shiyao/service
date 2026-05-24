@@ -68,18 +68,19 @@ const FactoryScene: React.FC = () => {
       />
 
       {/* 建筑叠加 */}
-      {layout.items.map((b, i) => (
+      {layout.items.filter(b => !b.hidden).map((b, i) => (
         <SceneSprite
           key={b.id}
           asset={b.asset}
           x={b.cx}
           y={b.cy}
           width={b.w}
+          height={b.h}
           z={20 + i}
           rotate={b.rotate}
           yaw={b.yaw ?? (b.sx === -1 ? 180 : 0)}
           pitch={b.pitch}
-          opacity={1}
+          opacity={b.opacity ?? 1}
           onClick={b.zone ? enter(b.zone) : undefined}
           filter={b.filter}
           title={b.label ?? b.asset}

@@ -101,6 +101,8 @@ export const SceneSprite: React.FC<{
   y: number;
   /** 显示宽度（百分比，相对舞台宽） */
   width: number;
+  /** 显示高度（百分比，相对舞台高）；不传则按资源原始比例计算 */
+  height?: number;
   /** 自定义层级（默认基于 y） */
   z?: number;
   className?: string;
@@ -116,7 +118,7 @@ export const SceneSprite: React.FC<{
   pitch?: number;
   /** 锚点是否在底部中心，默认 true */
   anchorBottom?: boolean;
-}> = ({ asset, x, y, width, z, className = '', filter, opacity, onClick, title, rotate, yaw, pitch, anchorBottom = true }) => {
+}> = ({ asset, x, y, width, height, z, className = '', filter, opacity, onClick, title, rotate, yaw, pitch, anchorBottom = true }) => {
   const a = typeof asset === 'string' ? ASSETS[asset] : asset;
   // 计算显示高度按图像原始比例（width 是百分比，所以 height 也是相对舞台高度的百分比）
   // 由于舞台宽和高比例不同，我们需要把图像保持等比例
@@ -132,7 +134,7 @@ export const SceneSprite: React.FC<{
         left: `${x}%`,
         top: `${y}%`,
         width: `${width}%`,
-        aspectRatio: `${a.w} / ${a.h}`,
+        ...(height != null ? { height: `${height}%` } : { aspectRatio: `${a.w} / ${a.h}` }),
         transform: `translate(-50%, ${anchorBottom ? '-100%' : '-50%'}) rotate(${rotate ?? 0}deg) rotateY(${yaw ?? 0}deg) rotateX(${pitch ?? 0}deg)`,
         transformOrigin: anchorBottom ? '50% 100%' : '50% 50%',
         transformStyle: 'preserve-3d',

@@ -11,10 +11,15 @@ export interface SceneItem {
   cx: number;          // 中心 x（%）
   cy: number;          // 中心 y（%）
   w: number;           // 宽度（%）
+  h?: number;          // 高度（%）- 不设则按资源原始比例自动
+  lockAspect?: boolean;// 是否锁定宽高比（默认 true）
   sx?: 1 | -1;         // 水平翻转（旧字段，等价于 yaw=180，保留兼容）
   rotate?: number;     // 平面 Z 轴旋转角度 (-180~180)
   yaw?: number;        // 水平 Y 轴 360° 无极旋转 (-180~180)
   pitch?: number;      // X 轴 360° 无极旋转（前后俯仰，-180~180）
+  opacity?: number;    // 透明度 0~1（默认 1）
+  hidden?: boolean;    // 是否隐藏（不在运行时渲染，编辑器内半透明显示）
+  locked?: boolean;    // 是否锁定（编辑器中不能拖拽/缩放/旋转）
   filter?: string;     // CSS filter（着色/告警等）
   label?: string;      // 浮窗标签
   zone?: string;       // 点击下钻到的 zone（仅 overview 场景使用）
