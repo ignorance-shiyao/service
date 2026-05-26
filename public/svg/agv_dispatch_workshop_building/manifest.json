@@ -1,0 +1,181 @@
+{
+  "version": "V2",
+  "scene": "agv_dispatch_workshop_building",
+  "name_cn": "AGV调度车间建筑",
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "files": {
+    "base": "base_no_equipment.svg",
+    "equipment_layer": "layer_equipment.svg",
+    "preview": "preview_reconstruction.svg",
+    "equipment_sheet": "reference_equipment_sheet.svg"
+  },
+  "components": [
+    {
+      "id": "agv_vehicle",
+      "category": "device",
+      "svg": "agv_vehicle.svg",
+      "size": {
+        "width": 405,
+        "height": 289
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 0,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "charging_station",
+      "category": "device",
+      "svg": "charging_station.svg",
+      "size": {
+        "width": 293,
+        "height": 369
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 0,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "loading_dock_shelter",
+      "category": "device",
+      "svg": "loading_dock_shelter.svg",
+      "size": {
+        "width": 426,
+        "height": 395
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 0,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "security_gatehouse",
+      "category": "device",
+      "svg": "security_gatehouse.svg",
+      "size": {
+        "width": 417,
+        "height": 283
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 1,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "guard_booth",
+      "category": "device",
+      "svg": "guard_booth.svg",
+      "size": {
+        "width": 403,
+        "height": 301
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 1,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "status_beacon_pole",
+      "category": "device",
+      "svg": "status_beacon_pole.svg",
+      "size": {
+        "width": 100,
+        "height": 356
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 1,
+        "cols": 3,
+        "rows": 2
+      }
+    }
+  ],
+  "placements": [
+    {
+      "id": "agv_vehicle",
+      "component": "agv_vehicle.svg",
+      "category": "device",
+      "x": 850,
+      "y": 620,
+      "width": 120,
+      "height": 90,
+      "zIndex": 20
+    },
+    {
+      "id": "charging_station",
+      "component": "charging_station.svg",
+      "category": "device",
+      "x": 1110,
+      "y": 555,
+      "width": 130,
+      "height": 120,
+      "zIndex": 20
+    },
+    {
+      "id": "loading_dock_shelter",
+      "component": "loading_dock_shelter.svg",
+      "category": "device",
+      "x": 980,
+      "y": 375,
+      "width": 250,
+      "height": 140,
+      "zIndex": 20
+    },
+    {
+      "id": "security_gatehouse",
+      "component": "security_gatehouse.svg",
+      "category": "device",
+      "x": 120,
+      "y": 660,
+      "width": 180,
+      "height": 150,
+      "zIndex": 20
+    },
+    {
+      "id": "guard_booth",
+      "component": "guard_booth.svg",
+      "category": "device",
+      "x": 330,
+      "y": 635,
+      "width": 140,
+      "height": 110,
+      "zIndex": 20
+    },
+    {
+      "id": "status_beacon_pole",
+      "component": "status_beacon_pole.svg",
+      "category": "device",
+      "x": 1260,
+      "y": 500,
+      "width": 70,
+      "height": 120,
+      "zIndex": 20
+    }
+  ],
+  "frontend_usage": "使用 base_no_equipment.svg 作为底图；按 placements 放置 components 中的设备 SVG；layer_equipment.svg 和 preview_reconstruction.svg 只用于快速校验。",
+  "generation": "Generated with built-in image_gen. Equipment sheets were generated on #00ff00 chroma key and locally cut into transparent embedded SVG assets.",
+  "limitations": [
+    "设备子图来自同场景设备素材板自动网格裁切，已透明化；如要像素级商用精修，仍建议人工检查边缘。",
+    "SVG 是内嵌 PNG 的 wrapper，不是纯矢量重绘。"
+  ]
+}

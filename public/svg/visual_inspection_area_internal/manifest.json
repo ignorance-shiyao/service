@@ -1,0 +1,233 @@
+{
+  "version": "V2",
+  "scene": "visual_inspection_area_internal",
+  "name_cn": "视觉检测区内部",
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "files": {
+    "base": "base_no_equipment.svg",
+    "equipment_layer": "layer_equipment.svg",
+    "preview": "preview_reconstruction.svg",
+    "equipment_sheet": "reference_equipment_sheet.svg"
+  },
+  "components": [
+    {
+      "id": "vision_workstation",
+      "category": "device",
+      "svg": "vision_workstation.svg",
+      "size": {
+        "width": 304,
+        "height": 383
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "industrial_camera_stand",
+      "category": "device",
+      "svg": "industrial_camera_stand.svg",
+      "size": {
+        "width": 157,
+        "height": 357
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "ring_light_module",
+      "category": "device",
+      "svg": "ring_light_module.svg",
+      "size": {
+        "width": 234,
+        "height": 296
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "inspection_table",
+      "category": "device",
+      "svg": "inspection_table.svg",
+      "size": {
+        "width": 289,
+        "height": 332
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 3,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "plc_control_cabinet",
+      "category": "device",
+      "svg": "plc_control_cabinet.svg",
+      "size": {
+        "width": 204,
+        "height": 377
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "edge_ai_server_cabinet",
+      "category": "device",
+      "svg": "edge_ai_server_cabinet.svg",
+      "size": {
+        "width": 212,
+        "height": 351
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "warning_beacon",
+      "category": "device",
+      "svg": "warning_beacon.svg",
+      "size": {
+        "width": 298,
+        "height": 305
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "sample_product_tray",
+      "category": "device",
+      "svg": "sample_product_tray.svg",
+      "size": {
+        "width": 330,
+        "height": 266
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 3,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    }
+  ],
+  "placements": [
+    {
+      "id": "vision_workstation",
+      "component": "vision_workstation.svg",
+      "category": "device",
+      "x": 310,
+      "y": 300,
+      "width": 180,
+      "height": 170,
+      "zIndex": 20
+    },
+    {
+      "id": "industrial_camera_stand",
+      "component": "industrial_camera_stand.svg",
+      "category": "device",
+      "x": 560,
+      "y": 250,
+      "width": 120,
+      "height": 140,
+      "zIndex": 20
+    },
+    {
+      "id": "ring_light_module",
+      "component": "ring_light_module.svg",
+      "category": "device",
+      "x": 725,
+      "y": 280,
+      "width": 160,
+      "height": 140,
+      "zIndex": 20
+    },
+    {
+      "id": "inspection_table",
+      "component": "inspection_table.svg",
+      "category": "device",
+      "x": 880,
+      "y": 340,
+      "width": 220,
+      "height": 140,
+      "zIndex": 20
+    },
+    {
+      "id": "plc_control_cabinet",
+      "component": "plc_control_cabinet.svg",
+      "category": "device",
+      "x": 1240,
+      "y": 400,
+      "width": 160,
+      "height": 210,
+      "zIndex": 20
+    },
+    {
+      "id": "edge_ai_server_cabinet",
+      "component": "edge_ai_server_cabinet.svg",
+      "category": "device",
+      "x": 1330,
+      "y": 210,
+      "width": 150,
+      "height": 210,
+      "zIndex": 20
+    },
+    {
+      "id": "warning_beacon",
+      "component": "warning_beacon.svg",
+      "category": "device",
+      "x": 780,
+      "y": 260,
+      "width": 55,
+      "height": 110,
+      "zIndex": 20
+    },
+    {
+      "id": "sample_product_tray",
+      "component": "sample_product_tray.svg",
+      "category": "device",
+      "x": 1030,
+      "y": 560,
+      "width": 160,
+      "height": 100,
+      "zIndex": 20
+    }
+  ],
+  "frontend_usage": "使用 base_no_equipment.svg 作为底图；按 placements 放置 components 中的设备 SVG；layer_equipment.svg 和 preview_reconstruction.svg 只用于快速校验。",
+  "generation": "Generated with built-in image_gen. Equipment sheets were generated on #00ff00 chroma key and locally cut into transparent embedded SVG assets.",
+  "limitations": [
+    "设备子图来自同场景设备素材板自动网格裁切，已透明化；如要像素级商用精修，仍建议人工检查边缘。",
+    "SVG 是内嵌 PNG 的 wrapper，不是纯矢量重绘。"
+  ]
+}

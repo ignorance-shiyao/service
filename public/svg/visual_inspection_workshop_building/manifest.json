@@ -1,0 +1,181 @@
+{
+  "version": "V2",
+  "scene": "visual_inspection_workshop_building",
+  "name_cn": "视觉检测车间建筑",
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "files": {
+    "base": "base_no_equipment.svg",
+    "equipment_layer": "layer_equipment.svg",
+    "preview": "preview_reconstruction.svg",
+    "equipment_sheet": "reference_equipment_sheet.svg"
+  },
+  "components": [
+    {
+      "id": "box_truck",
+      "category": "device",
+      "svg": "box_truck.svg",
+      "size": {
+        "width": 367,
+        "height": 312
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 0,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "loading_dock_canopy",
+      "category": "device",
+      "svg": "loading_dock_canopy.svg",
+      "size": {
+        "width": 495,
+        "height": 362
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 0,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "outdoor_hvac_chiller",
+      "category": "device",
+      "svg": "outdoor_hvac_chiller.svg",
+      "size": {
+        "width": 395,
+        "height": 298
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 0,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "transformer_cabinet",
+      "category": "device",
+      "svg": "transformer_cabinet.svg",
+      "size": {
+        "width": 285,
+        "height": 321
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 1,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "security_gatehouse",
+      "category": "device",
+      "svg": "security_gatehouse.svg",
+      "size": {
+        "width": 398,
+        "height": 302
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 1,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "roadside_beacon",
+      "category": "device",
+      "svg": "roadside_beacon.svg",
+      "size": {
+        "width": 136,
+        "height": 351
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 1,
+        "cols": 3,
+        "rows": 2
+      }
+    }
+  ],
+  "placements": [
+    {
+      "id": "box_truck",
+      "component": "box_truck.svg",
+      "category": "device",
+      "x": 230,
+      "y": 660,
+      "width": 160,
+      "height": 100,
+      "zIndex": 20
+    },
+    {
+      "id": "loading_dock_canopy",
+      "component": "loading_dock_canopy.svg",
+      "category": "device",
+      "x": 980,
+      "y": 430,
+      "width": 250,
+      "height": 130,
+      "zIndex": 20
+    },
+    {
+      "id": "outdoor_hvac_chiller",
+      "component": "outdoor_hvac_chiller.svg",
+      "category": "device",
+      "x": 1220,
+      "y": 260,
+      "width": 230,
+      "height": 140,
+      "zIndex": 20
+    },
+    {
+      "id": "transformer_cabinet",
+      "component": "transformer_cabinet.svg",
+      "category": "device",
+      "x": 1320,
+      "y": 520,
+      "width": 160,
+      "height": 130,
+      "zIndex": 20
+    },
+    {
+      "id": "security_gatehouse",
+      "component": "security_gatehouse.svg",
+      "category": "device",
+      "x": 155,
+      "y": 560,
+      "width": 160,
+      "height": 130,
+      "zIndex": 20
+    },
+    {
+      "id": "roadside_beacon",
+      "component": "roadside_beacon.svg",
+      "category": "device",
+      "x": 1160,
+      "y": 610,
+      "width": 60,
+      "height": 120,
+      "zIndex": 20
+    }
+  ],
+  "frontend_usage": "使用 base_no_equipment.svg 作为底图；按 placements 放置 components 中的设备 SVG；layer_equipment.svg 和 preview_reconstruction.svg 只用于快速校验。",
+  "generation": "Generated with built-in image_gen. Equipment sheets were generated on #00ff00 chroma key and locally cut into transparent embedded SVG assets.",
+  "limitations": [
+    "设备子图来自同场景设备素材板自动网格裁切，已透明化；如要像素级商用精修，仍建议人工检查边缘。",
+    "SVG 是内嵌 PNG 的 wrapper，不是纯矢量重绘。"
+  ]
+}

@@ -5,6 +5,7 @@ import { ASSET_OVERVIEW, BUSINESS_SYSTEMS, AREAS, CURRENT_ALARMS } from '../data
 import { SceneStage, SceneSprite, SceneLabel, SceneAlarmPulse, SceneLot, ScenePath } from '../sceneAssets';
 import { loadLayout } from '../layoutStore';
 import { useDtNav, DtSceneHeader } from '../DigitalTwinDashboard';
+import { shouldRenderSceneItem } from '../renderGuards';
 
 // ── 资产概览 ───────────────────────────────────────────────────────────
 const assetRows = [
@@ -55,6 +56,11 @@ const FactoryScene: React.FC = () => {
   const enter = (zone: string) => () => { setZone(zone); setView('area'); };
   const layout = loadLayout('overview');
   const baseSrc = layout.baseMap || '/svg/sim_park_base_map_no_buildings.svg';
+  const renderItems = layout.items.filter(item => shouldRenderSceneItem(item, baseSrc, null));
+  const getDrillZone = (item: typeof renderItems[number]) => {
+    const targets = item.drillTargets?.length ? item.drillTargets : (item.zone ? [item.zone] : []);
+    return targets.find(t => ['line1', 'idc3', 'cmpA', 'agv', 'vision', 'office'].includes(t));
+  };
 
   return (
     <SceneStage width={layout.width} height={layout.height} className="bg-[#020a18]">
@@ -64,11 +70,11 @@ const FactoryScene: React.FC = () => {
         alt="园区底图"
         draggable={false}
         className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
-        style={{ zIndex: 1 }}
+        style={{ zIndex: 1, transform: `rotate(${layout.baseMapRotate ?? 0}deg)`, transformOrigin: '50% 50%' }}
       />
 
       {/* 建筑叠加 */}
-      {layout.items.filter(b => !b.hidden).map((b, i) => (
+      {renderItems.map((b, i) => (
         <SceneSprite
           key={b.id}
           asset={b.asset}
@@ -80,8 +86,10 @@ const FactoryScene: React.FC = () => {
           rotate={b.rotate}
           yaw={b.yaw ?? (b.sx === -1 ? 180 : 0)}
           pitch={b.pitch}
+          sx={b.sx}
+          sy={b.sy}
           opacity={b.opacity ?? 1}
-          onClick={b.zone ? enter(b.zone) : undefined}
+          onClick={getDrillZone(b) ? enter(getDrillZone(b)!) : undefined}
           filter={b.filter}
           title={b.label ?? b.asset}
           anchorBottom={b.anchorBottom !== false}
@@ -89,7 +97,7 @@ const FactoryScene: React.FC = () => {
       ))}
 
       {/* 浮在建筑上方的绿色定位针 + 健康/告警标签 */}
-      {layout.items.filter(i => i.label && (i.zone || /主入口|入口|门岗/.test(i.label))).map(i => {
+      {renderItems.filter(i => i.label && (getDrillZone(i) || /主入口|入口|门岗/.test(i.label))).map(i => {
         // 标签位于建筑顶部上方
         const pinY = Math.max(2, i.cy - 16);
         return (
@@ -100,7 +108,7 @@ const FactoryScene: React.FC = () => {
             label={i.label!}
             tone={i.tone}
             alarm={i.alarm}
-            onClick={i.zone ? enter(i.zone) : undefined}
+            onClick={getDrillZone(i) ? enter(getDrillZone(i)!) : undefined}
           />
         );
       })}

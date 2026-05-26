@@ -1,0 +1,62 @@
+{
+  "version": "V2",
+  "method": "imagegen regenerated base scenes + chroma-key equipment cutouts",
+  "root": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/V2",
+  "scene_count": 9,
+  "scenes": [
+    {
+      "id": "agv_dispatch_workshop_building",
+      "name_cn": "AGV调度车间建筑",
+      "dir": "agv_dispatch_workshop_building",
+      "manifest": "agv_dispatch_workshop_building/manifest.json"
+    },
+    {
+      "id": "agv_dispatch_workshop_internal",
+      "name_cn": "AGV调度车间内部",
+      "dir": "agv_dispatch_workshop_internal",
+      "manifest": "agv_dispatch_workshop_internal/manifest.json"
+    },
+    {
+      "id": "office_area_internal",
+      "name_cn": "办公区内部",
+      "dir": "office_area_internal",
+      "manifest": "office_area_internal/manifest.json"
+    },
+    {
+      "id": "production_workshop_internal",
+      "name_cn": "生产车间内部",
+      "dir": "production_workshop_internal",
+      "manifest": "production_workshop_internal/manifest.json"
+    },
+    {
+      "id": "visual_inspection_area_internal",
+      "name_cn": "视觉检测区内部",
+      "dir": "visual_inspection_area_internal",
+      "manifest": "visual_inspection_area_internal/manifest.json"
+    },
+    {
+      "id": "visual_inspection_workshop_building",
+      "name_cn": "视觉检测车间建筑",
+      "dir": "visual_inspection_workshop_building",
+      "manifest": "visual_inspection_workshop_building/manifest.json"
+    },
+    {
+      "id": "visual_inspection_workshop_internal",
+      "name_cn": "视觉检测车间内部",
+      "dir": "visual_inspection_workshop_internal",
+      "manifest": "visual_inspection_workshop_internal/manifest.json"
+    },
+    {
+      "id": "agv_vehicle",
+      "name_cn": "AGV小车展示",
+      "dir": "agv_vehicle",
+      "manifest": "agv_vehicle/manifest.json"
+    },
+    {
+      "id": "rack_internal_structure",
+      "name_cn": "机柜内部结构",
+      "dir": "rack_internal_structure",
+      "manifest": "rack_internal_structure/manifest.json"
+    }
+  ]
+}

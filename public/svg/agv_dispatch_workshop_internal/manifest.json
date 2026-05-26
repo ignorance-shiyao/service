@@ -1,0 +1,233 @@
+{
+  "version": "V2",
+  "scene": "agv_dispatch_workshop_internal",
+  "name_cn": "AGV调度车间内部",
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "files": {
+    "base": "base_no_equipment.svg",
+    "equipment_layer": "layer_equipment.svg",
+    "preview": "preview_reconstruction.svg",
+    "equipment_sheet": "reference_equipment_sheet.svg"
+  },
+  "components": [
+    {
+      "id": "agv_front",
+      "category": "device",
+      "svg": "agv_front.svg",
+      "size": {
+        "width": 337,
+        "height": 235
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "agv_side",
+      "category": "device",
+      "svg": "agv_side.svg",
+      "size": {
+        "width": 344,
+        "height": 159
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "charger_pile",
+      "category": "device",
+      "svg": "charger_pile.svg",
+      "size": {
+        "width": 327,
+        "height": 357
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "battery_swap_station",
+      "category": "device",
+      "svg": "battery_swap_station.svg",
+      "size": {
+        "width": 346,
+        "height": 313
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 3,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "dispatch_control_cabinet",
+      "category": "device",
+      "svg": "dispatch_control_cabinet.svg",
+      "size": {
+        "width": 250,
+        "height": 366
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "sensor_pole",
+      "category": "device",
+      "svg": "sensor_pole.svg",
+      "size": {
+        "width": 288,
+        "height": 374
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "safety_barrier",
+      "category": "device",
+      "svg": "safety_barrier.svg",
+      "size": {
+        "width": 333,
+        "height": 240
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "warehouse_shelf",
+      "category": "device",
+      "svg": "warehouse_shelf.svg",
+      "size": {
+        "width": 305,
+        "height": 339
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 3,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    }
+  ],
+  "placements": [
+    {
+      "id": "agv_front",
+      "component": "agv_front.svg",
+      "category": "device",
+      "x": 410,
+      "y": 350,
+      "width": 120,
+      "height": 90,
+      "zIndex": 20
+    },
+    {
+      "id": "agv_side",
+      "component": "agv_side.svg",
+      "category": "device",
+      "x": 690,
+      "y": 520,
+      "width": 120,
+      "height": 90,
+      "zIndex": 20
+    },
+    {
+      "id": "charger_pile",
+      "component": "charger_pile.svg",
+      "category": "device",
+      "x": 1160,
+      "y": 330,
+      "width": 120,
+      "height": 160,
+      "zIndex": 20
+    },
+    {
+      "id": "battery_swap_station",
+      "component": "battery_swap_station.svg",
+      "category": "device",
+      "x": 1340,
+      "y": 330,
+      "width": 170,
+      "height": 140,
+      "zIndex": 20
+    },
+    {
+      "id": "dispatch_control_cabinet",
+      "component": "dispatch_control_cabinet.svg",
+      "category": "device",
+      "x": 240,
+      "y": 190,
+      "width": 170,
+      "height": 210,
+      "zIndex": 20
+    },
+    {
+      "id": "sensor_pole",
+      "component": "sensor_pole.svg",
+      "category": "device",
+      "x": 1020,
+      "y": 230,
+      "width": 55,
+      "height": 130,
+      "zIndex": 20
+    },
+    {
+      "id": "safety_barrier",
+      "component": "safety_barrier.svg",
+      "category": "device",
+      "x": 920,
+      "y": 640,
+      "width": 90,
+      "height": 80,
+      "zIndex": 20
+    },
+    {
+      "id": "warehouse_shelf",
+      "component": "warehouse_shelf.svg",
+      "category": "device",
+      "x": 1300,
+      "y": 560,
+      "width": 170,
+      "height": 130,
+      "zIndex": 20
+    }
+  ],
+  "frontend_usage": "使用 base_no_equipment.svg 作为底图；按 placements 放置 components 中的设备 SVG；layer_equipment.svg 和 preview_reconstruction.svg 只用于快速校验。",
+  "generation": "Generated with built-in image_gen. Equipment sheets were generated on #00ff00 chroma key and locally cut into transparent embedded SVG assets.",
+  "limitations": [
+    "设备子图来自同场景设备素材板自动网格裁切，已透明化；如要像素级商用精修，仍建议人工检查边缘。",
+    "SVG 是内嵌 PNG 的 wrapper，不是纯矢量重绘。"
+  ]
+}

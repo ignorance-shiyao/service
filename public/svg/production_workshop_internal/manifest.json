@@ -1,0 +1,233 @@
+{
+  "version": "V2",
+  "scene": "production_workshop_internal",
+  "name_cn": "生产车间内部",
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "files": {
+    "base": "base_no_equipment.svg",
+    "equipment_layer": "layer_equipment.svg",
+    "preview": "preview_reconstruction.svg",
+    "equipment_sheet": "reference_equipment_sheet.svg"
+  },
+  "components": [
+    {
+      "id": "conveyor_module",
+      "category": "device",
+      "svg": "conveyor_module.svg",
+      "size": {
+        "width": 373,
+        "height": 270
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "robot_arm_workstation",
+      "category": "device",
+      "svg": "robot_arm_workstation.svg",
+      "size": {
+        "width": 257,
+        "height": 292
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "cnc_machine",
+      "category": "device",
+      "svg": "cnc_machine.svg",
+      "size": {
+        "width": 320,
+        "height": 269
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "plc_control_cabinet",
+      "category": "device",
+      "svg": "plc_control_cabinet.svg",
+      "size": {
+        "width": 237,
+        "height": 317
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 3,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "assembly_station",
+      "category": "device",
+      "svg": "assembly_station.svg",
+      "size": {
+        "width": 288,
+        "height": 310
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "safety_fence_segment",
+      "category": "device",
+      "svg": "safety_fence_segment.svg",
+      "size": {
+        "width": 316,
+        "height": 275
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "industrial_camera_sensor",
+      "category": "device",
+      "svg": "industrial_camera_sensor.svg",
+      "size": {
+        "width": 254,
+        "height": 230
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "agv_vehicle",
+      "category": "device",
+      "svg": "agv_vehicle.svg",
+      "size": {
+        "width": 315,
+        "height": 216
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 3,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    }
+  ],
+  "placements": [
+    {
+      "id": "conveyor_module",
+      "component": "conveyor_module.svg",
+      "category": "device",
+      "x": 520,
+      "y": 380,
+      "width": 530,
+      "height": 130,
+      "zIndex": 20
+    },
+    {
+      "id": "robot_arm_workstation",
+      "component": "robot_arm_workstation.svg",
+      "category": "device",
+      "x": 490,
+      "y": 230,
+      "width": 170,
+      "height": 190,
+      "zIndex": 20
+    },
+    {
+      "id": "cnc_machine",
+      "component": "cnc_machine.svg",
+      "category": "device",
+      "x": 1110,
+      "y": 240,
+      "width": 210,
+      "height": 220,
+      "zIndex": 20
+    },
+    {
+      "id": "plc_control_cabinet",
+      "component": "plc_control_cabinet.svg",
+      "category": "device",
+      "x": 170,
+      "y": 430,
+      "width": 180,
+      "height": 220,
+      "zIndex": 20
+    },
+    {
+      "id": "assembly_station",
+      "component": "assembly_station.svg",
+      "category": "device",
+      "x": 760,
+      "y": 540,
+      "width": 250,
+      "height": 130,
+      "zIndex": 20
+    },
+    {
+      "id": "safety_fence_segment",
+      "component": "safety_fence_segment.svg",
+      "category": "device",
+      "x": 180,
+      "y": 650,
+      "width": 980,
+      "height": 90,
+      "zIndex": 20
+    },
+    {
+      "id": "industrial_camera_sensor",
+      "component": "industrial_camera_sensor.svg",
+      "category": "device",
+      "x": 1260,
+      "y": 320,
+      "width": 100,
+      "height": 110,
+      "zIndex": 20
+    },
+    {
+      "id": "agv_vehicle",
+      "component": "agv_vehicle.svg",
+      "category": "device",
+      "x": 840,
+      "y": 675,
+      "width": 110,
+      "height": 80,
+      "zIndex": 20
+    }
+  ],
+  "frontend_usage": "使用 base_no_equipment.svg 作为底图；按 placements 放置 components 中的设备 SVG；layer_equipment.svg 和 preview_reconstruction.svg 只用于快速校验。",
+  "generation": "Generated with built-in image_gen. Equipment sheets were generated on #00ff00 chroma key and locally cut into transparent embedded SVG assets.",
+  "limitations": [
+    "设备子图来自同场景设备素材板自动网格裁切，已透明化；如要像素级商用精修，仍建议人工检查边缘。",
+    "SVG 是内嵌 PNG 的 wrapper，不是纯矢量重绘。"
+  ]
+}

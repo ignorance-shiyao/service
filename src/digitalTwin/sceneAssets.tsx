@@ -1,4 +1,6 @@
 import React from 'react';
+import { loadCustomAssets } from './customAssets';
+import { FOLDER_SCENE_ASSETS } from './svgSceneRegistry';
 
 // ╭─────────────────────────────────────────────────────────────────────╮
 // │ 数字孪生场景资源管理                                                  │
@@ -9,6 +11,7 @@ const path = (name: string) => `/svg/${name}.svg`;
 
 // 资源名 → 自然宽高（仅保留代码中真正引用的资源；其余原图移至 public/others/）
 const bldg = (name: string) => `/svg/buildings/${name}.svg`;
+const idc = (name: string) => `/svg/idc/${name}.svg`;
 
 export const ASSETS = {
   // 园区建筑（透明背景，可叠加在底图上）
@@ -59,9 +62,41 @@ export const ASSETS = {
   fireCylinders:      { src: path('infra_fire_suppression_cylinders'), w: 299, h: 512 },
 
   cableTray:          { src: path('facility_cable_tray'),         w: 768, h: 552 },
+
+  // IDC 机房重建素材（public/svg/idc）
+  idcBaseRoom:        { src: idc('layer_base_empty_room'),        w: 1672, h: 941 },
+  idcRackRow:         { src: idc('cabinet_rack_row'),             w: 768, h: 472 },
+  idcPrecisionAc:     { src: idc('device_precision_ac'),          w: 390, h: 512 },
+  idcInrowAc:         { src: idc('device_inrow_ac'),              w: 197, h: 512 },
+  idcUpsMain:         { src: idc('device_ups_main'),              w: 288, h: 512 },
+  idcBatteryCab:      { src: idc('device_battery_cabinet'),       w: 242, h: 512 },
+  idcPowerCab:        { src: idc('device_power_distribution_cabinet'), w: 400, h: 512 },
+  idcAtsCab:          { src: idc('device_ats_cabinet'),           w: 369, h: 512 },
+  idcFireCyl:         { src: idc('device_fire_suppression_cylinders'), w: 299, h: 512 },
+  idcSmokeSensor:     { src: idc('device_smoke_detector'),        w: 512, h: 450 },
+  idcTempHumSensor:   { src: idc('device_temp_humidity_sensor'),  w: 416, h: 512 },
+  idcWaterLeakSensor: { src: idc('device_water_leak_sensor'),     w: 768, h: 369 },
+  ...FOLDER_SCENE_ASSETS,
 } as const;
 
-export type AssetKey = keyof typeof ASSETS;
+export type AssetDef = { src: string; w: number; h: number };
+export type StaticAssetKey = keyof typeof ASSETS;
+export type AssetKey = StaticAssetKey | `custom:${string}`;
+
+export function getAsset(asset: AssetKey | string): AssetDef | undefined {
+  const staticAsset = (ASSETS as Record<string, AssetDef>)[asset];
+  if (staticAsset) return staticAsset;
+  return loadCustomAssets().find(item => item.key === asset)?.asset;
+}
+
+export function getAllAssets(): Record<string, AssetDef> {
+  const customEntries = loadCustomAssets().map(item => [item.key, { src: item.src, w: item.w, h: item.h }] as const);
+  return {
+    ...(ASSETS as Record<string, AssetDef>),
+    ...FOLDER_SCENE_ASSETS,
+    ...Object.fromEntries(customEntries),
+  };
+}
 
 // ╭─────────────────────────────────────────────────────────────────────╮
 // │ SceneStage —— 场景容器（按设计稿宽高保持比例，子元素用百分比定位）   │
@@ -118,8 +153,11 @@ export const SceneSprite: React.FC<{
   pitch?: number;
   /** 锚点是否在底部中心，默认 true */
   anchorBottom?: boolean;
-}> = ({ asset, x, y, width, height, z, className = '', filter, opacity, onClick, title, rotate, yaw, pitch, anchorBottom = true }) => {
-  const a = typeof asset === 'string' ? ASSETS[asset] : asset;
+  sx?: 1 | -1;
+  sy?: 1 | -1;
+}> = ({ asset, x, y, width, height, z, className = '', filter, opacity, onClick, title, rotate, yaw, pitch, anchorBottom = true, sx = 1, sy = 1 }) => {
+  const a = typeof asset === 'string' ? getAsset(asset) : asset;
+  if (!a) return null;
   // 计算显示高度按图像原始比例（width 是百分比，所以 height 也是相对舞台高度的百分比）
   // 由于舞台宽和高比例不同，我们需要把图像保持等比例
   // 这里采用：width% 表达图像宽度（相对舞台宽），height 由 aspectRatio 决定
@@ -135,7 +173,7 @@ export const SceneSprite: React.FC<{
         top: `${y}%`,
         width: `${width}%`,
         ...(height != null ? { height: `${height}%` } : { aspectRatio: `${a.w} / ${a.h}` }),
-        transform: `translate(-50%, ${anchorBottom ? '-100%' : '-50%'}) rotate(${rotate ?? 0}deg) rotateY(${yaw ?? 0}deg) rotateX(${pitch ?? 0}deg)`,
+        transform: `translate(-50%, ${anchorBottom ? '-100%' : '-50%'}) rotate(${rotate ?? 0}deg) rotateY(${yaw ?? 0}deg) rotateX(${pitch ?? 0}deg) scale(${sx}, ${sy})`,
         transformOrigin: anchorBottom ? '50% 100%' : '50% 50%',
         transformStyle: 'preserve-3d',
         backfaceVisibility: 'visible',

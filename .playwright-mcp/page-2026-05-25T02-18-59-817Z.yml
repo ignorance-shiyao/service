@@ -1,0 +1,329 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e7] [cursor=pointer]:
+        - img [ref=e8]
+        - generic [ref=e11]: 政企业务智慧运维管家
+      - generic [ref=e12]:
+        - button "跨客户融合" [ref=e14] [cursor=pointer]:
+          - img [ref=e15]
+          - generic [ref=e20]: 跨客户融合
+          - img [ref=e21]
+        - generic [ref=e23]:
+          - generic [ref=e24]: 2026-05-25 10:18:59
+          - generic [ref=e25]: 一 · 实时
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - generic [ref=e28]: 超级管理员
+            - generic [ref=e29]: 省中心
+          - img [ref=e31]
+          - button [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+    - generic [ref=e38]:
+      - navigation [ref=e43]:
+        - button "业务总览" [ref=e45] [cursor=pointer]:
+          - img [ref=e46]
+          - text: 业务总览
+        - button "数字孪生" [ref=e50] [cursor=pointer]:
+          - img [ref=e51]
+          - text: 数字孪生
+        - button "性能可视" [ref=e62] [cursor=pointer]:
+          - img [ref=e63]
+          - text: 性能可视
+        - button "资源可视" [ref=e66] [cursor=pointer]:
+          - img [ref=e67]
+          - text: 资源可视
+        - button "流程可视" [ref=e78] [cursor=pointer]:
+          - img [ref=e79]
+          - text: 流程可视
+        - button "客户内网" [ref=e84] [cursor=pointer]:
+          - img [ref=e85]
+          - text: 客户内网
+        - button "告警可视" [ref=e91] [cursor=pointer]:
+          - img [ref=e92]
+          - text: 告警可视
+        - button "视频监控" [ref=e98] [cursor=pointer]:
+          - img [ref=e99]
+          - text: 视频监控
+        - button "服务台" [ref=e105] [cursor=pointer]:
+          - img [ref=e106]
+          - text: 服务台
+          - img [ref=e109]
+        - button "消息通知" [ref=e112] [cursor=pointer]:
+          - img [ref=e113]
+          - text: 消息通知
+        - button "系统管理" [ref=e117] [cursor=pointer]:
+          - img [ref=e118]
+          - text: 系统管理
+          - img [ref=e121]
+        - button "配置管理" [ref=e484] [cursor=pointer]:
+          - img [ref=e485]
+          - text: 配置管理
+          - img [ref=e487]
+        - button "日志管理" [ref=e490] [cursor=pointer]:
+          - img [ref=e491]
+          - text: 日志管理
+      - button "全屏聚焦" [ref=e133] [cursor=pointer]:
+        - img [ref=e134]
+        - text: 全屏聚焦
+  - main [ref=e139]:
+    - generic [ref=e142]: 数字孪生
+    - generic [ref=e144]:
+      - generic [ref=e145]:
+        - generic [ref=e146]:
+          - generic [ref=e147]: 数字孪生编辑器
+          - generic [ref=e148]: "|"
+          - generic [ref=e149]: "场景:"
+          - combobox [ref=e150]:
+            - option "园区总览" [selected]
+            - option "生产厂房"
+            - option "3号机房 B区"
+            - option "能源区"
+            - option "物流装卸区"
+            - option "冷却区"
+            - option "办公楼"
+          - generic [ref=e151]: 8 项设施
+          - generic [ref=e152]: "|"
+          - button "撤销 (Ctrl+Z)" [disabled] [ref=e153]:
+            - img [ref=e154]
+          - button "重做 (Ctrl+Shift+Z / Ctrl+Y)" [disabled] [ref=e157]:
+            - img [ref=e158]
+        - generic [ref=e161]:
+          - generic [ref=e162]: 已保存
+          - button "上传素材" [active] [ref=e163] [cursor=pointer]:
+            - img [ref=e164]
+            - text: 上传素材
+          - button "导出 JSON" [ref=e167] [cursor=pointer]:
+            - img [ref=e168]
+            - text: 导出 JSON
+          - button "恢复默认" [ref=e171] [cursor=pointer]:
+            - img [ref=e172]
+            - text: 恢复默认
+          - button "保存" [ref=e175] [cursor=pointer]:
+            - img [ref=e176]
+            - text: 保存
+      - generic [ref=e180]:
+        - generic [ref=e181]:
+          - button "素材库" [ref=e182] [cursor=pointer]:
+            - generic [ref=e183]: 素材库
+            - img [ref=e184]
+          - generic [ref=e186]:
+            - generic [ref=e187]:
+              - generic [ref=e188]: 园区建筑
+              - generic [ref=e189]:
+                - button "生产厂房 生产厂房" [ref=e191] [cursor=pointer]:
+                  - img "生产厂房" [ref=e193]
+                  - generic [ref=e194]: 生产厂房
+                - button "机房 机房" [ref=e196] [cursor=pointer]:
+                  - img "机房" [ref=e198]
+                  - generic [ref=e199]: 机房
+                - button "办公楼 办公楼" [ref=e201] [cursor=pointer]:
+                  - img "办公楼" [ref=e203]
+                  - generic [ref=e204]: 办公楼
+                - button "变电站 变电站" [ref=e206] [cursor=pointer]:
+                  - img "变电站" [ref=e208]
+                  - generic [ref=e209]: 变电站
+                - button "冷却塔 冷却塔" [ref=e211] [cursor=pointer]:
+                  - img "冷却塔" [ref=e213]
+                  - generic [ref=e214]: 冷却塔
+                - button "物流装卸 物流装卸" [ref=e216] [cursor=pointer]:
+                  - img "物流装卸" [ref=e218]
+                  - generic [ref=e219]: 物流装卸
+                - button "EV停车场 EV停车场" [ref=e221] [cursor=pointer]:
+                  - img "EV停车场" [ref=e223]
+                  - generic [ref=e224]: EV停车场
+                - button "安保门岗 安保门岗" [ref=e226] [cursor=pointer]:
+                  - img "安保门岗" [ref=e228]
+                  - generic [ref=e229]: 安保门岗
+                - button "车间模块 车间模块" [ref=e231] [cursor=pointer]:
+                  - img "车间模块" [ref=e233]
+                  - generic [ref=e234]: 车间模块
+            - generic [ref=e235]:
+              - generic [ref=e236]: 车间设备
+              - generic [ref=e237]:
+                - button "传送带 传送带" [ref=e239] [cursor=pointer]:
+                  - img "传送带" [ref=e241]
+                  - generic [ref=e242]: 传送带
+                - button "机械臂 机械臂" [ref=e244] [cursor=pointer]:
+                  - img "机械臂" [ref=e246]
+                  - generic [ref=e247]: 机械臂
+                - button "CNC CNC" [ref=e249] [cursor=pointer]:
+                  - img "CNC" [ref=e251]
+                  - generic [ref=e252]: CNC
+                - button "装配工位 装配工位" [ref=e254] [cursor=pointer]:
+                  - img "装配工位" [ref=e256]
+                  - generic [ref=e257]: 装配工位
+                - button "安全栏 安全栏" [ref=e259] [cursor=pointer]:
+                  - img "安全栏" [ref=e261]
+                  - generic [ref=e262]: 安全栏
+                - button "控制柜 控制柜" [ref=e264] [cursor=pointer]:
+                  - img "控制柜" [ref=e266]
+                  - generic [ref=e267]: 控制柜
+                - button "视觉工位 视觉工位" [ref=e269] [cursor=pointer]:
+                  - img "视觉工位" [ref=e271]
+                  - generic [ref=e272]: 视觉工位
+                - button "AGV AGV" [ref=e274] [cursor=pointer]:
+                  - img "AGV" [ref=e276]
+                  - generic [ref=e277]: AGV
+                - button "摄像头 摄像头" [ref=e279] [cursor=pointer]:
+                  - img "摄像头" [ref=e281]
+                  - generic [ref=e282]: 摄像头
+            - generic [ref=e283]:
+              - generic [ref=e284]: 机房基础设施
+              - generic [ref=e285]:
+                - button "机柜行 机柜行" [ref=e287] [cursor=pointer]:
+                  - img "机柜行" [ref=e289]
+                  - generic [ref=e290]: 机柜行
+                - button "单机柜 单机柜" [ref=e292] [cursor=pointer]:
+                  - img "单机柜" [ref=e294]
+                  - generic [ref=e295]: 单机柜
+                - button "行内空调 行内空调" [ref=e297] [cursor=pointer]:
+                  - img "行内空调" [ref=e299]
+                  - generic [ref=e300]: 行内空调
+                - button "精密空调 精密空调" [ref=e302] [cursor=pointer]:
+                  - img "精密空调" [ref=e304]
+                  - generic [ref=e305]: 精密空调
+                - button "精密空调(告警) 精密空调(告警)" [ref=e307] [cursor=pointer]:
+                  - img "精密空调(告警)" [ref=e309]
+                  - generic [ref=e310]: 精密空调(告警)
+                - button "ATS ATS" [ref=e312] [cursor=pointer]:
+                  - img "ATS" [ref=e314]
+                  - generic [ref=e315]: ATS
+                - button "UPS主机 UPS主机" [ref=e317] [cursor=pointer]:
+                  - img "UPS主机" [ref=e319]
+                  - generic [ref=e320]: UPS主机
+                - button "电池柜 电池柜" [ref=e322] [cursor=pointer]:
+                  - img "电池柜" [ref=e324]
+                  - generic [ref=e325]: 电池柜
+                - button "PDU PDU" [ref=e327] [cursor=pointer]:
+                  - img "PDU" [ref=e329]
+                  - generic [ref=e330]: PDU
+                - button "配电柜 配电柜" [ref=e332] [cursor=pointer]:
+                  - img "配电柜" [ref=e334]
+                  - generic [ref=e335]: 配电柜
+                - button "气体灭火 气体灭火" [ref=e337] [cursor=pointer]:
+                  - img "气体灭火" [ref=e339]
+                  - generic [ref=e340]: 气体灭火
+                - button "桥架 桥架" [ref=e342] [cursor=pointer]:
+                  - img "桥架" [ref=e344]
+                  - generic [ref=e345]: 桥架
+                - button "2U 服务器 2U 服务器" [ref=e347] [cursor=pointer]:
+                  - img "2U 服务器" [ref=e349]
+                  - generic [ref=e350]: 2U 服务器
+            - generic [ref=e351]:
+              - generic [ref=e352]: 环境/结构
+              - generic [ref=e353]:
+                - button "机房地板 机房地板" [ref=e355] [cursor=pointer]:
+                  - img "机房地板" [ref=e357]
+                  - generic [ref=e358]: 机房地板
+                - button "室内地坪 室内地坪" [ref=e360] [cursor=pointer]:
+                  - img "室内地坪" [ref=e362]
+                  - generic [ref=e363]: 室内地坪
+                - button "双开门 双开门" [ref=e365] [cursor=pointer]:
+                  - img "双开门" [ref=e367]
+                  - generic [ref=e368]: 双开门
+                - button "玻璃隔断 玻璃隔断" [ref=e370] [cursor=pointer]:
+                  - img "玻璃隔断" [ref=e372]
+                  - generic [ref=e373]: 玻璃隔断
+        - generic [ref=e374]:
+          - generic [ref=e376]:
+            - img "底图"
+            - generic "生产厂房 · 健康 95.1" [ref=e377]
+            - generic "3号机房 · 告警 3 · 健康 68.3" [ref=e378]
+            - generic "能源区 · 告警 1" [ref=e379]
+            - generic "物流装卸区 · 健康 85.2" [ref=e380]
+            - generic "冷却区 · 健康 96.8" [ref=e381]
+            - generic "parkEvCharger" [ref=e382]
+            - generic "主入口" [ref=e383]
+            - generic "办公楼 · 健康 97.3" [ref=e384]
+          - generic:
+            - text: 素材库拖入 / 点选 · 拖拽建筑移动 · 4 角 ⬚缩放 · 4 边 ▭单维拉伸（需关锁定）
+            - text: 旋转：⟳ Z · ⇆ Y（左右） · ⇅ X（上下）· Shift 吸附 15°
+            - text: 快捷键：方向键移动 · Shift+方向 5% · Delete 删除 · Esc 取消 · Ctrl+D 复制 · Ctrl+Z/Y 撤销/重做 · 自动保存
+        - generic [ref=e385]:
+          - generic [ref=e387]: 设施列表 (8)
+          - generic [ref=e388]:
+            - generic [ref=e389] [cursor=pointer]:
+              - generic [ref=e390]: "1"
+              - generic [ref=e391]: 生产厂房 · 健康 95.1
+              - button "隐藏" [ref=e392]:
+                - img [ref=e393]
+              - button "锁定" [ref=e396]:
+                - img [ref=e397]
+            - generic [ref=e400] [cursor=pointer]:
+              - generic [ref=e401]: "2"
+              - generic [ref=e402]: 3号机房 · 告警 3 · 健康 68.3
+              - button "隐藏" [ref=e403]:
+                - img [ref=e404]
+              - button "锁定" [ref=e407]:
+                - img [ref=e408]
+            - generic [ref=e411] [cursor=pointer]:
+              - generic [ref=e412]: "3"
+              - generic [ref=e413]: 能源区 · 告警 1
+              - button "隐藏" [ref=e414]:
+                - img [ref=e415]
+              - button "锁定" [ref=e418]:
+                - img [ref=e419]
+            - generic [ref=e422] [cursor=pointer]:
+              - generic [ref=e423]: "4"
+              - generic [ref=e424]: 物流装卸区 · 健康 85.2
+              - button "隐藏" [ref=e425]:
+                - img [ref=e426]
+              - button "锁定" [ref=e429]:
+                - img [ref=e430]
+            - generic [ref=e433] [cursor=pointer]:
+              - generic [ref=e434]: "5"
+              - generic [ref=e435]: 冷却区 · 健康 96.8
+              - button "隐藏" [ref=e436]:
+                - img [ref=e437]
+              - button "锁定" [ref=e440]:
+                - img [ref=e441]
+            - generic [ref=e444] [cursor=pointer]:
+              - generic [ref=e445]: "6"
+              - generic [ref=e446]: parkEvCharger
+              - button "隐藏" [ref=e447]:
+                - img [ref=e448]
+              - button "锁定" [ref=e451]:
+                - img [ref=e452]
+            - generic [ref=e455] [cursor=pointer]:
+              - generic [ref=e456]: "7"
+              - generic [ref=e457]: 主入口
+              - button "隐藏" [ref=e458]:
+                - img [ref=e459]
+              - button "锁定" [ref=e462]:
+                - img [ref=e463]
+            - generic [ref=e466] [cursor=pointer]:
+              - generic [ref=e467]: "8"
+              - generic [ref=e468]: 办公楼 · 健康 97.3
+              - button "隐藏" [ref=e469]:
+                - img [ref=e470]
+              - button "锁定" [ref=e473]:
+                - img [ref=e474]
+          - generic [ref=e478]:
+            - text: 选中设施后在此编辑
+            - text: 提示：素材库点击或拖入加入设施
+      - generic [ref=e495]:
+        - generic [ref=e496]:
+          - generic [ref=e497]:
+            - generic [ref=e498]: 上传本地素材
+            - generic [ref=e499]: 文件会保存到 public/svg/custom
+          - button [ref=e500] [cursor=pointer]:
+            - img [ref=e501]
+        - generic [ref=e504]:
+          - generic [ref=e505]:
+            - generic [ref=e506]: SVG 文件
+            - button "SVG 文件" [ref=e507]
+          - generic [ref=e508]:
+            - generic [ref=e509]: 自定义名称
+            - textbox "自定义名称" [ref=e510]:
+              - /placeholder: 例如：冷却塔-新版
+          - generic [ref=e511]:
+            - generic [ref=e512]: 素材分组
+            - combobox "素材分组" [ref=e513]: 自定义素材
+        - generic [ref=e514]:
+          - button "取消" [ref=e515] [cursor=pointer]
+          - button "上传并加入素材库" [ref=e516] [cursor=pointer]:
+            - img [ref=e517]
+            - text: 上传并加入素材库
+    - button "AI入口" [ref=e480] [cursor=pointer]:
+      - img "AI入口" [ref=e482]

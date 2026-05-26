@@ -1,0 +1,233 @@
+{
+  "version": "V2",
+  "scene": "visual_inspection_workshop_internal",
+  "name_cn": "视觉检测车间内部",
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "files": {
+    "base": "base_no_equipment.svg",
+    "equipment_layer": "layer_equipment.svg",
+    "preview": "preview_reconstruction.svg",
+    "equipment_sheet": "reference_equipment_sheet.svg"
+  },
+  "components": [
+    {
+      "id": "inspection_conveyor",
+      "category": "device",
+      "svg": "inspection_conveyor.svg",
+      "size": {
+        "width": 372,
+        "height": 292
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "vision_inspection_booth",
+      "category": "device",
+      "svg": "vision_inspection_booth.svg",
+      "size": {
+        "width": 393,
+        "height": 348
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "camera_gantry",
+      "category": "device",
+      "svg": "camera_gantry.svg",
+      "size": {
+        "width": 323,
+        "height": 327
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "robot_pick_station",
+      "category": "device",
+      "svg": "robot_pick_station.svg",
+      "size": {
+        "width": 296,
+        "height": 326
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 3,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "edge_server_rack",
+      "category": "device",
+      "svg": "edge_server_rack.svg",
+      "size": {
+        "width": 231,
+        "height": 369
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "plc_cabinet",
+      "category": "device",
+      "svg": "plc_cabinet.svg",
+      "size": {
+        "width": 255,
+        "height": 368
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "agv_vehicle",
+      "category": "device",
+      "svg": "agv_vehicle.svg",
+      "size": {
+        "width": 340,
+        "height": 238
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "safety_fence_segment",
+      "category": "device",
+      "svg": "safety_fence_segment.svg",
+      "size": {
+        "width": 366,
+        "height": 336
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 3,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    }
+  ],
+  "placements": [
+    {
+      "id": "inspection_conveyor",
+      "component": "inspection_conveyor.svg",
+      "category": "device",
+      "x": 400,
+      "y": 390,
+      "width": 620,
+      "height": 120,
+      "zIndex": 20
+    },
+    {
+      "id": "vision_inspection_booth",
+      "component": "vision_inspection_booth.svg",
+      "category": "device",
+      "x": 470,
+      "y": 260,
+      "width": 180,
+      "height": 170,
+      "zIndex": 20
+    },
+    {
+      "id": "camera_gantry",
+      "component": "camera_gantry.svg",
+      "category": "device",
+      "x": 730,
+      "y": 245,
+      "width": 220,
+      "height": 160,
+      "zIndex": 20
+    },
+    {
+      "id": "robot_pick_station",
+      "component": "robot_pick_station.svg",
+      "category": "device",
+      "x": 980,
+      "y": 270,
+      "width": 180,
+      "height": 180,
+      "zIndex": 20
+    },
+    {
+      "id": "edge_server_rack",
+      "component": "edge_server_rack.svg",
+      "category": "device",
+      "x": 1250,
+      "y": 320,
+      "width": 140,
+      "height": 240,
+      "zIndex": 20
+    },
+    {
+      "id": "plc_cabinet",
+      "component": "plc_cabinet.svg",
+      "category": "device",
+      "x": 135,
+      "y": 420,
+      "width": 160,
+      "height": 210,
+      "zIndex": 20
+    },
+    {
+      "id": "agv_vehicle",
+      "component": "agv_vehicle.svg",
+      "category": "device",
+      "x": 420,
+      "y": 660,
+      "width": 110,
+      "height": 80,
+      "zIndex": 20
+    },
+    {
+      "id": "safety_fence_segment",
+      "component": "safety_fence_segment.svg",
+      "category": "device",
+      "x": 1120,
+      "y": 620,
+      "width": 260,
+      "height": 90,
+      "zIndex": 20
+    }
+  ],
+  "frontend_usage": "使用 base_no_equipment.svg 作为底图；按 placements 放置 components 中的设备 SVG；layer_equipment.svg 和 preview_reconstruction.svg 只用于快速校验。",
+  "generation": "Generated with built-in image_gen. Equipment sheets were generated on #00ff00 chroma key and locally cut into transparent embedded SVG assets.",
+  "limitations": [
+    "设备子图来自同场景设备素材板自动网格裁切，已透明化；如要像素级商用精修，仍建议人工检查边缘。",
+    "SVG 是内嵌 PNG 的 wrapper，不是纯矢量重绘。"
+  ]
+}

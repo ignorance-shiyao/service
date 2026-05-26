@@ -1,0 +1,181 @@
+{
+  "version": "V2",
+  "scene": "agv_vehicle",
+  "name_cn": "AGV小车展示",
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "files": {
+    "base": "base_no_equipment.svg",
+    "equipment_layer": "layer_equipment.svg",
+    "preview": "preview_reconstruction.svg",
+    "equipment_sheet": "reference_equipment_sheet.svg"
+  },
+  "components": [
+    {
+      "id": "agv_large",
+      "category": "device",
+      "svg": "agv_large.svg",
+      "size": {
+        "width": 451,
+        "height": 340
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 0,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "agv_normal",
+      "category": "device",
+      "svg": "agv_normal.svg",
+      "size": {
+        "width": 473,
+        "height": 261
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 0,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "agv_charging",
+      "category": "device",
+      "svg": "agv_charging.svg",
+      "size": {
+        "width": 361,
+        "height": 261
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 0,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "agv_offline",
+      "category": "device",
+      "svg": "agv_offline.svg",
+      "size": {
+        "width": 377,
+        "height": 276
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 1,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "charging_pile",
+      "category": "device",
+      "svg": "charging_pile.svg",
+      "size": {
+        "width": 282,
+        "height": 352
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 1,
+        "cols": 3,
+        "rows": 2
+      }
+    },
+    {
+      "id": "route_marker",
+      "category": "device",
+      "svg": "route_marker.svg",
+      "size": {
+        "width": 231,
+        "height": 235
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 1,
+        "cols": 3,
+        "rows": 2
+      }
+    }
+  ],
+  "placements": [
+    {
+      "id": "agv_large",
+      "component": "agv_large.svg",
+      "category": "device",
+      "x": 390,
+      "y": 260,
+      "width": 560,
+      "height": 340,
+      "zIndex": 20
+    },
+    {
+      "id": "agv_normal",
+      "component": "agv_normal.svg",
+      "category": "device",
+      "x": 1050,
+      "y": 660,
+      "width": 150,
+      "height": 100,
+      "zIndex": 20
+    },
+    {
+      "id": "agv_charging",
+      "component": "agv_charging.svg",
+      "category": "device",
+      "x": 1240,
+      "y": 660,
+      "width": 150,
+      "height": 100,
+      "zIndex": 20
+    },
+    {
+      "id": "agv_offline",
+      "component": "agv_offline.svg",
+      "category": "device",
+      "x": 1430,
+      "y": 660,
+      "width": 150,
+      "height": 100,
+      "zIndex": 20
+    },
+    {
+      "id": "charging_pile",
+      "component": "charging_pile.svg",
+      "category": "device",
+      "x": 1130,
+      "y": 260,
+      "width": 180,
+      "height": 220,
+      "zIndex": 20
+    },
+    {
+      "id": "route_marker",
+      "component": "route_marker.svg",
+      "category": "device",
+      "x": 900,
+      "y": 690,
+      "width": 80,
+      "height": 80,
+      "zIndex": 20
+    }
+  ],
+  "frontend_usage": "使用 base_no_equipment.svg 作为底图；按 placements 放置 components 中的设备 SVG；layer_equipment.svg 和 preview_reconstruction.svg 只用于快速校验。",
+  "generation": "Generated with built-in image_gen. Equipment sheets were generated on #00ff00 chroma key and locally cut into transparent embedded SVG assets.",
+  "limitations": [
+    "设备子图来自同场景设备素材板自动网格裁切，已透明化；如要像素级商用精修，仍建议人工检查边缘。",
+    "SVG 是内嵌 PNG 的 wrapper，不是纯矢量重绘。"
+  ]
+}

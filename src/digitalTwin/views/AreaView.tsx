@@ -5,6 +5,7 @@ import { B_AREA_CATEGORIES, B_AREA_KPIS, B_AREA_ENV, CURRENT_ALARMS } from '../d
 import { Gauge, Activity, Thermometer, Zap, Wifi, Network, Server, Camera, HardDrive, Wind, Cpu, Square, Database } from 'lucide-react';
 import { useDtNav, DtSceneHeader } from '../DigitalTwinDashboard';
 import { SceneStage, SceneSprite, SceneLabel, SceneAlarmPulse } from '../sceneAssets';
+import { loadLayout, SceneId } from '../layoutStore';
 
 const categoryIcons = [Network, Server, Cpu, Camera, HardDrive, Wind];
 const kpiIcons = [Gauge, Activity, Wifi, Thermometer, Zap];
@@ -318,17 +319,55 @@ const OfficeNetScene: React.FC = () => (
 );
 
 // 分发：根据 zone 选择内部场景
+const LayoutDrivenAreaScene: React.FC<{ sceneId: SceneId }> = ({ sceneId }) => {
+  const { setView } = useDtNav();
+  const layout = loadLayout(sceneId);
+  const enterRack = () => setView('rack');
+  const baseSrc = layout.baseMap || undefined;
+
+  return (
+    <SceneStage width={layout.width} height={layout.height} className="bg-[#020a18]">
+      {baseSrc ? (
+        <img
+          src={baseSrc}
+          alt=""
+          draggable={false}
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
+          style={{
+            zIndex: 1,
+            transform: `translate(${layout.baseMapOffsetX ?? 0}%, ${layout.baseMapOffsetY ?? 0}%) rotate(${layout.baseMapRotate ?? 0}deg) scale(${layout.baseMapScale ?? 1})`,
+            transformOrigin: '50% 50%',
+          }}
+        />
+      ) : null}
+      {layout.items.filter(item => !item.hidden).map((item, idx) => (
+        <SceneSprite
+          key={item.id}
+          asset={item.asset}
+          x={item.cx}
+          y={item.cy}
+          width={item.w}
+          height={item.h}
+          rotate={item.rotate}
+          yaw={item.yaw}
+          pitch={item.pitch}
+          sx={item.sx}
+          sy={item.sy}
+          opacity={item.opacity ?? 1}
+          filter={item.filter}
+          anchorBottom={item.anchorBottom !== false}
+          title={item.label ?? item.asset}
+          z={20 + idx}
+          onClick={/rack|机柜/i.test(item.id + item.label) ? enterRack : undefined}
+        />
+      ))}
+    </SceneStage>
+  );
+};
+
 const BAreaScene: React.FC = () => {
   const { zone } = useDtNav();
-  switch (zone) {
-    case 'line1':  return <ProductionLineScene />;
-    case 'cmpA':   return <ComputeModuleScene />;
-    case 'agv':    return <AgvDispatchScene />;
-    case 'vision': return <VisionLineScene />;
-    case 'office': return <OfficeNetScene />;
-    case 'idc3':
-    default:       return <IdcInteriorScene />;
-  }
+  return <LayoutDrivenAreaScene sceneId={zone as SceneId} />;
 };
 
 const alarmTrendOption = {

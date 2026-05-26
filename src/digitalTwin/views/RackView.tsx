@@ -1,22 +1,11 @@
 import React, { useState } from 'react';
 import { BaseChart } from '../../components/BaseChart';
 import { dtPanel, DtSectionTitle, DtStatusBadge, DtAlarmTag, DtProgress, DtAlarm24hPanel } from '../shared';
-import { RACK_LAYOUT, RACK_DETAIL } from '../data';
+import { RACK_DETAIL } from '../data';
 import { Zap, Thermometer, Database, Camera, Car, X } from 'lucide-react';
-import { SceneStage, SceneSprite, SceneAlarmPulse, SceneLabel, ASSETS } from '../sceneAssets';
+import { SceneStage, SceneSprite, SceneLabel } from '../sceneAssets';
 import { DtSceneHeader } from '../DigitalTwinDashboard';
-
-// 把 data.ts 中的 RACK_LAYOUT 映射成写实 3D 机柜 units
-const RACK_UNITS: RackUnit[] = [
-  { height: 2, kind: 'patch',   label: '配线架',         status: 'normal' },
-  { height: 2, kind: 'switch',  label: '核心接入交换机', status: 'normal' },
-  { height: 1, kind: 'switch',  label: 'SW-B03-01',     status: 'critical', selected: true },
-  { height: 1, kind: 'server',  label: '应用服务器-01', status: 'normal' },
-  { height: 2, kind: 'server',  label: '应用服务器-02', status: 'normal' },
-  { height: 2, kind: 'storage', label: '视觉检测服务器',status: 'warning' },
-  { height: 1, kind: 'ups',     label: 'UPS模块',       status: 'warning' },
-  { height: 21, kind: 'idle',   label: '空闲位',        status: 'idle' },
-];
+import { loadLayout } from '../layoutStore';
 
 // ── 容量环 ─────────────────────────────────────────────────────────────
 const capacityOption = {
@@ -91,9 +80,52 @@ const KvRow: React.FC<{ k: string; v: React.ReactNode }> = ({ k, v }) => (
   </div>
 );
 
+const EditableRackScene: React.FC = () => {
+  const layout = loadLayout('rack');
+  const baseSrc = layout.baseMap;
+
+  return (
+    <SceneStage width={layout.width} height={layout.height} className="bg-[#020a18]">
+      {baseSrc && (
+        <img
+          src={baseSrc}
+          alt=""
+          draggable={false}
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
+          style={{
+            zIndex: 1,
+            transform: `translate(${layout.baseMapOffsetX ?? 0}%, ${layout.baseMapOffsetY ?? 0}%) rotate(${layout.baseMapRotate ?? 0}deg) scale(${layout.baseMapScale ?? 1})`,
+            transformOrigin: '50% 50%',
+          }}
+        />
+      )}
+      {layout.items.filter(item => !item.hidden).map((item, idx) => (
+        <SceneSprite
+          key={item.id}
+          asset={item.asset}
+          x={item.cx}
+          y={item.cy}
+          width={item.w}
+          height={item.h}
+          rotate={item.rotate}
+          yaw={item.yaw}
+          pitch={item.pitch}
+          sx={item.sx}
+          sy={item.sy}
+          opacity={item.opacity ?? 1}
+          filter={item.filter}
+          anchorBottom={item.anchorBottom !== false}
+          title={item.label ?? item.asset}
+          z={20 + idx}
+        />
+      ))}
+      <SceneLabel x={20} y={8} z={80} tone="alarm">SW-B03-01 接入交换机离线</SceneLabel>
+    </SceneStage>
+  );
+};
+
 export const RackView: React.FC = () => {
   const [showDetail, setShowDetail] = useState(true);
-  const [opened, setOpened] = useState(false);
   return (
     <div
       className="grid h-full min-h-0 gap-1.5"
@@ -165,82 +197,10 @@ export const RackView: React.FC = () => {
 
       {/* ===== 中间机柜 ===== */}
       <div className={dtPanel + ' min-h-0 overflow-hidden'}>
-        <DtSceneHeader right={
-          <button
-            type="button"
-            onClick={() => setOpened(o => !o)}
-            className="ml-1.5 inline-flex h-7 items-center gap-1 rounded border border-[#2b6aa8] bg-[#0d2e5b] px-2.5 text-[11px] font-semibold text-[#a9c8ee] hover:border-[#4fc1ff] hover:text-[#cfe9ff]"
-          >
-            {opened ? '关闭机柜' : '打开机柜'}
-          </button>
-        } />
+        <DtSceneHeader />
         <div className="relative mb-1.5 flex min-h-0 flex-[4] gap-4 overflow-hidden rounded border border-[#1b4378] bg-[#03132a] p-4">
-          {/* 机柜区（点击切换开/关） */}
-          <div className="relative flex-1 max-w-[460px]" onClick={() => setOpened(o => !o)} style={{ cursor: 'pointer' }} title={opened ? '点击关闭机柜' : '点击打开机柜'}>
-            <SceneStage width={400} height={620} className="bg-[radial-gradient(ellipse_at_center,#082a55_0%,#04132c_70%,#020a18_100%)]">
-              <SceneSprite asset="floorRoomSlab" x={50} y={94} width={94} z={1} anchorBottom={false} />
-              <SceneSprite asset="rackSingle"   x={50} y={88} width={42} z={20} title="B03 机柜"
-                opacity={opened ? 0.35 : 1}
-                filter={opened ? 'grayscale(0.4)' : undefined} />
-              <SceneSprite asset="pduStrip" x={80} y={86} width={6} z={18} title="PDU" opacity={opened ? 0.5 : 1} />
-              {!opened && <SceneAlarmPulse x={50} y={48} size={10} z={40} />}
-              {!opened && <SceneLabel x={50} y={18} z={70} tone="alarm">⚠ SW-B03-01 接入交换机离线</SceneLabel>}
-
-              {/* U 位刻度 */}
-              <div className="pointer-events-none absolute right-2 top-[8%] bottom-[18%] flex flex-col-reverse justify-between text-[10px] font-mono text-[#7e9fc8]" style={{ zIndex: 50 }}>
-                {[1, 4, 8, 12, 16, 20, 24, 28, 32].map(u => (
-                  <div key={u} className="flex items-center gap-1">
-                    <span className="h-[1px] w-2 bg-[#3a557a]" />{u}U
-                  </div>
-                ))}
-              </div>
-
-              {/* 开门：在机柜位置叠加 U 位列表 */}
-              {opened && (
-                <div
-                  className="pointer-events-auto absolute"
-                  style={{
-                    left: '30%', right: '22%',
-                    top: '8%', bottom: '13%',
-                    border: '2px solid #4fc1ff',
-                    background: 'linear-gradient(180deg,#0a1322 0%,#050a13 100%)',
-                    boxShadow: '0 0 24px rgba(79,193,255,0.45), inset 0 0 12px rgba(0,0,0,0.55)',
-                    borderRadius: 4,
-                    zIndex: 60,
-                  }}
-                >
-                  <div className="flex h-full flex-col gap-[2px] p-1.5">
-                    {RACK_UNITS.map((u, i) => {
-                      const colorMap = {
-                        normal:   { bg: '#0d2a52', border: '#244871', text: '#cfe9ff', led: '#6ce09a' },
-                        warning:  { bg: '#3a2c0d', border: '#7a5c1d', text: '#fff0d4', led: '#f5b963' },
-                        critical: { bg: '#3a0d0d', border: '#7a2e2e', text: '#ffd0c0', led: '#ef5350' },
-                        idle:     { bg: '#0a1322', border: '#1a2538', text: '#5a7393', led: '#1a2538' },
-                      } as const;
-                      const c = colorMap[u.status as keyof typeof colorMap] || colorMap.normal;
-                      return (
-                        <div
-                          key={i}
-                          className="flex items-center gap-2 rounded px-2 text-[11px] font-semibold"
-                          style={{
-                            flexGrow: u.height,
-                            background: c.bg,
-                            border: `1px solid ${c.border}`,
-                            color: c.text,
-                            boxShadow: u.selected ? '0 0 10px rgba(239,90,74,0.6)' : undefined,
-                            minHeight: 16,
-                          }}
-                        >
-                          <span className="inline-block h-2 w-2 rounded-full" style={{ background: c.led, boxShadow: `0 0 6px ${c.led}` }} />
-                          <span className="flex-1 truncate">{u.label}</span>
-                          <span className="font-mono text-[9.5px] opacity-70">{u.height}U</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </SceneStage>
+          <div className="relative flex-1 max-w-[520px]">
+            <EditableRackScene />
           </div>
 
           {/* 设备详情卡 */}

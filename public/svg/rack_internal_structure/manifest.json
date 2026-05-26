@@ -1,0 +1,242 @@
+{
+  "version": "V2",
+  "scene": "rack_internal_structure",
+  "name_cn": "机柜内部结构",
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "files": {
+    "base": "base_no_equipment.svg",
+    "equipment_layer": "layer_equipment.svg",
+    "preview": "preview_reconstruction.svg",
+    "equipment_sheet": "reference_equipment_sheet.svg"
+  },
+  "components": [
+    {
+      "id": "patch_panel_1u",
+      "category": "device",
+      "svg": "patch_panel_1u.svg",
+      "size": {
+        "width": 545,
+        "height": 85
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 48,
+        "y": 226,
+        "width": 545,
+        "height": 85
+      },
+      "cut_method": "object_aware_chroma_connected_component"
+    },
+    {
+      "id": "access_switch_normal",
+      "category": "device",
+      "svg": "access_switch_normal.svg",
+      "size": {
+        "width": 548,
+        "height": 92
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 610,
+        "y": 221,
+        "width": 548,
+        "height": 92
+      },
+      "cut_method": "object_aware_chroma_connected_component"
+    },
+    {
+      "id": "access_switch_alarm",
+      "category": "device",
+      "svg": "access_switch_alarm.svg",
+      "size": {
+        "width": 548,
+        "height": 92
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 1172,
+        "y": 221,
+        "width": 548,
+        "height": 92
+      },
+      "cut_method": "object_aware_chroma_connected_component"
+    },
+    {
+      "id": "application_server_2u",
+      "category": "device",
+      "svg": "application_server_2u.svg",
+      "size": {
+        "width": 399,
+        "height": 147
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 38,
+        "y": 525,
+        "width": 399,
+        "height": 147
+      },
+      "cut_method": "object_aware_chroma_connected_component"
+    },
+    {
+      "id": "storage_server_2u",
+      "category": "device",
+      "svg": "storage_server_2u.svg",
+      "size": {
+        "width": 402,
+        "height": 148
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 452,
+        "y": 525,
+        "width": 402,
+        "height": 148
+      },
+      "cut_method": "object_aware_chroma_connected_component"
+    },
+    {
+      "id": "ups_module",
+      "category": "device",
+      "svg": "ups_module.svg",
+      "size": {
+        "width": 349,
+        "height": 123
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 862,
+        "y": 549,
+        "width": 349,
+        "height": 123
+      },
+      "cut_method": "object_aware_chroma_connected_component"
+    },
+    {
+      "id": "blank_filler_panel",
+      "category": "device",
+      "svg": "blank_filler_panel.svg",
+      "size": {
+        "width": 362,
+        "height": 103
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 1220,
+        "y": 562,
+        "width": 362,
+        "height": 103
+      },
+      "cut_method": "object_aware_chroma_connected_component"
+    },
+    {
+      "id": "alarm_icon",
+      "category": "device",
+      "svg": "alarm_icon.svg",
+      "size": {
+        "width": 135,
+        "height": 134
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 1600,
+        "y": 547,
+        "width": 135,
+        "height": 134
+      },
+      "cut_method": "object_aware_chroma_connected_component"
+    }
+  ],
+  "placements": [
+    {
+      "id": "patch_panel_1u",
+      "component": "patch_panel_1u.svg",
+      "category": "device",
+      "x": 210,
+      "y": 160,
+      "width": 300,
+      "height": 42,
+      "zIndex": 20
+    },
+    {
+      "id": "access_switch_normal",
+      "component": "access_switch_normal.svg",
+      "category": "device",
+      "x": 210,
+      "y": 240,
+      "width": 300,
+      "height": 42,
+      "zIndex": 20
+    },
+    {
+      "id": "access_switch_alarm",
+      "component": "access_switch_alarm.svg",
+      "category": "device",
+      "x": 210,
+      "y": 320,
+      "width": 300,
+      "height": 42,
+      "zIndex": 20
+    },
+    {
+      "id": "application_server_2u",
+      "component": "application_server_2u.svg",
+      "category": "device",
+      "x": 210,
+      "y": 430,
+      "width": 300,
+      "height": 62,
+      "zIndex": 20
+    },
+    {
+      "id": "storage_server_2u",
+      "component": "storage_server_2u.svg",
+      "category": "device",
+      "x": 210,
+      "y": 520,
+      "width": 300,
+      "height": 62,
+      "zIndex": 20
+    },
+    {
+      "id": "ups_module",
+      "component": "ups_module.svg",
+      "category": "device",
+      "x": 210,
+      "y": 630,
+      "width": 300,
+      "height": 70,
+      "zIndex": 20
+    },
+    {
+      "id": "blank_filler_panel",
+      "component": "blank_filler_panel.svg",
+      "category": "device",
+      "x": 210,
+      "y": 730,
+      "width": 300,
+      "height": 42,
+      "zIndex": 20
+    },
+    {
+      "id": "alarm_icon",
+      "component": "alarm_icon.svg",
+      "category": "device",
+      "x": 980,
+      "y": 210,
+      "width": 120,
+      "height": 120,
+      "zIndex": 20
+    }
+  ],
+  "frontend_usage": "使用 base_no_equipment.svg 作为底图；按 placements 放置 components 中的设备 SVG。设备子图已改为对象检测裁切，不再使用固定网格硬切。",
+  "generation": "Generated with built-in image_gen. Equipment sheets were generated on #00ff00 chroma key and locally cut into transparent embedded SVG assets.",
+  "limitations": [
+    "设备子图来自同场景设备素材板自动网格裁切，已透明化；如要像素级商用精修，仍建议人工检查边缘。",
+    "SVG 是内嵌 PNG 的 wrapper，不是纯矢量重绘。"
+  ],
+  "recut": "2026-05-25 object-aware recut: replaced fixed grid crops to avoid cutting devices in half."
+}

@@ -1,0 +1,233 @@
+{
+  "version": "V2",
+  "scene": "office_area_internal",
+  "name_cn": "办公区内部",
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "files": {
+    "base": "base_no_equipment.svg",
+    "equipment_layer": "layer_equipment.svg",
+    "preview": "preview_reconstruction.svg",
+    "equipment_sheet": "reference_equipment_sheet.svg"
+  },
+  "components": [
+    {
+      "id": "workstation_cluster",
+      "category": "device",
+      "svg": "workstation_cluster.svg",
+      "size": {
+        "width": 391,
+        "height": 318
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "single_desk_chair",
+      "category": "device",
+      "svg": "single_desk_chair.svg",
+      "size": {
+        "width": 443,
+        "height": 277
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "conference_table",
+      "category": "device",
+      "svg": "conference_table.svg",
+      "size": {
+        "width": 390,
+        "height": 290
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "wall_operations_screen",
+      "category": "device",
+      "svg": "wall_operations_screen.svg",
+      "size": {
+        "width": 373,
+        "height": 281
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 3,
+        "row": 0,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "network_cabinet",
+      "category": "device",
+      "svg": "network_cabinet.svg",
+      "size": {
+        "width": 211,
+        "height": 321
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 0,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "printer_copier",
+      "category": "device",
+      "svg": "printer_copier.svg",
+      "size": {
+        "width": 246,
+        "height": 304
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 1,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "access_control_terminal",
+      "category": "device",
+      "svg": "access_control_terminal.svg",
+      "size": {
+        "width": 133,
+        "height": 309
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 2,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    },
+    {
+      "id": "potted_plant",
+      "category": "device",
+      "svg": "potted_plant.svg",
+      "size": {
+        "width": 214,
+        "height": 283
+      },
+      "source_sheet": "reference_equipment_sheet.svg",
+      "grid_cell": {
+        "col": 3,
+        "row": 1,
+        "cols": 4,
+        "rows": 2
+      }
+    }
+  ],
+  "placements": [
+    {
+      "id": "workstation_cluster",
+      "component": "workstation_cluster.svg",
+      "category": "device",
+      "x": 260,
+      "y": 340,
+      "width": 300,
+      "height": 180,
+      "zIndex": 20
+    },
+    {
+      "id": "single_desk_chair",
+      "component": "single_desk_chair.svg",
+      "category": "device",
+      "x": 610,
+      "y": 340,
+      "width": 190,
+      "height": 150,
+      "zIndex": 20
+    },
+    {
+      "id": "conference_table",
+      "component": "conference_table.svg",
+      "category": "device",
+      "x": 1100,
+      "y": 500,
+      "width": 310,
+      "height": 170,
+      "zIndex": 20
+    },
+    {
+      "id": "wall_operations_screen",
+      "component": "wall_operations_screen.svg",
+      "category": "device",
+      "x": 1190,
+      "y": 225,
+      "width": 230,
+      "height": 100,
+      "zIndex": 20
+    },
+    {
+      "id": "network_cabinet",
+      "component": "network_cabinet.svg",
+      "category": "device",
+      "x": 1260,
+      "y": 420,
+      "width": 130,
+      "height": 190,
+      "zIndex": 20
+    },
+    {
+      "id": "printer_copier",
+      "component": "printer_copier.svg",
+      "category": "device",
+      "x": 980,
+      "y": 610,
+      "width": 120,
+      "height": 120,
+      "zIndex": 20
+    },
+    {
+      "id": "access_control_terminal",
+      "component": "access_control_terminal.svg",
+      "category": "device",
+      "x": 180,
+      "y": 675,
+      "width": 70,
+      "height": 120,
+      "zIndex": 20
+    },
+    {
+      "id": "potted_plant",
+      "component": "potted_plant.svg",
+      "category": "device",
+      "x": 860,
+      "y": 570,
+      "width": 90,
+      "height": 110,
+      "zIndex": 20
+    }
+  ],
+  "frontend_usage": "使用 base_no_equipment.svg 作为底图；按 placements 放置 components 中的设备 SVG；layer_equipment.svg 和 preview_reconstruction.svg 只用于快速校验。",
+  "generation": "Generated with built-in image_gen. Equipment sheets were generated on #00ff00 chroma key and locally cut into transparent embedded SVG assets.",
+  "limitations": [
+    "设备子图来自同场景设备素材板自动网格裁切，已透明化；如要像素级商用精修，仍建议人工检查边缘。",
+    "SVG 是内嵌 PNG 的 wrapper，不是纯矢量重绘。"
+  ]
+}
