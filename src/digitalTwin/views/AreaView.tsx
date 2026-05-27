@@ -4,8 +4,8 @@ import { dtPanel, DtSectionTitle, DtStatusBadge, DtAlarmTag, DtProgress, DtAlarm
 import { B_AREA_CATEGORIES, B_AREA_KPIS, B_AREA_ENV, CURRENT_ALARMS } from '../data';
 import { Gauge, Activity, Thermometer, Zap, Wifi, Network, Server, Camera, HardDrive, Wind, Cpu, Square, Database } from 'lucide-react';
 import { useDtNav, DtSceneHeader } from '../DigitalTwinDashboard';
-import { SceneStage, SceneSprite, SceneLabel, SceneAlarmPulse } from '../sceneAssets';
-import { loadLayout, SceneId } from '../layoutStore';
+import { SceneStage, SceneSprite, SceneLabel, SceneAlarmPulse, getAsset } from '../sceneAssets';
+import { loadLayout, SceneId, SceneItem } from '../layoutStore';
 
 const categoryIcons = [Network, Server, Cpu, Camera, HardDrive, Wind];
 const kpiIcons = [Gauge, Activity, Wifi, Thermometer, Zap];
@@ -318,12 +318,101 @@ const OfficeNetScene: React.FC = () => (
   </SceneStage>
 );
 
+const shouldRoamRobot = (sceneId: SceneId, item: SceneItem) => {
+  const text = `${item.id}${item.asset}${item.label ?? ''}`;
+  if (!/机器人|机械臂|Robot|robot/.test(text)) return false;
+  return sceneId === 'line1' || sceneId === 'visualWorkshop' || sceneId === 'vision';
+};
+
+const ROBOT_MOTION_PATH = [
+  { x: 0, y: 0 },
+  { x: 4.8, y: -2.6 },
+  { x: 8.2, y: 0.8 },
+  { x: 4.6, y: 4.4 },
+  { x: -2.8, y: 2.2 },
+  { x: 0, y: 0 },
+];
+
+const getRobotMotionOffset = (time: number) => {
+  const duration = 12000;
+  const lengths = ROBOT_MOTION_PATH.slice(1).map((p, i) => Math.hypot(p.x - ROBOT_MOTION_PATH[i].x, p.y - ROBOT_MOTION_PATH[i].y));
+  const total = lengths.reduce((sum, len) => sum + len, 0);
+  let distance = ((time % duration) / duration) * total;
+  for (let i = 0; i < lengths.length; i += 1) {
+    if (distance <= lengths[i]) {
+      const from = ROBOT_MOTION_PATH[i];
+      const to = ROBOT_MOTION_PATH[i + 1];
+      const t = lengths[i] === 0 ? 0 : distance / lengths[i];
+      return { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
+    }
+    distance -= lengths[i];
+  }
+  return ROBOT_MOTION_PATH[0];
+};
+
+const RoamingRobotSprite: React.FC<{ item: SceneItem; z: number; motionTime: number }> = ({ item, z, motionTime }) => {
+  const asset = getAsset(item.asset);
+  if (!asset) return null;
+  const anchorBottom = item.anchorBottom !== false;
+  const offset = getRobotMotionOffset(motionTime);
+
+  return (
+    <>
+      <div
+        className="pointer-events-none absolute rounded-full border border-dashed border-[#55d8ff66] opacity-70"
+        style={{
+          left: `${item.cx}%`,
+          top: `${item.cy}%`,
+          width: `${Math.max(item.w * 1.55, 10)}%`,
+          height: `${Math.max((item.h ?? item.w * 0.75) * 1.1, 8)}%`,
+          transform: `translate(-50%, ${anchorBottom ? '-100%' : '-50%'}) rotate(-12deg)`,
+          zIndex: z - 1,
+          boxShadow: '0 0 16px rgba(85,216,255,0.22), inset 0 0 18px rgba(85,216,255,0.08)',
+        }}
+      />
+      <div
+        className="absolute"
+        title={item.label ?? item.asset}
+        style={{
+          left: `${item.cx + offset.x}%`,
+          top: `${item.cy + offset.y}%`,
+          width: `${item.w}%`,
+          ...(item.h != null ? { height: `${item.h}%` } : { aspectRatio: `${asset.w} / ${asset.h}` }),
+          transform: `translate(-50%, ${anchorBottom ? '-100%' : '-50%'}) rotate(${item.rotate ?? 0}deg) rotateY(${item.yaw ?? 0}deg) rotateX(${item.pitch ?? 0}deg) scale(${item.sx ?? 1}, ${item.sy ?? 1})`,
+          transformOrigin: anchorBottom ? '50% 100%' : '50% 50%',
+          transformStyle: 'preserve-3d',
+          zIndex: z,
+          opacity: item.opacity ?? 1,
+          filter: `${item.filter ?? ''} drop-shadow(0 0 12px rgba(85,216,255,0.34))`,
+        }}
+      >
+        <img src={asset.src} alt={item.label ?? item.asset} draggable={false} className="h-full w-full select-none object-contain" />
+      </div>
+    </>
+  );
+};
+
 // 分发：根据 zone 选择内部场景
 const LayoutDrivenAreaScene: React.FC<{ sceneId: SceneId }> = ({ sceneId }) => {
   const { setView } = useDtNav();
   const layout = loadLayout(sceneId);
+  const [motionTime, setMotionTime] = React.useState(0);
   const enterRack = () => setView('rack');
   const baseSrc = layout.baseMap || undefined;
+
+  React.useEffect(() => {
+    let raf = 0;
+    let last = 0;
+    const loop = (now: number) => {
+      if (now - last > 33) {
+        last = now;
+        setMotionTime(now);
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   return (
     <SceneStage width={layout.width} height={layout.height} className="bg-[#020a18]">
@@ -340,27 +429,32 @@ const LayoutDrivenAreaScene: React.FC<{ sceneId: SceneId }> = ({ sceneId }) => {
           }}
         />
       ) : null}
-      {layout.items.filter(item => !item.hidden).map((item, idx) => (
-        <SceneSprite
-          key={item.id}
-          asset={item.asset}
-          x={item.cx}
-          y={item.cy}
-          width={item.w}
-          height={item.h}
-          rotate={item.rotate}
-          yaw={item.yaw}
-          pitch={item.pitch}
-          sx={item.sx}
-          sy={item.sy}
-          opacity={item.opacity ?? 1}
-          filter={item.filter}
-          anchorBottom={item.anchorBottom !== false}
-          title={item.label ?? item.asset}
-          z={20 + idx}
-          onClick={/rack|机柜/i.test(item.id + item.label) ? enterRack : undefined}
-        />
-      ))}
+      {layout.items.filter(item => !item.hidden).map((item, idx) => {
+        if (shouldRoamRobot(sceneId, item)) {
+          return <RoamingRobotSprite key={item.id} item={item} z={20 + idx} motionTime={motionTime} />;
+        }
+        return (
+          <SceneSprite
+            key={item.id}
+            asset={item.asset}
+            x={item.cx}
+            y={item.cy}
+            width={item.w}
+            height={item.h}
+            rotate={item.rotate}
+            yaw={item.yaw}
+            pitch={item.pitch}
+            sx={item.sx}
+            sy={item.sy}
+            opacity={item.opacity ?? 1}
+            filter={item.filter}
+            anchorBottom={item.anchorBottom !== false}
+            title={item.label ?? item.asset}
+            z={20 + idx}
+            onClick={/rack|机柜/i.test(item.id + item.label) ? enterRack : undefined}
+          />
+        );
+      })}
     </SceneStage>
   );
 };

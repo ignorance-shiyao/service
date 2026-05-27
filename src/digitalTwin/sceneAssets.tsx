@@ -64,18 +64,24 @@ export const ASSETS = {
   cableTray:          { src: path('facility_cable_tray'),         w: 768, h: 552 },
 
   // IDC 机房重建素材（public/svg/idc）
-  idcBaseRoom:        { src: idc('layer_base_empty_room'),        w: 1672, h: 941 },
-  idcRackRow:         { src: idc('cabinet_rack_row'),             w: 768, h: 472 },
-  idcPrecisionAc:     { src: idc('device_precision_ac'),          w: 390, h: 512 },
-  idcInrowAc:         { src: idc('device_inrow_ac'),              w: 197, h: 512 },
-  idcUpsMain:         { src: idc('device_ups_main'),              w: 288, h: 512 },
-  idcBatteryCab:      { src: idc('device_battery_cabinet'),       w: 242, h: 512 },
-  idcPowerCab:        { src: idc('device_power_distribution_cabinet'), w: 400, h: 512 },
-  idcAtsCab:          { src: idc('device_ats_cabinet'),           w: 369, h: 512 },
-  idcFireCyl:         { src: idc('device_fire_suppression_cylinders'), w: 299, h: 512 },
-  idcSmokeSensor:     { src: idc('device_smoke_detector'),        w: 512, h: 450 },
-  idcTempHumSensor:   { src: idc('device_temp_humidity_sensor'),  w: 416, h: 512 },
-  idcWaterLeakSensor: { src: idc('device_water_leak_sensor'),     w: 768, h: 369 },
+  idcBaseRoom:        { src: idc('room_base_no_equipment'),       w: 1672, h: 941 },
+  idcRackRow:         { src: idc('rack_row_long'),                w: 506, h: 449 },
+  idcRackSingle:      { src: idc('rack_single_42u'),              w: 216, h: 406 },
+  idcServerCabFront:  { src: idc('server_cabinet_front'),         w: 177, h: 392 },
+  idcPrecisionAc:     { src: idc('room_precision_ac'),            w: 261, h: 394 },
+  idcInrowAc:         { src: idc('inrow_precision_cooling'),      w: 162, h: 401 },
+  idcUpsMain:         { src: idc('ups_main_cabinet'),             w: 263, h: 389 },
+  idcBatteryCab:      { src: idc('ups_battery_cabinet'),          w: 206, h: 382 },
+  idcPowerCab:        { src: idc('power_distribution_cabinet'),   w: 327, h: 406 },
+  idcAtsCab:          { src: idc('power_distribution_cabinet'),   w: 327, h: 406 },
+  idcFireCyl:         { src: idc('fire_suppression_cylinders'),   w: 257, h: 390 },
+  idcSmokeSensor:     { src: idc('smoke_detector'),               w: 211, h: 201 },
+  idcTempHumSensor:   { src: idc('temperature_humidity_sensor'),  w: 166, h: 273 },
+  idcWaterLeakSensor: { src: idc('water_leak_sensor_cable'),      w: 375, h: 228 },
+  idcWallLight:       { src: idc('wall_light_strip'),             w: 347, h: 203 },
+  idcAccessDoor:      { src: idc('access_door_double'),           w: 306, h: 390 },
+  idcPduStrip:        { src: idc('pdu_power_strip'),              w: 369, h: 251 },
+  idcAlarmBeacon:     { src: idc('alarm_beacon_pole'),            w: 132, h: 344 },
   ...FOLDER_SCENE_ASSETS,
 } as const;
 
@@ -167,7 +173,11 @@ export const SceneSprite: React.FC<{
     <div
       className={`absolute ${className} ${onClick ? 'cursor-pointer' : ''}`}
       title={title}
-      onClick={onClick}
+      onClick={e => {
+        if (!onClick) return;
+        e.stopPropagation();
+        onClick();
+      }}
       style={{
         left: `${x}%`,
         top: `${y}%`,

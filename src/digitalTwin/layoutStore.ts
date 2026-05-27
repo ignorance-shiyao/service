@@ -85,6 +85,15 @@ const normalizeLoadedLayout = (layout: SceneLayout, sceneId: SceneId): SceneLayo
   })),
 });
 
+const isStaleBundledLayout = (sceneId: SceneId, layout: SceneLayout): boolean => {
+  if (sceneId !== 'idc3' && sceneId !== 'cmpA') return false;
+  return (
+    !layout.baseMap ||
+    /layer_base_empty_room|room_base_reference/.test(layout.baseMap) ||
+    layout.items.some(item => new RegExp(`^${sceneId}-rack-\\d`).test(item.id))
+  );
+};
+
 // ── 默认布局：从原 OverviewView 抽取出来 ───────────────────────────────
 export const DEFAULT_LAYOUTS: Record<SceneId, SceneLayout> = {
   overview: {
@@ -236,11 +245,17 @@ export const DEFAULT_LAYOUTS: Record<SceneId, SceneLayout> = {
 export function loadLayout(sceneId: SceneId): SceneLayout {
   try {
     const raw = localStorage.getItem(KEY(sceneId));
-    if (raw) return normalizeLoadedLayout(JSON.parse(raw), sceneId);
+    if (raw) {
+      const layout = normalizeLoadedLayout(JSON.parse(raw), sceneId);
+      if (!isStaleBundledLayout(sceneId, layout)) return layout;
+    }
   } catch {}
   try {
     const rawDefault = localStorage.getItem(DEFAULT_KEY(sceneId));
-    if (rawDefault) return normalizeLoadedLayout(JSON.parse(rawDefault), sceneId);
+    if (rawDefault) {
+      const layout = normalizeLoadedLayout(JSON.parse(rawDefault), sceneId);
+      if (!isStaleBundledLayout(sceneId, layout)) return layout;
+    }
   } catch {}
   const legacySceneId = LEGACY_SCENE_ALIAS[sceneId];
   if (legacySceneId) {
@@ -270,7 +285,10 @@ export function resetLayout(sceneId: SceneId): SceneLayout {
   }
   try {
     const rawDefault = localStorage.getItem(DEFAULT_KEY(sceneId));
-    if (rawDefault) return normalizeLoadedLayout(JSON.parse(rawDefault), sceneId);
+    if (rawDefault) {
+      const layout = normalizeLoadedLayout(JSON.parse(rawDefault), sceneId);
+      if (!isStaleBundledLayout(sceneId, layout)) return layout;
+    }
   } catch {}
   return DEFAULT_LAYOUTS[sceneId];
 }

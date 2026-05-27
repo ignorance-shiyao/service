@@ -50,6 +50,37 @@ const DRILL_TREE = [
 
 const clampSize = (value: number, max = ITEM_SIZE_MAX) => Math.max(ITEM_SIZE_MIN, Math.min(max, +value.toFixed(2)));
 
+const isRoamingRobotItem = (item: SceneItem) => {
+  const text = `${item.id}${item.asset}${item.label ?? ''}`;
+  return /机器人|机械臂|Robot|robot/.test(text);
+};
+
+const ROBOT_MOTION_PATH = [
+  { x: 0, y: 0 },
+  { x: 4.8, y: -2.6 },
+  { x: 8.2, y: 0.8 },
+  { x: 4.6, y: 4.4 },
+  { x: -2.8, y: 2.2 },
+  { x: 0, y: 0 },
+];
+
+const getRobotMotionOffset = (time: number) => {
+  const duration = 12000;
+  const lengths = ROBOT_MOTION_PATH.slice(1).map((p, i) => Math.hypot(p.x - ROBOT_MOTION_PATH[i].x, p.y - ROBOT_MOTION_PATH[i].y));
+  const total = lengths.reduce((sum, len) => sum + len, 0);
+  let distance = ((time % duration) / duration) * total;
+  for (let i = 0; i < lengths.length; i += 1) {
+    if (distance <= lengths[i]) {
+      const from = ROBOT_MOTION_PATH[i];
+      const to = ROBOT_MOTION_PATH[i + 1];
+      const t = lengths[i] === 0 ? 0 : distance / lengths[i];
+      return { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
+    }
+    distance -= lengths[i];
+  }
+  return ROBOT_MOTION_PATH[0];
+};
+
 export const DigitalTwinEditor: React.FC = () => {
   const [sceneId, setSceneId] = useState<SceneId>('overview');
   const [layout, setLayoutState] = useState<SceneLayout>(() => loadLayout('overview'));
@@ -65,6 +96,7 @@ export const DigitalTwinEditor: React.FC = () => {
   const [assetVersion, setAssetVersion] = useState(0);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [canvasZoom, setCanvasZoom] = useState(1);
+  const [motionTime, setMotionTime] = useState(0);
   const [dialog, setDialog] = useState<{
     open: boolean;
     mode: 'alert' | 'confirm';
@@ -183,6 +215,22 @@ export const DigitalTwinEditor: React.FC = () => {
   }, [baseEditableItem, layout.items, baseSrc, selectedId]);
   const selected = useMemo(() => renderItems.find(i => i.id === selectedId) || null, [renderItems, selectedId]);
   const isBaseSelected = selected?.id === BASE_ITEM_ID;
+  const hasRoamingRobot = useMemo(() => renderItems.some(item => item.id !== BASE_ITEM_ID && isRoamingRobotItem(item)), [renderItems]);
+
+  useEffect(() => {
+    if (!hasRoamingRobot) return;
+    let raf = 0;
+    let last = 0;
+    const loop = (now: number) => {
+      if (now - last > 33) {
+        last = now;
+        setMotionTime(now);
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [hasRoamingRobot]);
 
   // ── 操作 ─────────────────────────────────────────────────────────
   const updateItem = useCallback((id: string, patch: Partial<SceneItem>) => {
@@ -813,6 +861,9 @@ export const DigitalTwinEditor: React.FC = () => {
                 if (item.id === BASE_ITEM_ID && !isSel) return null;
                 const isHidden = item.hidden;
                 const isLocked = item.locked;
+                const baseTransform = `translate(-50%, ${item.anchorBottom !== false ? '-100%' : '-50%'}) rotate(${item.rotate ?? 0}deg)`;
+                const isRoamingRobot = item.id !== BASE_ITEM_ID && isRoamingRobotItem(item);
+                const robotOffset = isRoamingRobot ? getRobotMotionOffset(motionTime) : { x: 0, y: 0 };
                 return (
                   <div
                     key={item.id}
@@ -821,11 +872,11 @@ export const DigitalTwinEditor: React.FC = () => {
                     onClick={e => { e.stopPropagation(); setSelectedId(item.id); }}
                     className={`absolute select-none ${isLocked ? 'cursor-not-allowed' : 'cursor-move'} ${item.id === BASE_ITEM_ID ? 'bg-transparent' : ''}`}
                     style={{
-                      left: `${item.cx}%`,
-                      top: `${item.cy}%`,
+                      left: `${item.cx + robotOffset.x}%`,
+                      top: `${item.cy + robotOffset.y}%`,
                       width: `${item.w}%`,
                       ...(item.h != null ? { height: `${item.h}%` } : { aspectRatio: `${assetSize.w} / ${assetSize.h}` }),
-                      transform: `translate(-50%, ${item.anchorBottom !== false ? '-100%' : '-50%'}) rotate(${item.rotate ?? 0}deg) scale(${item.sx ?? 1}, ${item.sy ?? 1})`,
+                      transform: baseTransform,
                       transformOrigin: item.anchorBottom !== false ? '50% 100%' : '50% 50%',
                       willChange: 'transform',
                       zIndex: 10 + idx + (isSel ? 1000 : 0),
@@ -838,7 +889,10 @@ export const DigitalTwinEditor: React.FC = () => {
                   >
                     {item.id !== BASE_ITEM_ID && (
                       missingAsset ? (
-                        <div className="pointer-events-none flex h-full w-full items-center justify-center rounded border-2 border-dashed border-[#ef5a4a] bg-[#3a1414]/65 text-[10px] font-semibold text-[#ffd8d3]">
+                        <div
+                          className="pointer-events-none flex h-full w-full items-center justify-center rounded border-2 border-dashed border-[#ef5a4a] bg-[#3a1414]/65 text-[10px] font-semibold text-[#ffd8d3]"
+                          style={{ transform: `scale(${item.sx ?? 1}, ${item.sy ?? 1})` }}
+                        >
                           素材缺失
                         </div>
                       ) : (
@@ -846,6 +900,7 @@ export const DigitalTwinEditor: React.FC = () => {
                           src={assetSize.src} alt="" draggable={false}
                           className="pointer-events-none h-full w-full select-none object-contain"
                           style={{
+                            transform: `scale(${item.sx ?? 1}, ${item.sy ?? 1})`,
                             filter: [
                               item.filter,
                               (item.zOffset ?? 0) > 0

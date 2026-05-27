@@ -1,62 +1,9 @@
 import React, { useState } from 'react';
-import { BaseChart } from '../../components/BaseChart';
-import { dtPanel, DtSectionTitle, DtStatusBadge, DtAlarmTag, DtProgress, DtAlarm24hPanel } from '../shared';
-import { RACK_DETAIL } from '../data';
-import { Zap, Thermometer, Database, Camera, Car, X } from 'lucide-react';
+import { dtPanel, DtSectionTitle, DtStatusBadge, DtAlarmTag, DtAlarm24hPanel } from '../shared';
+import { Database, Camera, Car, X } from 'lucide-react';
 import { SceneStage, SceneSprite, SceneLabel } from '../sceneAssets';
 import { DtSceneHeader } from '../DigitalTwinDashboard';
-import { loadLayout } from '../layoutStore';
-
-// ── 容量环 ─────────────────────────────────────────────────────────────
-const capacityOption = {
-  series: [{
-    type: 'pie',
-    radius: ['68%', '85%'],
-    label: { show: false },
-    silent: true,
-    data: [
-      { value: 75, name: '已用', itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 1, colorStops: [{ offset: 0, color: '#4fc1ff' }, { offset: 1, color: '#79d0ff' }] } } },
-      { value: 25, name: '剩余', itemStyle: { color: '#102a52' } },
-    ],
-  }],
-};
-
-const sparkArea = (data: number[], color: string, min?: number, max?: number) => ({
-  grid: { top: 4, left: 18, right: 4, bottom: 12 },
-  xAxis: { type: 'category', data: data.map((_, i) => i), show: false },
-  yAxis: { type: 'value', min, max, axisLabel: { color: '#7e9fc8', fontSize: 9 }, splitLine: { show: false } },
-  series: [{
-    type: 'line', data, smooth: true, symbol: 'none',
-    lineStyle: { color, width: 1.5 },
-    areaStyle: { color: `${color}22` },
-  }],
-});
-
-const alarmCountOption = {
-  grid: { top: 18, left: 28, right: 6, bottom: 22 },
-  tooltip: { trigger: 'axis' },
-  xAxis: { type: 'category', data: ['14:30','18:30','22:30','02:30','06:30','10:30','14:30'], axisLabel: { color: '#7e9fc8', fontSize: 9 }, axisLine: { lineStyle: { color: '#234c7c' } } },
-  yAxis: { type: 'value', max: 40, axisLabel: { color: '#7e9fc8', fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(35,76,124,0.4)' } } },
-  series: [{
-    name: '告警数', type: 'line', smooth: true,
-    data: [4, 8, 14, 12, 22, 26, 30],
-    lineStyle: { color: '#f5b963', width: 2 },
-    itemStyle: { color: '#f5b963' },
-    symbol: 'circle',
-    symbolSize: 5,
-    areaStyle: { color: 'rgba(245,185,99,0.15)' },
-  }],
-};
-
-// ── 单 U 颜色 ─────────────────────────────────────────────────────────
-const statusStyle = (s: string) => {
-  switch (s) {
-    case 'critical': return { bg: 'linear-gradient(180deg,#5a1414 0%,#3a0d0d 100%)', border: '#ef5a4a', text: '#ffe4df', dot: '#ef5350' };
-    case 'warning':  return { bg: 'linear-gradient(180deg,#5a3a14 0%,#3a2509 100%)', border: '#f5b963', text: '#fff0d4', dot: '#f5b963' };
-    case 'idle':     return { bg: '#0a1f3d', border: '#244871', text: '#5d7a9c', dot: '#3a557a' };
-    default:         return { bg: 'linear-gradient(180deg,#114a8a 0%,#0a2f63 100%)', border: '#5fb4ff', text: '#cfe5ff', dot: '#6ce09a' };
-  }
-};
+import { loadLayout, SceneItem } from '../layoutStore';
 
 const Tile: React.FC<{ icon: React.ReactNode; label: string; value?: string; alarm?: boolean }> = ({ icon, label, value, alarm }) => (
   <div
@@ -80,7 +27,143 @@ const KvRow: React.FC<{ k: string; v: React.ReactNode }> = ({ k, v }) => (
   </div>
 );
 
-const EditableRackScene: React.FC = () => {
+type RackDeviceDetail = {
+  name: string;
+  type: string;
+  ip: string;
+  status: '正常' | '告警' | '离线';
+  rack: string;
+  attached: number;
+  bizScope: string;
+  children: string[];
+  alarmText?: string;
+};
+
+const isRackClickableDevice = (item: SceneItem) => (
+  /Switch|Server|Ups/i.test(item.asset)
+);
+
+const getRackDeviceDetail = (item: SceneItem): RackDeviceDetail => {
+  if (item.asset === 'rackInternalAccessSwitchAlarm') {
+    return {
+      name: 'SW-B03-01',
+      type: '接入交换机',
+      ip: '192.168.10.21',
+      status: '离线',
+      rack: 'B03',
+      attached: 8,
+      bizScope: '视觉检测、AGV调度',
+      children: ['CAM-VIS-01', 'CAM-VIS-02', 'AGV-CTRL-01', 'AGV-CTRL-02', 'PLC-LINE-01', 'PLC-LINE-02', 'HMI-03', 'EDGE-I/O-01'],
+      alarmText: 'SW-B03-01 接入交换机离线，影响 8 台下挂终端。',
+    };
+  }
+  if (/Switch/i.test(item.asset)) {
+    return {
+      name: item.label || '接入交换机',
+      type: '接入交换机',
+      ip: '192.168.10.22',
+      status: '正常',
+      rack: 'B03',
+      attached: 6,
+      bizScope: '生产专网',
+      children: ['PLC-01', 'PLC-02', 'IPC-01', 'IPC-02', 'CAM-01', 'CAM-02'],
+    };
+  }
+  if (/Server/i.test(item.asset)) {
+    const storage = /Storage/i.test(item.asset);
+    return {
+      name: item.label || (storage ? '存储服务器' : '业务服务器'),
+      type: storage ? '存储服务器' : '应用服务器',
+      ip: storage ? '192.168.20.41' : '192.168.20.31',
+      status: item.tone === 'warn' ? '告警' : '正常',
+      rack: 'B03',
+      attached: storage ? 4 : 3,
+      bizScope: storage ? '视频存储、检测样本库' : '视觉算法、AGV调度服务',
+      children: storage ? ['VOL-VIDEO-01', 'VOL-VIDEO-02', 'VOL-SAMPLE-01', 'VOL-BACKUP-01'] : ['APP-VISION', 'APP-AGV', 'APP-MQ'],
+    };
+  }
+  if (/Ups/i.test(item.asset)) {
+    return {
+      name: item.label || 'UPS 模块',
+      type: '供电模块',
+      ip: '192.168.30.11',
+      status: item.tone === 'alarm' ? '告警' : '正常',
+      rack: 'B03',
+      attached: 5,
+      bizScope: '机柜供电',
+      children: ['PDU-A', 'PDU-B', 'SW-B03-01', 'SRV-APP-01', 'SRV-STO-01'],
+    };
+  }
+  return { name: item.label || item.asset, type: '机柜组件', ip: '-', status: item.tone === 'alarm' ? '告警' : '正常', rack: 'B03', attached: 0, bizScope: '机柜内部', children: [] };
+};
+
+const InlineDeviceDetail: React.FC<{
+  detail: RackDeviceDetail | null;
+  onClose: () => void;
+}> = ({ detail, onClose }) => (
+  <div
+    className="absolute rounded-md border bg-[#0a2547]/92 p-3 shadow-[0_0_22px_rgba(79,193,255,0.2)] backdrop-blur-[1px]"
+    style={{
+      left: '43%',
+      right: '4%',
+      top: '11%',
+      minHeight: '36%',
+      zIndex: 120,
+      borderColor: detail?.status === '离线' ? '#ef5a4a' : '#2b6aa8',
+    }}
+    onClick={e => e.stopPropagation()}
+  >
+    <div className="mb-2 flex items-center justify-between">
+      <span className="text-[13px] font-bold text-[#e8f3ff]">设备详情</span>
+      {detail && (
+        <button onClick={onClose} className="text-[#7e9fc8] hover:text-white">
+          <X size={14} />
+        </button>
+      )}
+    </div>
+    {detail ? (
+      <>
+        <div className="space-y-1.5">
+          <KvRow k="设备名称" v={<span className={detail.status === '正常' ? 'font-bold text-[#cfe9ff]' : 'font-bold text-[#ff8a7a]'}>{detail.name}</span>} />
+          <KvRow k="类型" v={detail.type} />
+          <KvRow k="IP" v={<span className="font-mono">{detail.ip}</span>} />
+          <KvRow k="状态" v={<DtStatusBadge status={detail.status} />} />
+          <KvRow k="所属机柜" v={detail.rack} />
+          <KvRow k="下挂设备" v={`${detail.attached} 台`} />
+          <KvRow k="关联业务" v={detail.bizScope} />
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <Tile icon={<Database size={18} />} label="下挂设备" value={`${detail.attached}台`} alarm={detail.status !== '正常'} />
+          <Tile icon={<Camera size={18} />} label="视觉检测" alarm={detail.bizScope.includes('视觉')} />
+          <Tile icon={<Car size={18} />} label="AGV调度" alarm={detail.bizScope.includes('AGV')} />
+        </div>
+        {detail.children.length > 0 && (
+          <div className="mt-3 rounded border border-[#244871] bg-[#081f3d]/65 p-2">
+            <div className="mb-1 text-[11px] font-semibold text-[#79d0ff]">模拟下挂对象</div>
+            <div className="grid grid-cols-2 gap-1">
+              {detail.children.map(child => (
+                <div key={child} className="truncate rounded border border-[#143258] bg-[#061a36] px-2 py-1 font-mono text-[10.5px] text-[#cfe9ff]">
+                  {child}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </>
+    ) : (
+      <div className="flex min-h-[150px] items-center justify-center rounded border border-dashed border-[#244871] bg-[#081f3d]/45 px-4 text-center text-[12px] leading-5 text-[#7e9fc8]">
+        点击机柜内部交换机、服务器、UPS 等设备后展示详情和告警影响。
+      </div>
+    )}
+  </div>
+);
+
+const EditableRackScene: React.FC<{
+  selectedId?: string | null;
+  selectedDetail: RackDeviceDetail | null;
+  onSelectDevice: (item: SceneItem) => void;
+  onClearDevice: () => void;
+}> = ({ selectedId, selectedDetail, onSelectDevice, onClearDevice }) => {
   const layout = loadLayout('rack');
   const baseSrc = layout.baseMap;
 
@@ -99,175 +182,91 @@ const EditableRackScene: React.FC = () => {
           }}
         />
       )}
-      {layout.items.filter(item => !item.hidden).map((item, idx) => (
-        <SceneSprite
-          key={item.id}
-          asset={item.asset}
-          x={item.cx}
-          y={item.cy}
-          width={item.w}
-          height={item.h}
-          rotate={item.rotate}
-          yaw={item.yaw}
-          pitch={item.pitch}
-          sx={item.sx}
-          sy={item.sy}
-          opacity={item.opacity ?? 1}
-          filter={item.filter}
-          anchorBottom={item.anchorBottom !== false}
-          title={item.label ?? item.asset}
-          z={20 + idx}
-        />
-      ))}
-      <SceneLabel x={20} y={8} z={80} tone="alarm">SW-B03-01 接入交换机离线</SceneLabel>
+      {layout.items.filter(item => !item.hidden).map((item, idx) => {
+        const clickable = isRackClickableDevice(item);
+        const isSelected = clickable && item.id === selectedId;
+        const isAlarm = item.asset === 'rackInternalAccessSwitchAlarm' || item.tone === 'alarm';
+        return (
+          <SceneSprite
+            key={item.id}
+            asset={item.asset}
+            x={item.cx}
+            y={item.cy}
+            width={item.w}
+            height={item.h}
+            rotate={item.rotate}
+            yaw={item.yaw}
+            pitch={item.pitch}
+            sx={item.sx}
+            sy={item.sy}
+            opacity={item.opacity ?? 1}
+            filter={[
+              item.filter,
+              isSelected ? 'drop-shadow(0 0 12px rgba(79,193,255,0.85))' : undefined,
+              isAlarm ? 'drop-shadow(0 0 10px rgba(239,90,74,0.65))' : undefined,
+            ].filter(Boolean).join(' ') || undefined}
+            anchorBottom={item.anchorBottom !== false}
+            title={item.label ?? item.asset}
+            z={20 + idx + (isSelected ? 100 : 0)}
+            onClick={clickable ? () => onSelectDevice(item) : undefined}
+          />
+        );
+      })}
+      <SceneLabel x={20} y={8} z={80} tone="alarm">点击机柜内部设备查看详情</SceneLabel>
+      <InlineDeviceDetail detail={selectedDetail} onClose={onClearDevice} />
     </SceneStage>
   );
 };
 
 export const RackView: React.FC = () => {
-  const [showDetail, setShowDetail] = useState(true);
+  const [selectedDevice, setSelectedDevice] = useState<SceneItem | null>(null);
+  const selectedDetail = selectedDevice ? getRackDeviceDetail(selectedDevice) : null;
   return (
-    <div
-      className="grid h-full min-h-0 gap-1.5"
-      style={{ gridTemplateColumns: 'minmax(200px, clamp(200px, 16vw, 280px)) minmax(0, 1fr) minmax(240px, clamp(260px, 20vw, 340px))' }}
-    >
-      {/* ===== 左列 ===== */}
-      <div className="flex min-h-0 flex-col gap-1.5">
-        {/* 机柜容量 */}
-        <div className={dtPanel + ' flex-[3] min-h-0 overflow-hidden'}>
-          <DtSectionTitle title="机柜容量" />
-          <div className="flex items-center gap-3">
-            <div className="relative h-[110px] w-[110px] shrink-0">
-              <BaseChart option={capacityOption} />
-              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <div className="font-mono text-[22px] font-black text-[#e8f3ff]">75%</div>
-                <div className="text-[10px] text-[#7e9fc8]">容量利用率</div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div><div className="font-mono text-[22px] font-black text-[#e8f3ff]">32U</div><div className="text-[11px] text-[#7e9fc8]">总容量</div></div>
-              <div><div className="font-mono text-[22px] font-black text-[#e8f3ff]">24U</div><div className="text-[11px] text-[#7e9fc8]">已用容量</div></div>
-            </div>
-          </div>
-        </div>
-
-        {/* 当前功耗 */}
-        <div className={dtPanel + ' flex-[3] min-h-0 overflow-hidden'}>
-          <DtSectionTitle title="当前功耗" right={<span className="text-[10px] text-[#7e9fc8]">kW</span>} />
-          <div className="mb-1 flex items-center gap-2">
-            <Zap size={18} className="text-[#79d0ff] drop-shadow-[0_0_4px_rgba(79,193,255,0.6)]" />
-            <div className="font-mono text-[26px] font-black text-[#e8f3ff]">6.8 <span className="text-[11px] font-normal text-[#7e9fc8]">kW</span></div>
-          </div>
-          <div className="min-h-0 flex-1"><BaseChart option={sparkArea([4,4.5,5,5.2,5.4,6,7,6.4,7.2,8,7.8,8.4,8.8,8.2,7.8,8.6,9,8.4,7.8,8.2,8.6,8.4,8,6.8], '#4fc1ff', 0, 12)} /></div>
-        </div>
-
-        {/* 机柜温度 */}
-        <div className={dtPanel + ' flex-[3] min-h-0 overflow-hidden'}>
-          <DtSectionTitle title="机柜温度" right={<span className="text-[10px] font-bold text-[#ff9a5a]">偏高</span>} />
-          <div className="mb-1 flex items-center gap-2">
-            <Thermometer size={18} className="text-[#ff9a5a] drop-shadow-[0_0_4px_rgba(255,154,90,0.6)]" />
-            <div className="font-mono text-[26px] font-black text-[#ffd0c0]">31.2 <span className="text-[11px] font-normal text-[#ff9a5a]">°C</span></div>
-          </div>
-          <div className="min-h-0 flex-1"><BaseChart option={sparkArea([28,28.4,29,29.4,30.2,30.6,31,31.2,30.8,30.4,30.2,30.6,31,31.4,31.2,30.8,31.2,31.6,31.4,31,30.8,31,31.2,31.2], '#ff8a7a', 15, 45)} /></div>
-        </div>
-
-        {/* PDU 负载 */}
-        <div className={dtPanel + ' flex-[1] min-h-0 overflow-hidden'}>
-          <DtSectionTitle title="PDU负载" />
-          <div className="flex items-center gap-2.5">
-            <div className="font-mono text-[20px] font-black text-[#e8f3ff]">68<span className="text-[10px] font-normal text-[#7e9fc8]">%</span></div>
-            <div className="flex-1"><DtProgress value={68} color="#6ce09a" height={8} /></div>
-          </div>
-          <div className="mt-1 flex justify-between text-[9px] text-[#7e9fc8]"><span>0%</span><span>50%</span><span>100%</span></div>
-        </div>
-
-        {/* 上联链路状态 */}
-        <div className={dtPanel + ' flex-[2] min-h-0 overflow-hidden'}>
-          <DtSectionTitle title="上联链路状态" />
-          <div className="space-y-1.5 overflow-auto text-[12px] custom-scrollbar pr-0.5">
-            <div className="flex items-center justify-between rounded border border-[#143258] bg-[#081f3d]/65 px-2.5 py-1.5 text-[#e8f3ff]">
-              <span>主链路</span><DtStatusBadge status="中断" />
-            </div>
-            <div className="flex items-center justify-between rounded border border-[#143258] bg-[#081f3d]/65 px-2.5 py-1.5 text-[#e8f3ff]">
-              <span>备用链路</span><DtStatusBadge status="待切换" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ===== 中间机柜 ===== */}
-      <div className={dtPanel + ' min-h-0 overflow-hidden'}>
+    <div className={dtPanel + ' h-full min-h-0 overflow-hidden'}>
         <DtSceneHeader />
-        <div className="relative mb-1.5 flex min-h-0 flex-[4] gap-4 overflow-hidden rounded border border-[#1b4378] bg-[#03132a] p-4">
-          <div className="relative flex-1 max-w-[520px]">
-            <EditableRackScene />
+      <div
+        className="grid min-h-0 flex-1 gap-2"
+        style={{ gridTemplateColumns: 'minmax(0, 1.35fr) minmax(320px, 0.65fr)' }}
+      >
+        <div className="relative min-h-0 overflow-hidden rounded border border-[#1b4378] bg-[#03132a] p-2">
+          <div className="relative h-full w-full">
+            <EditableRackScene
+              selectedId={selectedDevice?.id}
+              selectedDetail={selectedDetail}
+              onSelectDevice={setSelectedDevice}
+              onClearDevice={() => setSelectedDevice(null)}
+            />
           </div>
+        </div>
 
-          {/* 设备详情卡 */}
-          {showDetail && (
-            <div className="relative flex-1 min-w-[280px]">
-              {/* 连接线 */}
-              <svg className="pointer-events-none absolute -left-4 top-[88px] h-[2px] w-4" viewBox="0 0 16 2">
-                <line x1="0" y1="1" x2="16" y2="1" stroke="#ef5a4a" strokeWidth="2" />
-              </svg>
-
-              <div
-                className="rounded-md border bg-[#0a1f3d]/95 p-3 shadow-[0_0_18px_rgba(255,90,74,0.25)]"
-                style={{ borderColor: '#ef5a4a' }}
-              >
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-[13px] font-bold text-[#e8f3ff]">设备详情</span>
-                  <button onClick={() => setShowDetail(false)} className="text-[#7e9fc8] hover:text-white">
-                    <X size={14} />
-                  </button>
+        <div className="flex min-h-0 flex-col gap-2">
+        <div className={dtPanel + ' flex-[3] min-h-0 overflow-hidden'}>
+          <DtSectionTitle title="设备告警" />
+          {selectedDetail?.alarmText ? (
+            <div className="flex-1 space-y-1.5 overflow-auto custom-scrollbar pr-0.5">
+              <div className="rounded border bg-[#0a1f3d]/85 p-2" style={{ borderColor: 'rgba(239,83,80,0.35)', borderLeftWidth: 4, borderLeftColor: '#ef5350' }}>
+                <div className="mb-0.5 flex items-center justify-between">
+                  <DtAlarmTag level="critical" />
+                  <span className="font-mono text-[11px] text-[#7e9fc8]">14:28:19</span>
                 </div>
-                <div className="space-y-1.5">
-                  <KvRow k="设备名称" v={<span className="font-bold text-[#ff8a7a]">{RACK_DETAIL.name}</span>} />
-                  <KvRow k="类型" v={RACK_DETAIL.type} />
-                  <KvRow k="IP" v={<span className="font-mono">{RACK_DETAIL.ip}</span>} />
-                  <KvRow k="状态" v={<DtStatusBadge status="离线" />} />
-                  <KvRow k="所属机柜" v={RACK_DETAIL.rack} />
-                  <KvRow k="下挂设备" v={`${RACK_DETAIL.attached} 台`} />
-                  <KvRow k="关联业务" v={RACK_DETAIL.bizScope} />
+                <div className="text-[12.5px] font-semibold text-[#e8f3ff]">{selectedDetail.alarmText}</div>
+              </div>
+              <div className="rounded border bg-[#0a1f3d]/85 p-2" style={{ borderColor: 'rgba(245,185,99,0.35)', borderLeftWidth: 4, borderLeftColor: '#f5b963' }}>
+                <div className="mb-0.5 flex items-center justify-between">
+                  <DtAlarmTag level="warning" />
+                  <span className="font-mono text-[11px] text-[#7e9fc8]">14:25:07</span>
                 </div>
+                <div className="text-[12.5px] font-semibold text-[#e8f3ff]">B03 机柜温度偏高。</div>
               </div>
-
-              {/* 关联业务/下挂设备 */}
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <Tile icon={<Database size={18} />} label="下挂设备" value="8台" alarm />
-                <Tile icon={<Camera size={18} />} label="视觉检测" alarm />
-                <Tile icon={<Car size={18} />} label="AGV调度" alarm />
-              </div>
+            </div>
+          ) : (
+            <div className="flex flex-1 items-center justify-center rounded border border-dashed border-[#244871] bg-[#081f3d]/55 px-4 text-center text-[12px] text-[#7e9fc8]">
+              当前未选中告警设备
             </div>
           )}
         </div>
 
-        <DtAlarm24hPanel />
-      </div>
-
-      {/* ===== 右列 ===== */}
-      <div className="flex min-h-0 flex-col gap-1.5">
         <div className={dtPanel + ' flex-[3] min-h-0 overflow-hidden'}>
-          <DtSectionTitle title="设备告警" />
-          <div className="flex-1 space-y-1.5 overflow-auto custom-scrollbar pr-0.5">
-            <div className="rounded border bg-[#0a1f3d]/85 p-2" style={{ borderColor: 'rgba(239,83,80,0.35)', borderLeftWidth: 4, borderLeftColor: '#ef5350' }}>
-              <div className="mb-0.5 flex items-center justify-between">
-                <DtAlarmTag level="critical" />
-                <span className="font-mono text-[11px] text-[#7e9fc8]">14:28:19</span>
-              </div>
-              <div className="text-[12.5px] font-semibold text-[#e8f3ff]">SW-B03-01 接入交换机离线，影响 8台下挂终端。</div>
-            </div>
-            <div className="rounded border bg-[#0a1f3d]/85 p-2" style={{ borderColor: 'rgba(245,185,99,0.35)', borderLeftWidth: 4, borderLeftColor: '#f5b963' }}>
-              <div className="mb-0.5 flex items-center justify-between">
-                <DtAlarmTag level="warning" />
-                <span className="font-mono text-[11px] text-[#7e9fc8]">14:25:07</span>
-              </div>
-              <div className="text-[12.5px] font-semibold text-[#e8f3ff]">B03机柜温度偏高。</div>
-            </div>
-          </div>
-        </div>
-
-        <div className={dtPanel + ' flex-[5] min-h-0 overflow-hidden'}>
           <DtSectionTitle title="处理建议" />
           <ol className="flex-1 space-y-1.5 overflow-auto text-[12px] text-[#e8f3ff] custom-scrollbar pr-0.5">
             {['检查上联光模块', '确认PDU供电', '切换备用链路', '派发网络运维工单', '通知一号产线负责人'].map((t, i) => (
@@ -279,20 +278,9 @@ export const RackView: React.FC = () => {
           </ol>
         </div>
 
-        <div className={dtPanel + ' flex-[3] min-h-0 overflow-hidden'}>
-          <DtSectionTitle title="环境状态" />
-          <div className="flex-1 grid grid-cols-2 gap-1.5 content-start overflow-auto custom-scrollbar pr-0.5">
-            {[
-              { name: '温度', s: '偏高' as const }, { name: '湿度', s: '正常' as const },
-              { name: '烟感', s: '正常' as const }, { name: '水浸', s: '正常' as const },
-              { name: 'UPS', s: '正常' as const }, { name: '空调', s: '告警' as const },
-            ].map(x => (
-              <div key={x.name} className="flex items-center justify-between rounded border border-[#143258] bg-[#081f3d]/65 px-2.5 py-1.5 text-[12px] text-[#e8f3ff]">
-                <span>{x.name}</span>
-                <DtStatusBadge status={x.s} />
-              </div>
-            ))}
-          </div>
+        <div className={dtPanel + ' flex-[2] min-h-0 overflow-hidden'}>
+          <DtAlarm24hPanel />
+        </div>
         </div>
       </div>
     </div>

@@ -1,352 +1,492 @@
 {
-  "version": "1.0",
-  "source": "simulated IDC room image split into frontend-restorable layers",
+  "version": "newidc-1.0",
+  "created": "2026-05-26",
+  "root": "/Users/ignorance/WebstormProjects/digital_twin/design/svg/newidc",
+  "source": "Generated with built-in imagegen using the provided IDC room screenshot as perspective/style reference.",
   "canvas": {
     "width": 1672,
     "height": 941
   },
-  "categories": [
-    "base",
-    "cabinet",
-    "device"
-  ],
-  "layers": [
-    {
-      "id": "base",
-      "category": "base",
-      "png": "layer_base_empty_room.png",
-      "svg": "layer_base_empty_room.svg",
-      "description": "空机房底图：墙体、地面、门禁入口、冷热通道标识、水浸线、灯带"
-    },
-    {
-      "id": "cabinets",
-      "category": "cabinet",
-      "png": "layer_cabinets.png",
-      "svg": "layer_cabinets.svg",
-      "description": "全画布透明机柜层：从原始机房图按蒙版提取，保留原图透视关系"
-    },
-    {
-      "id": "devices",
-      "category": "device",
-      "png": "layer_devices.png",
-      "svg": "layer_devices.svg",
-      "description": "全画布透明设备层：从原始机房图按蒙版提取，包含 UPS、配电、空调、传感器、灭火钢瓶等"
-    },
-    {
-      "id": "preview",
-      "category": "preview",
-      "png": "preview_reconstruction.png",
-      "svg": "preview_reconstruction.svg",
-      "description": "三层叠加预览，仅用于校验比例与摆放，不建议作为开发资产引用"
-    }
-  ],
+  "files": {
+    "room_base_reference": "room_base_reference.svg",
+    "main_sheet": "source_main_equipment_sheet.svg",
+    "aux_sheet": "source_aux_equipment_sheet.svg",
+    "equipment_preview_layer": "layer_equipment_preview.svg",
+    "preview": "preview_on_room_base.svg",
+    "room_base_no_equipment": "room_base_no_equipment.svg",
+    "room_base_angle_matched": "room_base_angle_matched.svg"
+  },
   "components": [
     {
-      "id": "cabinet_rack_row",
-      "category": "cabinet",
-      "name_cn": "机柜排",
-      "png": "cabinet_rack_row.png",
-      "svg": "cabinet_rack_row.svg",
-      "width": 768,
-      "height": 472,
-      "source_icon": "rack_row.png"
+      "id": "rack_row_long",
+      "name_cn": "长机柜排",
+      "category": "idc_device",
+      "svg": "rack_row_long.svg",
+      "size": {
+        "width": 506,
+        "height": 449
+      },
+      "source_sheet": "source_main_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 49,
+        "y": 37,
+        "width": 506,
+        "height": 449
+      }
     },
     {
-      "id": "cabinet_single_42u",
-      "category": "cabinet",
+      "id": "rack_single_42u",
       "name_cn": "单体42U机柜",
-      "png": "cabinet_single_42u.png",
-      "svg": "cabinet_single_42u.svg",
-      "width": 259,
-      "height": 512,
-      "source_icon": "rack_single_42u.png"
+      "category": "idc_device",
+      "svg": "rack_single_42u.svg",
+      "size": {
+        "width": 216,
+        "height": 406
+      },
+      "source_sheet": "source_main_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 666,
+        "y": 45,
+        "width": 216,
+        "height": 406
+      }
     },
     {
-      "id": "device_precision_ac",
-      "category": "device",
-      "name_cn": "精密空调",
-      "png": "device_precision_ac.png",
-      "svg": "device_precision_ac.svg",
-      "width": 390,
-      "height": 512,
-      "source_icon": "infra_ac_room_precision.png"
+      "id": "server_cabinet_front",
+      "name_cn": "正面服务器柜",
+      "category": "idc_device",
+      "svg": "server_cabinet_front.svg",
+      "size": {
+        "width": 177,
+        "height": 392
+      },
+      "source_sheet": "source_main_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 1026,
+        "y": 57,
+        "width": 177,
+        "height": 392
+      }
     },
     {
-      "id": "device_inrow_ac",
-      "category": "device",
-      "name_cn": "列间空调",
-      "png": "device_inrow_ac.png",
-      "svg": "device_inrow_ac.svg",
-      "width": 197,
-      "height": 512,
-      "source_icon": "infra_ac_inrow.png"
+      "id": "inrow_precision_cooling",
+      "name_cn": "列间精密空调",
+      "category": "idc_device",
+      "svg": "inrow_precision_cooling.svg",
+      "size": {
+        "width": 162,
+        "height": 401
+      },
+      "source_sheet": "source_main_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 1391,
+        "y": 46,
+        "width": 162,
+        "height": 401
+      }
     },
     {
-      "id": "device_ups_main",
-      "category": "device",
-      "name_cn": "UPS主机",
-      "png": "device_ups_main.png",
-      "svg": "device_ups_main.svg",
-      "width": 288,
-      "height": 512,
-      "source_icon": "infra_ups_main.png"
+      "id": "room_precision_ac",
+      "name_cn": "房间精密空调",
+      "category": "idc_device",
+      "svg": "room_precision_ac.svg",
+      "size": {
+        "width": 261,
+        "height": 394
+      },
+      "source_sheet": "source_main_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 129,
+        "y": 485,
+        "width": 261,
+        "height": 394
+      }
     },
     {
-      "id": "device_battery_cabinet",
-      "category": "device",
-      "name_cn": "电池柜",
-      "png": "device_battery_cabinet.png",
-      "svg": "device_battery_cabinet.svg",
-      "width": 242,
-      "height": 512,
-      "source_icon": "infra_ups_battery_cabinet.png"
+      "id": "ups_main_cabinet",
+      "name_cn": "UPS主机柜",
+      "category": "idc_device",
+      "svg": "ups_main_cabinet.svg",
+      "size": {
+        "width": 263,
+        "height": 389
+      },
+      "source_sheet": "source_main_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 539,
+        "y": 483,
+        "width": 263,
+        "height": 389
+      }
     },
     {
-      "id": "device_power_distribution_cabinet",
-      "category": "device",
+      "id": "ups_battery_cabinet",
+      "name_cn": "UPS电池柜",
+      "category": "idc_device",
+      "svg": "ups_battery_cabinet.svg",
+      "size": {
+        "width": 206,
+        "height": 382
+      },
+      "source_sheet": "source_main_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 943,
+        "y": 496,
+        "width": 206,
+        "height": 382
+      }
+    },
+    {
+      "id": "power_distribution_cabinet",
       "name_cn": "配电柜",
-      "png": "device_power_distribution_cabinet.png",
-      "svg": "device_power_distribution_cabinet.svg",
-      "width": 400,
-      "height": 512,
-      "source_icon": "infra_power_distribution_cabinet.png"
+      "category": "idc_device",
+      "svg": "power_distribution_cabinet.svg",
+      "size": {
+        "width": 327,
+        "height": 406
+      },
+      "source_sheet": "source_main_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 1289,
+        "y": 490,
+        "width": 327,
+        "height": 406
+      }
     },
     {
-      "id": "device_ats_cabinet",
-      "category": "device",
-      "name_cn": "ATS柜",
-      "png": "device_ats_cabinet.png",
-      "svg": "device_ats_cabinet.svg",
-      "width": 369,
-      "height": 512,
-      "source_icon": "infra_ats_cabinet.png"
+      "id": "fire_suppression_cylinders",
+      "name_cn": "气体灭火钢瓶组",
+      "category": "idc_device",
+      "svg": "fire_suppression_cylinders.svg",
+      "size": {
+        "width": 257,
+        "height": 390
+      },
+      "source_sheet": "source_aux_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 164,
+        "y": 36,
+        "width": 257,
+        "height": 390
+      }
     },
     {
-      "id": "device_pdu_strip",
-      "category": "device",
-      "name_cn": "PDU",
-      "png": "device_pdu_strip.png",
-      "svg": "device_pdu_strip.svg",
-      "width": 62,
-      "height": 512,
-      "source_icon": "infra_pdu_strip.png"
+      "id": "smoke_detector",
+      "name_cn": "烟感探测器",
+      "category": "idc_device",
+      "svg": "smoke_detector.svg",
+      "size": {
+        "width": 211,
+        "height": 201
+      },
+      "source_sheet": "source_aux_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 586,
+        "y": 155,
+        "width": 211,
+        "height": 201
+      }
     },
     {
-      "id": "device_fire_suppression_cylinders",
-      "category": "device",
-      "name_cn": "气体灭火钢瓶",
-      "png": "device_fire_suppression_cylinders.png",
-      "svg": "device_fire_suppression_cylinders.svg",
-      "width": 299,
-      "height": 512,
-      "source_icon": "infra_fire_suppression_cylinders.png"
-    },
-    {
-      "id": "device_smoke_detector",
-      "category": "device",
-      "name_cn": "烟感",
-      "png": "device_smoke_detector.png",
-      "svg": "device_smoke_detector.svg",
-      "width": 512,
-      "height": 450,
-      "source_icon": "infra_smoke_detector.png"
-    },
-    {
-      "id": "device_temp_humidity_sensor",
-      "category": "device",
+      "id": "temperature_humidity_sensor",
       "name_cn": "温湿度传感器",
-      "png": "device_temp_humidity_sensor.png",
-      "svg": "device_temp_humidity_sensor.svg",
-      "width": 416,
-      "height": 512,
-      "source_icon": "infra_temp_humidity_sensor.png"
+      "category": "idc_device",
+      "svg": "temperature_humidity_sensor.svg",
+      "size": {
+        "width": 166,
+        "height": 273
+      },
+      "source_sheet": "source_aux_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 1018,
+        "y": 114,
+        "width": 166,
+        "height": 273
+      }
     },
     {
-      "id": "device_water_leak_sensor",
-      "category": "device",
-      "name_cn": "水浸传感器",
-      "png": "device_water_leak_sensor.png",
-      "svg": "device_water_leak_sensor.svg",
-      "width": 768,
-      "height": 369,
-      "source_icon": "infra_water_leak_sensor.png"
+      "id": "water_leak_sensor_cable",
+      "name_cn": "水浸传感线",
+      "category": "idc_device",
+      "svg": "water_leak_sensor_cable.svg",
+      "size": {
+        "width": 375,
+        "height": 228
+      },
+      "source_sheet": "source_aux_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 1317,
+        "y": 140,
+        "width": 375,
+        "height": 228
+      }
     },
     {
-      "id": "device_led_light_fixture",
-      "category": "device",
+      "id": "wall_light_strip",
       "name_cn": "墙面灯带",
-      "png": "device_led_light_fixture.png",
-      "svg": "device_led_light_fixture.svg",
-      "width": 512,
-      "height": 255,
-      "source_icon": "infra_led_light_fixture.png"
+      "category": "idc_device",
+      "svg": "wall_light_strip.svg",
+      "size": {
+        "width": 347,
+        "height": 203
+      },
+      "source_sheet": "source_aux_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 87,
+        "y": 538,
+        "width": 347,
+        "height": 203
+      }
+    },
+    {
+      "id": "access_door_double",
+      "name_cn": "双开门禁入口",
+      "category": "idc_device",
+      "svg": "access_door_double.svg",
+      "size": {
+        "width": 306,
+        "height": 390
+      },
+      "source_sheet": "source_aux_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 535,
+        "y": 439,
+        "width": 306,
+        "height": 390
+      }
+    },
+    {
+      "id": "pdu_power_strip",
+      "name_cn": "PDU电源条",
+      "category": "idc_device",
+      "svg": "pdu_power_strip.svg",
+      "size": {
+        "width": 369,
+        "height": 251
+      },
+      "source_sheet": "source_aux_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 931,
+        "y": 541,
+        "width": 369,
+        "height": 251
+      }
+    },
+    {
+      "id": "alarm_beacon_pole",
+      "name_cn": "告警灯柱",
+      "category": "idc_device",
+      "svg": "alarm_beacon_pole.svg",
+      "size": {
+        "width": 132,
+        "height": 344
+      },
+      "source_sheet": "source_aux_equipment_sheet.svg",
+      "object_bbox": {
+        "x": 1433,
+        "y": 461,
+        "width": 132,
+        "height": 344
+      }
     }
   ],
   "placements": [
     {
-      "id": "rack_row_1",
-      "component": "cabinet_rack_row.png",
-      "category": "cabinet",
-      "x": 505,
-      "y": 240,
-      "width": 220,
-      "height": 520,
-      "note": "机柜排1，冷通道左侧"
+      "id": "rack_row_long",
+      "component": "rack_row_long.svg",
+      "x": 345,
+      "y": 300,
+      "width": 255,
+      "height": 240,
+      "zIndex": 20
     },
     {
-      "id": "rack_row_2",
-      "component": "cabinet_rack_row.png",
-      "category": "cabinet",
-      "x": 735,
-      "y": 240,
-      "width": 220,
-      "height": 520,
-      "note": "机柜排2，冷通道右侧"
+      "id": "rack_row_long",
+      "component": "rack_row_long.svg",
+      "x": 625,
+      "y": 325,
+      "width": 255,
+      "height": 240,
+      "zIndex": 20
     },
     {
-      "id": "rack_row_3",
-      "component": "cabinet_rack_row.png",
-      "category": "cabinet",
-      "x": 980,
-      "y": 242,
-      "width": 220,
-      "height": 515,
-      "note": "机柜排3，热通道左侧"
+      "id": "rack_row_long",
+      "component": "rack_row_long.svg",
+      "x": 900,
+      "y": 325,
+      "width": 255,
+      "height": 240,
+      "zIndex": 20
     },
     {
-      "id": "rack_row_4",
-      "component": "cabinet_rack_row.png",
-      "category": "cabinet",
-      "x": 1205,
-      "y": 242,
-      "width": 220,
-      "height": 515,
-      "note": "机柜排4，热通道右侧"
+      "id": "rack_row_long",
+      "component": "rack_row_long.svg",
+      "x": 1165,
+      "y": 325,
+      "width": 255,
+      "height": 240,
+      "zIndex": 20
     },
     {
-      "id": "ups_main",
-      "component": "device_ups_main.png",
-      "category": "device",
-      "x": 70,
-      "y": 495,
-      "width": 210,
-      "height": 270,
-      "note": "UPS主机，左下UPS区"
-    },
-    {
-      "id": "battery_cabinet",
-      "component": "device_battery_cabinet.png",
-      "category": "device",
-      "x": 245,
-      "y": 535,
-      "width": 210,
-      "height": 230,
-      "note": "电池柜，UPS区"
-    },
-    {
-      "id": "power_distribution",
-      "component": "device_power_distribution_cabinet.png",
-      "category": "device",
-      "x": 350,
-      "y": 135,
-      "width": 215,
-      "height": 235,
-      "note": "配电柜，左上墙侧"
-    },
-    {
-      "id": "ats_cabinet",
-      "component": "device_ats_cabinet.png",
-      "category": "device",
-      "x": 240,
-      "y": 250,
-      "width": 175,
-      "height": 230,
-      "note": "辅助电气柜，左侧墙边"
-    },
-    {
-      "id": "precision_ac",
-      "component": "device_precision_ac.png",
-      "category": "device",
-      "x": 1285,
-      "y": 155,
-      "width": 210,
-      "height": 245,
-      "note": "精密空调，右上墙侧"
-    },
-    {
-      "id": "inrow_ac_cold",
-      "component": "device_inrow_ac.png",
-      "category": "device",
-      "x": 650,
-      "y": 360,
+      "id": "inrow_precision_cooling",
+      "component": "inrow_precision_cooling.svg",
+      "x": 475,
+      "y": 410,
       "width": 105,
-      "height": 230,
-      "note": "冷通道列间空调"
+      "height": 240,
+      "zIndex": 20
     },
     {
-      "id": "inrow_ac_hot",
-      "component": "device_inrow_ac.png",
-      "category": "device",
-      "x": 1095,
-      "y": 360,
+      "id": "inrow_precision_cooling",
+      "component": "inrow_precision_cooling.svg",
+      "x": 1030,
+      "y": 420,
       "width": 105,
-      "height": 230,
-      "note": "热通道列间空调"
+      "height": 240,
+      "zIndex": 20
     },
     {
-      "id": "fire_cylinders",
-      "component": "device_fire_suppression_cylinders.png",
-      "category": "device",
-      "x": 1450,
-      "y": 560,
+      "id": "rack_single_42u",
+      "component": "rack_single_42u.svg",
+      "x": 230,
+      "y": 520,
       "width": 145,
-      "height": 215,
-      "note": "气体灭火钢瓶，右侧墙角"
+      "height": 285,
+      "zIndex": 20
     },
     {
-      "id": "smoke_detector_1",
-      "component": "device_smoke_detector.png",
-      "category": "device",
-      "x": 760,
-      "y": 145,
-      "width": 45,
-      "height": 45,
-      "note": "烟感1，顶部墙侧"
+      "id": "server_cabinet_front",
+      "component": "server_cabinet_front.svg",
+      "x": 420,
+      "y": 610,
+      "width": 175,
+      "height": 270,
+      "zIndex": 20
     },
     {
-      "id": "smoke_detector_2",
-      "component": "device_smoke_detector.png",
-      "category": "device",
-      "x": 1065,
-      "y": 145,
-      "width": 45,
-      "height": 45,
-      "note": "烟感2，顶部墙侧"
+      "id": "power_distribution_cabinet",
+      "component": "power_distribution_cabinet.svg",
+      "x": 315,
+      "y": 180,
+      "width": 220,
+      "height": 230,
+      "zIndex": 20
     },
     {
-      "id": "temp_humidity_sensor",
-      "component": "device_temp_humidity_sensor.png",
-      "category": "device",
-      "x": 1495,
-      "y": 380,
-      "width": 50,
-      "height": 70,
-      "note": "温湿度传感器，右墙"
+      "id": "ups_main_cabinet",
+      "component": "ups_main_cabinet.svg",
+      "x": 70,
+      "y": 535,
+      "width": 190,
+      "height": 270,
+      "zIndex": 20
     },
     {
-      "id": "water_leak_sensor",
-      "component": "device_water_leak_sensor.png",
-      "category": "device",
-      "x": 515,
-      "y": 810,
-      "width": 70,
+      "id": "ups_battery_cabinet",
+      "component": "ups_battery_cabinet.svg",
+      "x": 255,
+      "y": 610,
+      "width": 190,
+      "height": 220,
+      "zIndex": 20
+    },
+    {
+      "id": "room_precision_ac",
+      "component": "room_precision_ac.svg",
+      "x": 1340,
+      "y": 220,
+      "width": 225,
+      "height": 255,
+      "zIndex": 20
+    },
+    {
+      "id": "fire_suppression_cylinders",
+      "component": "fire_suppression_cylinders.svg",
+      "x": 1395,
+      "y": 585,
+      "width": 165,
+      "height": 220,
+      "zIndex": 20
+    },
+    {
+      "id": "smoke_detector",
+      "component": "smoke_detector.svg",
+      "x": 770,
+      "y": 150,
+      "width": 54,
       "height": 50,
-      "note": "水浸传感器，底部水浸线"
+      "zIndex": 20
+    },
+    {
+      "id": "smoke_detector",
+      "component": "smoke_detector.svg",
+      "x": 1090,
+      "y": 155,
+      "width": 54,
+      "height": 50,
+      "zIndex": 20
+    },
+    {
+      "id": "temperature_humidity_sensor",
+      "component": "temperature_humidity_sensor.svg",
+      "x": 1515,
+      "y": 385,
+      "width": 52,
+      "height": 80,
+      "zIndex": 20
+    },
+    {
+      "id": "water_leak_sensor_cable",
+      "component": "water_leak_sensor_cable.svg",
+      "x": 465,
+      "y": 825,
+      "width": 145,
+      "height": 58,
+      "zIndex": 20
+    },
+    {
+      "id": "wall_light_strip",
+      "component": "wall_light_strip.svg",
+      "x": 100,
+      "y": 330,
+      "width": 175,
+      "height": 32,
+      "zIndex": 20
+    },
+    {
+      "id": "access_door_double",
+      "component": "access_door_double.svg",
+      "x": 1000,
+      "y": 700,
+      "width": 200,
+      "height": 175,
+      "zIndex": 20
+    },
+    {
+      "id": "pdu_power_strip",
+      "component": "pdu_power_strip.svg",
+      "x": 1455,
+      "y": 790,
+      "width": 145,
+      "height": 48,
+      "zIndex": 20
+    },
+    {
+      "id": "alarm_beacon_pole",
+      "component": "alarm_beacon_pole.svg",
+      "x": 1580,
+      "y": 555,
+      "width": 55,
+      "height": 145,
+      "zIndex": 20
     }
   ],
-  "layer_generation": {
-    "method": "base layer generated by image edit; cabinet/device full-canvas layers extracted by source-vs-base diff masks with region constraints",
-    "source_image": "design/simulated/sim_machine_room_internal.png",
-    "note": "Full-canvas layers preserve original perspective and are intended for direct front-end overlay. Independent component PNGs remain reusable editing assets."
-  }
+  "frontend_usage": "使用 room_base_angle_matched.svg 或 room_base_no_equipment.svg 作为底图；按 placements 放置 components 中的设备 SVG；preview_on_room_base.svg 仅用于校验透视和比例。",
+  "notes": [
+    "所有设备 SVG 均为内嵌透明 PNG wrapper，不是纯矢量。",
+    "设备根据绿幕对象检测裁切，避免固定网格导致切断。",
+    "角度按用户提供的机房截图生成，适合同一俯视 2.5D 机房场景。"
+  ],
+  "postprocess": "Replaced generated magenta highlights with cyan-blue IDC style highlights.",
+  "base_generation": "Regenerated again on 2026-05-27 with a lower 3/4 isometric camera to better match the generated equipment sprites. Replaces the previous overly top-down base."
 }
