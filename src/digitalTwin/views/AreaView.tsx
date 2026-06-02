@@ -6,6 +6,7 @@ import { Gauge, Activity, Thermometer, Zap, Wifi, Network, Server, Camera, HardD
 import { useDtNav, DtSceneHeader } from '../DigitalTwinDashboard';
 import { SceneStage, SceneSprite, SceneLabel, SceneAlarmPulse, getAsset } from '../sceneAssets';
 import { loadLayout, SceneId, SceneItem } from '../layoutStore';
+import { getRobotMotionPoint, getRobotTrackPoints, isMotionRobotItem } from '../robotMotion';
 
 const categoryIcons = [Network, Server, Cpu, Camera, HardDrive, Wind];
 const kpiIcons = [Gauge, Activity, Wifi, Thermometer, Zap];
@@ -319,63 +320,34 @@ const OfficeNetScene: React.FC = () => (
 );
 
 const shouldRoamRobot = (sceneId: SceneId, item: SceneItem) => {
-  const text = `${item.id}${item.asset}${item.label ?? ''}`;
-  if (!/机器人|机械臂|Robot|robot/.test(text)) return false;
-  return sceneId === 'line1' || sceneId === 'visualWorkshop' || sceneId === 'vision';
-};
-
-const ROBOT_MOTION_PATH = [
-  { x: 0, y: 0 },
-  { x: 4.8, y: -2.6 },
-  { x: 8.2, y: 0.8 },
-  { x: 4.6, y: 4.4 },
-  { x: -2.8, y: 2.2 },
-  { x: 0, y: 0 },
-];
-
-const getRobotMotionOffset = (time: number) => {
-  const duration = 12000;
-  const lengths = ROBOT_MOTION_PATH.slice(1).map((p, i) => Math.hypot(p.x - ROBOT_MOTION_PATH[i].x, p.y - ROBOT_MOTION_PATH[i].y));
-  const total = lengths.reduce((sum, len) => sum + len, 0);
-  let distance = ((time % duration) / duration) * total;
-  for (let i = 0; i < lengths.length; i += 1) {
-    if (distance <= lengths[i]) {
-      const from = ROBOT_MOTION_PATH[i];
-      const to = ROBOT_MOTION_PATH[i + 1];
-      const t = lengths[i] === 0 ? 0 : distance / lengths[i];
-      return { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
-    }
-    distance -= lengths[i];
-  }
-  return ROBOT_MOTION_PATH[0];
+  void sceneId;
+  return isMotionRobotItem(item);
 };
 
 const RoamingRobotSprite: React.FC<{ item: SceneItem; z: number; motionTime: number }> = ({ item, z, motionTime }) => {
   const asset = getAsset(item.asset);
   if (!asset) return null;
   const anchorBottom = item.anchorBottom !== false;
-  const offset = getRobotMotionOffset(motionTime);
+  const point = getRobotMotionPoint(item, motionTime);
 
   return (
     <>
-      <div
-        className="pointer-events-none absolute rounded-full border border-dashed border-[#55d8ff66] opacity-70"
-        style={{
-          left: `${item.cx}%`,
-          top: `${item.cy}%`,
-          width: `${Math.max(item.w * 1.55, 10)}%`,
-          height: `${Math.max((item.h ?? item.w * 0.75) * 1.1, 8)}%`,
-          transform: `translate(-50%, ${anchorBottom ? '-100%' : '-50%'}) rotate(-12deg)`,
-          zIndex: z - 1,
-          boxShadow: '0 0 16px rgba(85,216,255,0.22), inset 0 0 18px rgba(85,216,255,0.08)',
-        }}
-      />
+      <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ zIndex: z - 1 }}>
+        <polyline
+          points={getRobotTrackPoints(item)}
+          fill="none"
+          stroke="rgba(79,193,255,0.72)"
+          strokeWidth="0.24"
+          strokeDasharray="1.2 0.8"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
       <div
         className="absolute"
         title={item.label ?? item.asset}
         style={{
-          left: `${item.cx + offset.x}%`,
-          top: `${item.cy + offset.y}%`,
+          left: `${point.x}%`,
+          top: `${point.y}%`,
           width: `${item.w}%`,
           ...(item.h != null ? { height: `${item.h}%` } : { aspectRatio: `${asset.w} / ${asset.h}` }),
           transform: `translate(-50%, ${anchorBottom ? '-100%' : '-50%'}) rotate(${item.rotate ?? 0}deg) rotateY(${item.yaw ?? 0}deg) rotateX(${item.pitch ?? 0}deg) scale(${item.sx ?? 1}, ${item.sy ?? 1})`,

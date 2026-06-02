@@ -9,6 +9,7 @@ import {
 import { addCustomAsset, customAssetKey, loadCustomAssets, removeCustomAsset } from './customAssets';
 import { shouldRenderSceneItem } from './renderGuards';
 import { FOLDER_SCENE_ORDER } from './svgSceneRegistry';
+import { getRobotMotionPoint, getRobotTrackPoints, isMotionRobotItem } from './robotMotion';
 
 const sceneIds: SceneId[] = ['overview', 'line1', 'idc3', 'cmpA', 'agv', 'vision', 'office', ...FOLDER_SCENE_ORDER];
 
@@ -49,37 +50,6 @@ const DRILL_TREE = [
 ];
 
 const clampSize = (value: number, max = ITEM_SIZE_MAX) => Math.max(ITEM_SIZE_MIN, Math.min(max, +value.toFixed(2)));
-
-const isRoamingRobotItem = (item: SceneItem) => {
-  const text = `${item.id}${item.asset}${item.label ?? ''}`;
-  return /机器人|机械臂|Robot|robot/.test(text);
-};
-
-const ROBOT_MOTION_PATH = [
-  { x: 0, y: 0 },
-  { x: 4.8, y: -2.6 },
-  { x: 8.2, y: 0.8 },
-  { x: 4.6, y: 4.4 },
-  { x: -2.8, y: 2.2 },
-  { x: 0, y: 0 },
-];
-
-const getRobotMotionOffset = (time: number) => {
-  const duration = 12000;
-  const lengths = ROBOT_MOTION_PATH.slice(1).map((p, i) => Math.hypot(p.x - ROBOT_MOTION_PATH[i].x, p.y - ROBOT_MOTION_PATH[i].y));
-  const total = lengths.reduce((sum, len) => sum + len, 0);
-  let distance = ((time % duration) / duration) * total;
-  for (let i = 0; i < lengths.length; i += 1) {
-    if (distance <= lengths[i]) {
-      const from = ROBOT_MOTION_PATH[i];
-      const to = ROBOT_MOTION_PATH[i + 1];
-      const t = lengths[i] === 0 ? 0 : distance / lengths[i];
-      return { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
-    }
-    distance -= lengths[i];
-  }
-  return ROBOT_MOTION_PATH[0];
-};
 
 export const DigitalTwinEditor: React.FC = () => {
   const [sceneId, setSceneId] = useState<SceneId>('overview');
@@ -215,7 +185,7 @@ export const DigitalTwinEditor: React.FC = () => {
   }, [baseEditableItem, layout.items, baseSrc, selectedId]);
   const selected = useMemo(() => renderItems.find(i => i.id === selectedId) || null, [renderItems, selectedId]);
   const isBaseSelected = selected?.id === BASE_ITEM_ID;
-  const hasRoamingRobot = useMemo(() => renderItems.some(item => item.id !== BASE_ITEM_ID && isRoamingRobotItem(item)), [renderItems]);
+  const hasRoamingRobot = useMemo(() => renderItems.some(item => item.id !== BASE_ITEM_ID && isMotionRobotItem(item)), [renderItems]);
 
   useEffect(() => {
     if (!hasRoamingRobot) return;
@@ -850,6 +820,19 @@ export const DigitalTwinEditor: React.FC = () => {
 
                   {/* 设施层（可交互） */}
                   <div className="absolute inset-0" style={{ zIndex: 10 }}>
+                    <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ zIndex: 2 }}>
+                      {renderItems.filter(item => item.id !== BASE_ITEM_ID && isMotionRobotItem(item)).map(item => (
+                        <polyline
+                          key={`${item.id}-motion-track`}
+                          points={getRobotTrackPoints(item)}
+                          fill="none"
+                          stroke="rgba(79,193,255,0.72)"
+                          strokeWidth="0.24"
+                          strokeDasharray="1.2 0.8"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                      ))}
+                    </svg>
 
                   {renderItems.map((item, idx) => {
                 const a = item.id === BASE_ITEM_ID
@@ -862,8 +845,8 @@ export const DigitalTwinEditor: React.FC = () => {
                 const isHidden = item.hidden;
                 const isLocked = item.locked;
                 const baseTransform = `translate(-50%, ${item.anchorBottom !== false ? '-100%' : '-50%'}) rotate(${item.rotate ?? 0}deg)`;
-                const isRoamingRobot = item.id !== BASE_ITEM_ID && isRoamingRobotItem(item);
-                const robotOffset = isRoamingRobot ? getRobotMotionOffset(motionTime) : { x: 0, y: 0 };
+                const isRoamingRobot = item.id !== BASE_ITEM_ID && isMotionRobotItem(item);
+                const robotPoint = isRoamingRobot ? getRobotMotionPoint(item, motionTime) : { x: item.cx, y: item.cy };
                 return (
                   <div
                     key={item.id}
@@ -872,8 +855,8 @@ export const DigitalTwinEditor: React.FC = () => {
                     onClick={e => { e.stopPropagation(); setSelectedId(item.id); }}
                     className={`absolute select-none ${isLocked ? 'cursor-not-allowed' : 'cursor-move'} ${item.id === BASE_ITEM_ID ? 'bg-transparent' : ''}`}
                     style={{
-                      left: `${item.cx + robotOffset.x}%`,
-                      top: `${item.cy + robotOffset.y}%`,
+                      left: `${robotPoint.x}%`,
+                      top: `${robotPoint.y}%`,
                       width: `${item.w}%`,
                       ...(item.h != null ? { height: `${item.h}%` } : { aspectRatio: `${assetSize.w} / ${assetSize.h}` }),
                       transform: baseTransform,
