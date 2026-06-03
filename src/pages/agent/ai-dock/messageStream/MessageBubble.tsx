@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Bot, Copy, RotateCcw, ThumbsDown, ThumbsUp, User } from 'lucide-react';
 import { AiMessage } from '../store/useAiDock';
+import { appBrand } from '../../../../config/brand';
 
 interface MessageBubbleProps {
   message: AiMessage;
@@ -28,7 +29,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onCopy, o
       )}
       <div className={`max-w-[88%] ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
         <div className={`mb-1 text-[10px] ${isUser ? 'text-[#97cfff]' : 'text-[#8fbedf]'}`}>
-          {isUser ? '我' : '智慧运维管家'} · {formatBubbleTime(message.createdAt)}
+          {isUser ? '我' : appBrand.assistantMessageName} · {formatBubbleTime(message.createdAt)}
         </div>
         <div
           className={`ai-dock-bubble rounded-2xl px-3 py-2 text-sm leading-relaxed ${

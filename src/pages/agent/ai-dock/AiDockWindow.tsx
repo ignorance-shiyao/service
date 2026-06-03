@@ -11,6 +11,7 @@ import { confirmApp, showAppToast } from '../../../components/AppFeedback';
 import robotEntryIcon from '../../../assets/robot-entry.svg';
 import './aiDockTheme.css';
 import { formatRelativeTime } from '../../../utils/time';
+import { appBrand } from '../../../config/brand';
 
 interface AiDockWindowProps {
   store: AiDockStore;
@@ -393,7 +394,7 @@ export const AiDockWindow: React.FC<AiDockWindowProps> = ({ store, onClose }) =>
             <img src={robotEntryIcon} alt="AI管家" className="h-7 w-7" draggable={false} />
           </div>
           <div>
-            <div className="text-sm font-semibold text-[#deefff]">运维管家智能体</div>
+            <div className="text-sm font-semibold text-[#deefff]">{appBrand.assistantName}</div>
             <div className="flex items-center gap-1 text-[10px] text-[#8fcbff]">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#2be38f] shadow-[0_0_8px_rgba(43,227,143,0.8)]" />
               在线

@@ -46,6 +46,7 @@ import { TICKET_TEXT } from './ticketText';
 import { buildTicketCustomerActionReceipt, buildTicketCustomerConfirmGuideReceipt, buildTicketFaultReceipt } from './ticketReceiptBuilders';
 import { buildTicketPendingConfirmNotice, buildTicketStillProcessingNotice } from './ticketNoticeBuilders';
 import { reduceTicketCustomerAction } from './ticketActionReducer';
+import { appBrand } from '../../../../config/brand';
 
 export type MessageRole = 'assistant' | 'user' | 'system';
 export type MessageKind =
@@ -962,7 +963,7 @@ const renderReportCanvas = (report: ReportItem, customer: CustomerContext) => {
   ctx.fillStyle = '#6b7280';
   ctx.font = '18px sans-serif';
   ctx.textAlign = 'right';
-  ctx.fillText('由运维管家智能体生成，建议提交前结合客户现场反馈进行人工确认。', width - padding, height - 54);
+  ctx.fillText(appBrand.reportSignature, width - padding, height - 54);
   ctx.textAlign = 'left';
   return canvas;
 };
@@ -1055,7 +1056,7 @@ const buildReportWordHtml = (report: ReportItem, customer: CustomerContext) => {
     (report.nextActions || []).map((item) => [item.priority, item.action, item.owner, item.due])
   )}
 
-  <div class="footer">由运维管家智能体生成，建议提交前结合客户现场反馈进行人工确认。</div>
+  <div class="footer">${escapeHtml(appBrand.reportSignature)}</div>
 </body>
 </html>`;
 };

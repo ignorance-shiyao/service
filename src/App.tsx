@@ -18,6 +18,7 @@ import { AppFeedbackHost } from './components/AppFeedback';
 import { useAppData } from './context/AppDataContext';
 import { DigitalTwinDashboard } from './digitalTwin/DigitalTwinDashboard';
 import { DigitalTwinEditor } from './digitalTwin/DigitalTwinEditor';
+import { appBrand } from './config/brand';
 
 // --- Lazy Load Pages ---
 const DomainManager = lazy(() => import('./pages/DomainManager').then(module => ({ default: module.DomainManager })));
@@ -66,7 +67,7 @@ const PageLoader = () => (
     </div>
     <div className="flex flex-col items-center">
       <span className="text-sm font-medium text-slate-300 tracking-wide">系统资源加载中</span>
-      <span className="text-[10px] text-slate-500 mt-1">政企业务智慧运维管家</span>
+      <span className="text-[10px] text-slate-500 mt-1">{appBrand.systemName}</span>
     </div>
   </div>
 );
@@ -326,8 +327,12 @@ const App: React.FC = () => {
   const currentBigScreen = BIG_SCREENS.find(screen => location.pathname.startsWith(screen.path));
   const isBigScreenPage = Boolean(currentBigScreen) || location.pathname === '/';
   const appTitle = currentBigScreen
-    ? `政企业务智慧运维管家-${currentBigScreen.name}`
-    : '政企业务智慧运维管家';
+    ? `${appBrand.systemName}-${currentBigScreen.name}`
+    : appBrand.systemName;
+
+  useEffect(() => {
+    document.title = appTitle;
+  }, [appTitle]);
 
   const handleConfirmBigScreenSwitch = () => {
     navigate(selectedBigScreen.path);

@@ -4,12 +4,13 @@ import React, { useState } from 'react';
 import { Bell, Smartphone, Mail, Globe, CheckCircle2, AlertTriangle, ShieldCheck, MessageSquareMore, Zap } from 'lucide-react';
 import { Card, SectionTitle, Switch, Badge } from '../components/UI';
 import { NotificationChannel } from './types';
+import { appBrand } from '../config/brand';
 
-const NOTIFICATION_CHANNELS_KEY = 'assistant_notification_channels_v1';
+const NOTIFICATION_CHANNELS_KEY = `${appBrand.storageNamespace}:assistant_notification_channels_v1`;
 
 const DEFAULT_CHANNELS: NotificationChannel[] = [
     { id: '1', name: '5G 短信通知', description: '基于 5G 消息增强下发，支持多媒体交互报障', enabled: true, type: 'sms' },
-    { id: '2', name: 'App 实时推送', description: '智慧运维管家移动端实时 Push 告警', enabled: true, type: 'app' },
+    { id: '2', name: 'App 实时推送', description: `${appBrand.serviceEndpointName}实时 Push 告警`, enabled: true, type: 'app' },
     { id: '3', name: '邮件公告', description: '适用于维护预告、月度分析报告下发', enabled: false, type: 'email' },
     { id: '4', name: '5G 富媒体消息', description: '支持在短信界面直接查看拓扑图与故障报告', enabled: true, type: 'msg5g' },
 ];

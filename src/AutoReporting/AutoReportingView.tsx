@@ -136,7 +136,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
         const ai = new GoogleGenAI({ apiKey });
         const response = await ai.models.generateContent({
           model: 'gemini-3-flash-preview',
-          contents: `你是一名资深政企运维总监。请根据以下模拟指标生成一段150字以内的“${periodLabel}”业务简报。统计时间跨度：${customStartDate} 至 ${customEndDate}。关键指标：专线可用率99.99%，5G流量增长12%，IDC能效PUE 1.25。请根据时间周期特点（如周报侧重波动，年报侧重宏观）给出专业建议。`,
+          contents: `你是一名资深服务管理顾问。请根据以下模拟指标生成一段150字以内的“${periodLabel}”业务简报。统计时间跨度：${customStartDate} 至 ${customEndDate}。关键指标：链路可用率99.99%，无线业务流量增长12%，机房能效PUE 1.25。请根据时间周期特点（如周报侧重波动，年报侧重宏观）给出专业建议。`,
         });
         aiText = response.text || aiText;
       }
@@ -149,7 +149,7 @@ export const AutoReportingView: React.FC<ReportingProps> = ({ mode, onToggleMode
 
     const newReport: ReportItem = {
       id: `rpt-${Date.now()}`,
-      title: `2025年 ${periodLabel} 政企业务运行全景简报`,
+      title: `2025年 ${periodLabel} 综合服务运行全景简报`,
       period: `${customStartDate} ~ ${customEndDate}`,
       createTime: new Date().toISOString(),
       status: 'published',

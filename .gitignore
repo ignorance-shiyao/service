@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 docs
+.workspace-notes
 migrated_prompt_history
 .codex
 archives
@@ -26,4 +27,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-

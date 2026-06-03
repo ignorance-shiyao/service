@@ -4,6 +4,7 @@ import { ReportItem, ManagedBusiness } from '../../../../../mock/assistant';
 import { BarChart3 } from 'lucide-react';
 import { CardActionBar } from './CardActionBar';
 import { getManagedBusinessStatus } from '../../store/metricSemantics';
+import { appBrand } from '../../../../../config/brand';
 
 interface ReportCardProps {
   report: ReportItem;
@@ -333,7 +334,7 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, businesses, onOp
               )}
 
               <footer className="mt-6 border-t border-[#d3dee9] pt-2 text-right text-[10px] text-[#6b7280]">
-                由运维管家智能体生成，提交前建议结合客户现场反馈进行人工确认。
+                {appBrand.reportSignature}
               </footer>
             </article>
 
