@@ -1,0 +1,1900 @@
+{
+  "version": "v2-fixed",
+  "purpose": "developer-usable semantic crops for UI reconstruction reference",
+  "coordinate_system": "pixel coordinates in original image space, origin top-left",
+  "notes": [
+    "Semantic regions are tuned per page family and, for backend pages, per page layout.",
+    "Dashboard pages 01-05 share one layout model; backend pages 06-08 use page-specific coordinates.",
+    "These are raster concept crops for visual/layout reference; rebuild text/icons as native UI in code."
+  ],
+  "pages": [
+    {
+      "page": "01总览",
+      "source": "/Users/ignorance/WebstormProjects/digital_twin/design/01总览.png",
+      "type": "dashboard",
+      "size": {
+        "width": 1672,
+        "height": 941
+      },
+      "regions": [
+        {
+          "name": "00_full_reference",
+          "description": "完整参考图",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/00_full_reference.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 941,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          }
+        },
+        {
+          "name": "01_top_title_bar",
+          "description": "顶部标题栏：标题、面包屑、时间、健康度、数据来源",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/01_top_title_bar.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 60,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.063762
+          }
+        },
+        {
+          "name": "02_left_sidebar_full",
+          "description": "左侧侧栏完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/02_left_sidebar_full.png",
+          "x": 14,
+          "y": 73,
+          "width": 330,
+          "height": 635,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.077577,
+            "width": 0.197368,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "03_left_panel_top",
+          "description": "左侧上方面板：资产/设备/配置主信息",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/03_left_panel_top.png",
+          "x": 14,
+          "y": 73,
+          "width": 330,
+          "height": 348,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.077577,
+            "width": 0.197368,
+            "height": 0.369819
+          }
+        },
+        {
+          "name": "04_left_panel_bottom",
+          "description": "左侧下方面板：业务/指标/列表信息",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/04_left_panel_bottom.png",
+          "x": 14,
+          "y": 429,
+          "width": 330,
+          "height": 279,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.455898,
+            "width": 0.197368,
+            "height": 0.296493
+          }
+        },
+        {
+          "name": "05_main_stage_full",
+          "description": "中间主舞台完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/05_main_stage_full.png",
+          "x": 354,
+          "y": 73,
+          "width": 956,
+          "height": 635,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.077577,
+            "width": 0.57177,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "06_main_stage_header_zone",
+          "description": "主舞台顶部状态标签区",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/06_main_stage_header_zone.png",
+          "x": 354,
+          "y": 73,
+          "width": 956,
+          "height": 117,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.077577,
+            "width": 0.57177,
+            "height": 0.124336
+          }
+        },
+        {
+          "name": "07_main_stage_core_scene",
+          "description": "主舞台核心孪生/拓扑/推演画面",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/07_main_stage_core_scene.png",
+          "x": 354,
+          "y": 170,
+          "width": 956,
+          "height": 538,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.180659,
+            "width": 0.57177,
+            "height": 0.571732
+          }
+        },
+        {
+          "name": "08_right_sidebar_full",
+          "description": "右侧侧栏完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/08_right_sidebar_full.png",
+          "x": 1321,
+          "y": 73,
+          "width": 337,
+          "height": 635,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.077577,
+            "width": 0.201555,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "09_right_panel_top",
+          "description": "右侧上方面板：当前告警/推演结果",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/09_right_panel_top.png",
+          "x": 1321,
+          "y": 73,
+          "width": 337,
+          "height": 416,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.077577,
+            "width": 0.201555,
+            "height": 0.442083
+          }
+        },
+        {
+          "name": "10_right_panel_bottom",
+          "description": "右侧下方面板：影响范围/处理建议/环境状态",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/10_right_panel_bottom.png",
+          "x": 1321,
+          "y": 502,
+          "width": 337,
+          "height": 206,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.533475,
+            "width": 0.201555,
+            "height": 0.218916
+          }
+        },
+        {
+          "name": "11_bottom_bar_full",
+          "description": "底部完整区域：时间轴、视图导航、操作按钮",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/11_bottom_bar_full.png",
+          "x": 14,
+          "y": 722,
+          "width": 1644,
+          "height": 198,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.767269,
+            "width": 0.983254,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "12_bottom_timeline",
+          "description": "底部左侧：最近24小时告警时间轴",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/12_bottom_timeline.png",
+          "x": 14,
+          "y": 722,
+          "width": 452,
+          "height": 198,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.767269,
+            "width": 0.270335,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "13_bottom_view_nav",
+          "description": "底部中间：当前视图缩略导航/流程",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/13_bottom_view_nav.png",
+          "x": 483,
+          "y": 722,
+          "width": 821,
+          "height": 198,
+          "normalized": {
+            "x": 0.288876,
+            "y": 0.767269,
+            "width": 0.491029,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "14_bottom_actions",
+          "description": "底部右侧：推演/报告/导出等操作按钮",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/01总览/14_bottom_actions.png",
+          "x": 1305,
+          "y": 722,
+          "width": 353,
+          "height": 198,
+          "normalized": {
+            "x": 0.780502,
+            "y": 0.767269,
+            "width": 0.211124,
+            "height": 0.210414
+          }
+        }
+      ]
+    },
+    {
+      "page": "02区域",
+      "source": "/Users/ignorance/WebstormProjects/digital_twin/design/02区域.png",
+      "type": "dashboard",
+      "size": {
+        "width": 1672,
+        "height": 941
+      },
+      "regions": [
+        {
+          "name": "00_full_reference",
+          "description": "完整参考图",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/00_full_reference.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 941,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          }
+        },
+        {
+          "name": "01_top_title_bar",
+          "description": "顶部标题栏：标题、面包屑、时间、健康度、数据来源",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/01_top_title_bar.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 60,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.063762
+          }
+        },
+        {
+          "name": "02_left_sidebar_full",
+          "description": "左侧侧栏完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/02_left_sidebar_full.png",
+          "x": 14,
+          "y": 73,
+          "width": 330,
+          "height": 635,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.077577,
+            "width": 0.197368,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "03_left_panel_top",
+          "description": "左侧上方面板：资产/设备/配置主信息",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/03_left_panel_top.png",
+          "x": 14,
+          "y": 73,
+          "width": 330,
+          "height": 348,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.077577,
+            "width": 0.197368,
+            "height": 0.369819
+          }
+        },
+        {
+          "name": "04_left_panel_bottom",
+          "description": "左侧下方面板：业务/指标/列表信息",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/04_left_panel_bottom.png",
+          "x": 14,
+          "y": 429,
+          "width": 330,
+          "height": 279,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.455898,
+            "width": 0.197368,
+            "height": 0.296493
+          }
+        },
+        {
+          "name": "05_main_stage_full",
+          "description": "中间主舞台完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/05_main_stage_full.png",
+          "x": 354,
+          "y": 73,
+          "width": 956,
+          "height": 635,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.077577,
+            "width": 0.57177,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "06_main_stage_header_zone",
+          "description": "主舞台顶部状态标签区",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/06_main_stage_header_zone.png",
+          "x": 354,
+          "y": 73,
+          "width": 956,
+          "height": 117,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.077577,
+            "width": 0.57177,
+            "height": 0.124336
+          }
+        },
+        {
+          "name": "07_main_stage_core_scene",
+          "description": "主舞台核心孪生/拓扑/推演画面",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/07_main_stage_core_scene.png",
+          "x": 354,
+          "y": 170,
+          "width": 956,
+          "height": 538,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.180659,
+            "width": 0.57177,
+            "height": 0.571732
+          }
+        },
+        {
+          "name": "08_right_sidebar_full",
+          "description": "右侧侧栏完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/08_right_sidebar_full.png",
+          "x": 1321,
+          "y": 73,
+          "width": 337,
+          "height": 635,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.077577,
+            "width": 0.201555,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "09_right_panel_top",
+          "description": "右侧上方面板：当前告警/推演结果",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/09_right_panel_top.png",
+          "x": 1321,
+          "y": 73,
+          "width": 337,
+          "height": 416,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.077577,
+            "width": 0.201555,
+            "height": 0.442083
+          }
+        },
+        {
+          "name": "10_right_panel_bottom",
+          "description": "右侧下方面板：影响范围/处理建议/环境状态",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/10_right_panel_bottom.png",
+          "x": 1321,
+          "y": 502,
+          "width": 337,
+          "height": 206,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.533475,
+            "width": 0.201555,
+            "height": 0.218916
+          }
+        },
+        {
+          "name": "11_bottom_bar_full",
+          "description": "底部完整区域：时间轴、视图导航、操作按钮",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/11_bottom_bar_full.png",
+          "x": 14,
+          "y": 722,
+          "width": 1644,
+          "height": 198,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.767269,
+            "width": 0.983254,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "12_bottom_timeline",
+          "description": "底部左侧：最近24小时告警时间轴",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/12_bottom_timeline.png",
+          "x": 14,
+          "y": 722,
+          "width": 452,
+          "height": 198,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.767269,
+            "width": 0.270335,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "13_bottom_view_nav",
+          "description": "底部中间：当前视图缩略导航/流程",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/13_bottom_view_nav.png",
+          "x": 483,
+          "y": 722,
+          "width": 821,
+          "height": 198,
+          "normalized": {
+            "x": 0.288876,
+            "y": 0.767269,
+            "width": 0.491029,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "14_bottom_actions",
+          "description": "底部右侧：推演/报告/导出等操作按钮",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/02区域/14_bottom_actions.png",
+          "x": 1305,
+          "y": 722,
+          "width": 353,
+          "height": 198,
+          "normalized": {
+            "x": 0.780502,
+            "y": 0.767269,
+            "width": 0.211124,
+            "height": 0.210414
+          }
+        }
+      ]
+    },
+    {
+      "page": "03机柜",
+      "source": "/Users/ignorance/WebstormProjects/digital_twin/design/03机柜.png",
+      "type": "dashboard",
+      "size": {
+        "width": 1672,
+        "height": 941
+      },
+      "regions": [
+        {
+          "name": "00_full_reference",
+          "description": "完整参考图",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/00_full_reference.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 941,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          }
+        },
+        {
+          "name": "01_top_title_bar",
+          "description": "顶部标题栏：标题、面包屑、时间、健康度、数据来源",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/01_top_title_bar.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 60,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.063762
+          }
+        },
+        {
+          "name": "02_left_sidebar_full",
+          "description": "左侧侧栏完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/02_left_sidebar_full.png",
+          "x": 14,
+          "y": 73,
+          "width": 330,
+          "height": 635,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.077577,
+            "width": 0.197368,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "03_left_panel_top",
+          "description": "左侧上方面板：资产/设备/配置主信息",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/03_left_panel_top.png",
+          "x": 14,
+          "y": 73,
+          "width": 330,
+          "height": 348,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.077577,
+            "width": 0.197368,
+            "height": 0.369819
+          }
+        },
+        {
+          "name": "04_left_panel_bottom",
+          "description": "左侧下方面板：业务/指标/列表信息",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/04_left_panel_bottom.png",
+          "x": 14,
+          "y": 429,
+          "width": 330,
+          "height": 279,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.455898,
+            "width": 0.197368,
+            "height": 0.296493
+          }
+        },
+        {
+          "name": "05_main_stage_full",
+          "description": "中间主舞台完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/05_main_stage_full.png",
+          "x": 354,
+          "y": 73,
+          "width": 956,
+          "height": 635,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.077577,
+            "width": 0.57177,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "06_main_stage_header_zone",
+          "description": "主舞台顶部状态标签区",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/06_main_stage_header_zone.png",
+          "x": 354,
+          "y": 73,
+          "width": 956,
+          "height": 117,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.077577,
+            "width": 0.57177,
+            "height": 0.124336
+          }
+        },
+        {
+          "name": "07_main_stage_core_scene",
+          "description": "主舞台核心孪生/拓扑/推演画面",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/07_main_stage_core_scene.png",
+          "x": 354,
+          "y": 170,
+          "width": 956,
+          "height": 538,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.180659,
+            "width": 0.57177,
+            "height": 0.571732
+          }
+        },
+        {
+          "name": "08_right_sidebar_full",
+          "description": "右侧侧栏完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/08_right_sidebar_full.png",
+          "x": 1321,
+          "y": 73,
+          "width": 337,
+          "height": 635,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.077577,
+            "width": 0.201555,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "09_right_panel_top",
+          "description": "右侧上方面板：当前告警/推演结果",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/09_right_panel_top.png",
+          "x": 1321,
+          "y": 73,
+          "width": 337,
+          "height": 416,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.077577,
+            "width": 0.201555,
+            "height": 0.442083
+          }
+        },
+        {
+          "name": "10_right_panel_bottom",
+          "description": "右侧下方面板：影响范围/处理建议/环境状态",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/10_right_panel_bottom.png",
+          "x": 1321,
+          "y": 502,
+          "width": 337,
+          "height": 206,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.533475,
+            "width": 0.201555,
+            "height": 0.218916
+          }
+        },
+        {
+          "name": "11_bottom_bar_full",
+          "description": "底部完整区域：时间轴、视图导航、操作按钮",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/11_bottom_bar_full.png",
+          "x": 14,
+          "y": 722,
+          "width": 1644,
+          "height": 198,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.767269,
+            "width": 0.983254,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "12_bottom_timeline",
+          "description": "底部左侧：最近24小时告警时间轴",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/12_bottom_timeline.png",
+          "x": 14,
+          "y": 722,
+          "width": 452,
+          "height": 198,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.767269,
+            "width": 0.270335,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "13_bottom_view_nav",
+          "description": "底部中间：当前视图缩略导航/流程",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/13_bottom_view_nav.png",
+          "x": 483,
+          "y": 722,
+          "width": 821,
+          "height": 198,
+          "normalized": {
+            "x": 0.288876,
+            "y": 0.767269,
+            "width": 0.491029,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "14_bottom_actions",
+          "description": "底部右侧：推演/报告/导出等操作按钮",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/03机柜/14_bottom_actions.png",
+          "x": 1305,
+          "y": 722,
+          "width": 353,
+          "height": 198,
+          "normalized": {
+            "x": 0.780502,
+            "y": 0.767269,
+            "width": 0.211124,
+            "height": 0.210414
+          }
+        }
+      ]
+    },
+    {
+      "page": "04拓扑",
+      "source": "/Users/ignorance/WebstormProjects/digital_twin/design/04拓扑.png",
+      "type": "dashboard",
+      "size": {
+        "width": 1672,
+        "height": 941
+      },
+      "regions": [
+        {
+          "name": "00_full_reference",
+          "description": "完整参考图",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/00_full_reference.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 941,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          }
+        },
+        {
+          "name": "01_top_title_bar",
+          "description": "顶部标题栏：标题、面包屑、时间、健康度、数据来源",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/01_top_title_bar.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 60,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.063762
+          }
+        },
+        {
+          "name": "02_left_sidebar_full",
+          "description": "左侧侧栏完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/02_left_sidebar_full.png",
+          "x": 14,
+          "y": 73,
+          "width": 330,
+          "height": 635,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.077577,
+            "width": 0.197368,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "03_left_panel_top",
+          "description": "左侧上方面板：资产/设备/配置主信息",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/03_left_panel_top.png",
+          "x": 14,
+          "y": 73,
+          "width": 330,
+          "height": 348,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.077577,
+            "width": 0.197368,
+            "height": 0.369819
+          }
+        },
+        {
+          "name": "04_left_panel_bottom",
+          "description": "左侧下方面板：业务/指标/列表信息",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/04_left_panel_bottom.png",
+          "x": 14,
+          "y": 429,
+          "width": 330,
+          "height": 279,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.455898,
+            "width": 0.197368,
+            "height": 0.296493
+          }
+        },
+        {
+          "name": "05_main_stage_full",
+          "description": "中间主舞台完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/05_main_stage_full.png",
+          "x": 354,
+          "y": 73,
+          "width": 956,
+          "height": 635,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.077577,
+            "width": 0.57177,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "06_main_stage_header_zone",
+          "description": "主舞台顶部状态标签区",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/06_main_stage_header_zone.png",
+          "x": 354,
+          "y": 73,
+          "width": 956,
+          "height": 117,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.077577,
+            "width": 0.57177,
+            "height": 0.124336
+          }
+        },
+        {
+          "name": "07_main_stage_core_scene",
+          "description": "主舞台核心孪生/拓扑/推演画面",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/07_main_stage_core_scene.png",
+          "x": 354,
+          "y": 170,
+          "width": 956,
+          "height": 538,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.180659,
+            "width": 0.57177,
+            "height": 0.571732
+          }
+        },
+        {
+          "name": "08_right_sidebar_full",
+          "description": "右侧侧栏完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/08_right_sidebar_full.png",
+          "x": 1321,
+          "y": 73,
+          "width": 337,
+          "height": 635,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.077577,
+            "width": 0.201555,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "09_right_panel_top",
+          "description": "右侧上方面板：当前告警/推演结果",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/09_right_panel_top.png",
+          "x": 1321,
+          "y": 73,
+          "width": 337,
+          "height": 416,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.077577,
+            "width": 0.201555,
+            "height": 0.442083
+          }
+        },
+        {
+          "name": "10_right_panel_bottom",
+          "description": "右侧下方面板：影响范围/处理建议/环境状态",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/10_right_panel_bottom.png",
+          "x": 1321,
+          "y": 502,
+          "width": 337,
+          "height": 206,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.533475,
+            "width": 0.201555,
+            "height": 0.218916
+          }
+        },
+        {
+          "name": "11_bottom_bar_full",
+          "description": "底部完整区域：时间轴、视图导航、操作按钮",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/11_bottom_bar_full.png",
+          "x": 14,
+          "y": 722,
+          "width": 1644,
+          "height": 198,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.767269,
+            "width": 0.983254,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "12_bottom_timeline",
+          "description": "底部左侧：最近24小时告警时间轴",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/12_bottom_timeline.png",
+          "x": 14,
+          "y": 722,
+          "width": 452,
+          "height": 198,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.767269,
+            "width": 0.270335,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "13_bottom_view_nav",
+          "description": "底部中间：当前视图缩略导航/流程",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/13_bottom_view_nav.png",
+          "x": 483,
+          "y": 722,
+          "width": 821,
+          "height": 198,
+          "normalized": {
+            "x": 0.288876,
+            "y": 0.767269,
+            "width": 0.491029,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "14_bottom_actions",
+          "description": "底部右侧：推演/报告/导出等操作按钮",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/04拓扑/14_bottom_actions.png",
+          "x": 1305,
+          "y": 722,
+          "width": 353,
+          "height": 198,
+          "normalized": {
+            "x": 0.780502,
+            "y": 0.767269,
+            "width": 0.211124,
+            "height": 0.210414
+          }
+        }
+      ]
+    },
+    {
+      "page": "05故障推演",
+      "source": "/Users/ignorance/WebstormProjects/digital_twin/design/05故障推演.png",
+      "type": "dashboard",
+      "size": {
+        "width": 1672,
+        "height": 941
+      },
+      "regions": [
+        {
+          "name": "00_full_reference",
+          "description": "完整参考图",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/00_full_reference.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 941,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          }
+        },
+        {
+          "name": "01_top_title_bar",
+          "description": "顶部标题栏：标题、面包屑、时间、健康度、数据来源",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/01_top_title_bar.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 60,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.063762
+          }
+        },
+        {
+          "name": "02_left_sidebar_full",
+          "description": "左侧侧栏完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/02_left_sidebar_full.png",
+          "x": 14,
+          "y": 73,
+          "width": 330,
+          "height": 635,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.077577,
+            "width": 0.197368,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "03_left_panel_top",
+          "description": "左侧上方面板：资产/设备/配置主信息",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/03_left_panel_top.png",
+          "x": 14,
+          "y": 73,
+          "width": 330,
+          "height": 348,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.077577,
+            "width": 0.197368,
+            "height": 0.369819
+          }
+        },
+        {
+          "name": "04_left_panel_bottom",
+          "description": "左侧下方面板：业务/指标/列表信息",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/04_left_panel_bottom.png",
+          "x": 14,
+          "y": 429,
+          "width": 330,
+          "height": 279,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.455898,
+            "width": 0.197368,
+            "height": 0.296493
+          }
+        },
+        {
+          "name": "05_main_stage_full",
+          "description": "中间主舞台完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/05_main_stage_full.png",
+          "x": 354,
+          "y": 73,
+          "width": 956,
+          "height": 635,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.077577,
+            "width": 0.57177,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "06_main_stage_header_zone",
+          "description": "主舞台顶部状态标签区",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/06_main_stage_header_zone.png",
+          "x": 354,
+          "y": 73,
+          "width": 956,
+          "height": 117,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.077577,
+            "width": 0.57177,
+            "height": 0.124336
+          }
+        },
+        {
+          "name": "07_main_stage_core_scene",
+          "description": "主舞台核心孪生/拓扑/推演画面",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/07_main_stage_core_scene.png",
+          "x": 354,
+          "y": 170,
+          "width": 956,
+          "height": 538,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.180659,
+            "width": 0.57177,
+            "height": 0.571732
+          }
+        },
+        {
+          "name": "08_right_sidebar_full",
+          "description": "右侧侧栏完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/08_right_sidebar_full.png",
+          "x": 1321,
+          "y": 73,
+          "width": 337,
+          "height": 635,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.077577,
+            "width": 0.201555,
+            "height": 0.674814
+          }
+        },
+        {
+          "name": "09_right_panel_top",
+          "description": "右侧上方面板：当前告警/推演结果",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/09_right_panel_top.png",
+          "x": 1321,
+          "y": 73,
+          "width": 337,
+          "height": 416,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.077577,
+            "width": 0.201555,
+            "height": 0.442083
+          }
+        },
+        {
+          "name": "10_right_panel_bottom",
+          "description": "右侧下方面板：影响范围/处理建议/环境状态",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/10_right_panel_bottom.png",
+          "x": 1321,
+          "y": 502,
+          "width": 337,
+          "height": 206,
+          "normalized": {
+            "x": 0.790072,
+            "y": 0.533475,
+            "width": 0.201555,
+            "height": 0.218916
+          }
+        },
+        {
+          "name": "11_bottom_bar_full",
+          "description": "底部完整区域：时间轴、视图导航、操作按钮",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/11_bottom_bar_full.png",
+          "x": 14,
+          "y": 722,
+          "width": 1644,
+          "height": 198,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.767269,
+            "width": 0.983254,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "12_bottom_timeline",
+          "description": "底部左侧：最近24小时告警时间轴",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/12_bottom_timeline.png",
+          "x": 14,
+          "y": 722,
+          "width": 452,
+          "height": 198,
+          "normalized": {
+            "x": 0.008373,
+            "y": 0.767269,
+            "width": 0.270335,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "13_bottom_view_nav",
+          "description": "底部中间：当前视图缩略导航/流程",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/13_bottom_view_nav.png",
+          "x": 483,
+          "y": 722,
+          "width": 821,
+          "height": 198,
+          "normalized": {
+            "x": 0.288876,
+            "y": 0.767269,
+            "width": 0.491029,
+            "height": 0.210414
+          }
+        },
+        {
+          "name": "14_bottom_actions",
+          "description": "底部右侧：推演/报告/导出等操作按钮",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/05故障推演/14_bottom_actions.png",
+          "x": 1305,
+          "y": 722,
+          "width": 353,
+          "height": 198,
+          "normalized": {
+            "x": 0.780502,
+            "y": 0.767269,
+            "width": 0.211124,
+            "height": 0.210414
+          }
+        }
+      ]
+    },
+    {
+      "page": "06底图编辑",
+      "source": "/Users/ignorance/WebstormProjects/digital_twin/design/06底图编辑.png",
+      "type": "orchestration",
+      "size": {
+        "width": 1672,
+        "height": 941
+      },
+      "regions": [
+        {
+          "name": "00_full_reference",
+          "description": "完整参考图",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/00_full_reference.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 941,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          }
+        },
+        {
+          "name": "01_top_title_bar",
+          "description": "顶部标题栏：标题、面包屑、时间、模式、状态",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/01_top_title_bar.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 58,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.061637
+          }
+        },
+        {
+          "name": "02_top_tool_bar",
+          "description": "顶部工具栏：撤销、重做、吸附网格、导入、保存、发布",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/02_top_tool_bar.png",
+          "x": 360,
+          "y": 65,
+          "width": 952,
+          "height": 39,
+          "normalized": {
+            "x": 0.215311,
+            "y": 0.069075,
+            "width": 0.569378,
+            "height": 0.041445
+          }
+        },
+        {
+          "name": "03_left_resource_panel",
+          "description": "左侧资源组件库完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/03_left_resource_panel.png",
+          "x": 10,
+          "y": 109,
+          "width": 334,
+          "height": 601,
+          "normalized": {
+            "x": 0.005981,
+            "y": 0.115834,
+            "width": 0.199761,
+            "height": 0.638682
+          }
+        },
+        {
+          "name": "04_left_library_top",
+          "description": "左侧上方：组件分类与可拖拽资源",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/04_left_library_top.png",
+          "x": 10,
+          "y": 109,
+          "width": 334,
+          "height": 456,
+          "normalized": {
+            "x": 0.005981,
+            "y": 0.115834,
+            "width": 0.199761,
+            "height": 0.484591
+          }
+        },
+        {
+          "name": "05_left_unplaced_assets",
+          "description": "左侧中部：未放置资源列表",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/05_left_unplaced_assets.png",
+          "x": 10,
+          "y": 568,
+          "width": 334,
+          "height": 142,
+          "normalized": {
+            "x": 0.005981,
+            "y": 0.603613,
+            "width": 0.199761,
+            "height": 0.150903
+          }
+        },
+        {
+          "name": "06_main_editor_canvas",
+          "description": "中间机房平面编辑画布完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/06_main_editor_canvas.png",
+          "x": 354,
+          "y": 109,
+          "width": 961,
+          "height": 601,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.115834,
+            "width": 0.574761,
+            "height": 0.638682
+          }
+        },
+        {
+          "name": "07_main_canvas_core",
+          "description": "中间核心机房布局、机柜排和选中框",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/07_main_canvas_core.png",
+          "x": 454,
+          "y": 175,
+          "width": 822,
+          "height": 425,
+          "normalized": {
+            "x": 0.271531,
+            "y": 0.185972,
+            "width": 0.491627,
+            "height": 0.451647
+          }
+        },
+        {
+          "name": "08_right_properties_panel",
+          "description": "右侧属性配置完整面板",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/08_right_properties_panel.png",
+          "x": 1325,
+          "y": 109,
+          "width": 335,
+          "height": 601,
+          "normalized": {
+            "x": 0.792464,
+            "y": 0.115834,
+            "width": 0.200359,
+            "height": 0.638682
+          }
+        },
+        {
+          "name": "09_right_properties_top",
+          "description": "右侧上方：选中对象属性字段",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/09_right_properties_top.png",
+          "x": 1325,
+          "y": 109,
+          "width": 335,
+          "height": 376,
+          "normalized": {
+            "x": 0.792464,
+            "y": 0.115834,
+            "width": 0.200359,
+            "height": 0.399575
+          }
+        },
+        {
+          "name": "10_right_rules_bottom",
+          "description": "右侧下方：开关、应用、复制布局",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/10_right_rules_bottom.png",
+          "x": 1325,
+          "y": 485,
+          "width": 335,
+          "height": 225,
+          "normalized": {
+            "x": 0.792464,
+            "y": 0.515409,
+            "width": 0.200359,
+            "height": 0.239107
+          }
+        },
+        {
+          "name": "11_bottom_bar_full",
+          "description": "底部完整区域：图层、校验、发布、数据说明",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/11_bottom_bar_full.png",
+          "x": 10,
+          "y": 722,
+          "width": 1650,
+          "height": 191,
+          "normalized": {
+            "x": 0.005981,
+            "y": 0.767269,
+            "width": 0.986842,
+            "height": 0.202976
+          }
+        },
+        {
+          "name": "12_bottom_left_status",
+          "description": "底部左侧：图层管理",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/12_bottom_left_status.png",
+          "x": 10,
+          "y": 722,
+          "width": 334,
+          "height": 191,
+          "normalized": {
+            "x": 0.005981,
+            "y": 0.767269,
+            "width": 0.199761,
+            "height": 0.202976
+          }
+        },
+        {
+          "name": "13_bottom_middle_validation",
+          "description": "底部中间：校验结果与发布流程",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/13_bottom_middle_validation.png",
+          "x": 354,
+          "y": 722,
+          "width": 1059,
+          "height": 191,
+          "normalized": {
+            "x": 0.211722,
+            "y": 0.767269,
+            "width": 0.633373,
+            "height": 0.202976
+          }
+        },
+        {
+          "name": "14_bottom_publish_actions",
+          "description": "底部右侧：数据说明",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/06底图编辑/14_bottom_publish_actions.png",
+          "x": 1422,
+          "y": 722,
+          "width": 238,
+          "height": 191,
+          "normalized": {
+            "x": 0.850478,
+            "y": 0.767269,
+            "width": 0.142344,
+            "height": 0.202976
+          }
+        }
+      ]
+    },
+    {
+      "page": "07设备编辑",
+      "source": "/Users/ignorance/WebstormProjects/digital_twin/design/07设备编辑.png",
+      "type": "orchestration",
+      "size": {
+        "width": 1672,
+        "height": 941
+      },
+      "regions": [
+        {
+          "name": "00_full_reference",
+          "description": "完整参考图",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/00_full_reference.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 941,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          }
+        },
+        {
+          "name": "01_top_title_bar",
+          "description": "顶部标题栏：标题、面包屑、时间、模式、操作",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/01_top_title_bar.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 64,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.068013
+          }
+        },
+        {
+          "name": "02_top_tool_bar",
+          "description": "顶部右侧工具栏：撤销、重做、自动排布、保存、发布",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/02_top_tool_bar.png",
+          "x": 908,
+          "y": 18,
+          "width": 753,
+          "height": 35,
+          "normalized": {
+            "x": 0.543062,
+            "y": 0.019129,
+            "width": 0.450359,
+            "height": 0.037194
+          }
+        },
+        {
+          "name": "03_left_resource_panel",
+          "description": "左侧设备资源库完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/03_left_resource_panel.png",
+          "x": 10,
+          "y": 80,
+          "width": 307,
+          "height": 694,
+          "normalized": {
+            "x": 0.005981,
+            "y": 0.085016,
+            "width": 0.183612,
+            "height": 0.737513
+          }
+        },
+        {
+          "name": "04_left_library_top",
+          "description": "左侧上方：设备类型资源库",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/04_left_library_top.png",
+          "x": 10,
+          "y": 80,
+          "width": 307,
+          "height": 364,
+          "normalized": {
+            "x": 0.005981,
+            "y": 0.085016,
+            "width": 0.183612,
+            "height": 0.386823
+          }
+        },
+        {
+          "name": "05_left_unplaced_assets",
+          "description": "左侧中部：未上架设备与提示",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/05_left_unplaced_assets.png",
+          "x": 10,
+          "y": 455,
+          "width": 307,
+          "height": 319,
+          "normalized": {
+            "x": 0.005981,
+            "y": 0.483528,
+            "width": 0.183612,
+            "height": 0.339001
+          }
+        },
+        {
+          "name": "06_main_editor_canvas",
+          "description": "中间B03机柜U位编辑画布完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/06_main_editor_canvas.png",
+          "x": 327,
+          "y": 80,
+          "width": 792,
+          "height": 694,
+          "normalized": {
+            "x": 0.195574,
+            "y": 0.085016,
+            "width": 0.473684,
+            "height": 0.737513
+          }
+        },
+        {
+          "name": "07_main_canvas_core",
+          "description": "中间核心机柜正面和选中设备块",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/07_main_canvas_core.png",
+          "x": 403,
+          "y": 125,
+          "width": 517,
+          "height": 597,
+          "normalized": {
+            "x": 0.241029,
+            "y": 0.132837,
+            "width": 0.309211,
+            "height": 0.634431
+          }
+        },
+        {
+          "name": "08_right_properties_panel",
+          "description": "右侧选中设备属性完整面板",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/08_right_properties_panel.png",
+          "x": 1129,
+          "y": 80,
+          "width": 531,
+          "height": 694,
+          "normalized": {
+            "x": 0.675239,
+            "y": 0.085016,
+            "width": 0.317584,
+            "height": 0.737513
+          }
+        },
+        {
+          "name": "09_right_properties_top",
+          "description": "右侧上方：设备属性表格",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/09_right_properties_top.png",
+          "x": 1129,
+          "y": 80,
+          "width": 531,
+          "height": 280,
+          "normalized": {
+            "x": 0.675239,
+            "y": 0.085016,
+            "width": 0.317584,
+            "height": 0.297556
+          }
+        },
+        {
+          "name": "10_right_rules_bottom",
+          "description": "右侧下方：端口绑定与规则配置",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/10_right_rules_bottom.png",
+          "x": 1129,
+          "y": 373,
+          "width": 531,
+          "height": 401,
+          "normalized": {
+            "x": 0.675239,
+            "y": 0.396387,
+            "width": 0.317584,
+            "height": 0.426142
+          }
+        },
+        {
+          "name": "11_bottom_bar_full",
+          "description": "底部完整区域：容量、功耗、校验、发布流程",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/11_bottom_bar_full.png",
+          "x": 10,
+          "y": 790,
+          "width": 1650,
+          "height": 140,
+          "normalized": {
+            "x": 0.005981,
+            "y": 0.839532,
+            "width": 0.986842,
+            "height": 0.148778
+          }
+        },
+        {
+          "name": "12_bottom_left_status",
+          "description": "底部左侧：机柜容量与功耗环境",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/12_bottom_left_status.png",
+          "x": 10,
+          "y": 790,
+          "width": 686,
+          "height": 140,
+          "normalized": {
+            "x": 0.005981,
+            "y": 0.839532,
+            "width": 0.410287,
+            "height": 0.148778
+          }
+        },
+        {
+          "name": "13_bottom_middle_validation",
+          "description": "底部中间：校验结果",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/13_bottom_middle_validation.png",
+          "x": 696,
+          "y": 790,
+          "width": 364,
+          "height": 140,
+          "normalized": {
+            "x": 0.416268,
+            "y": 0.839532,
+            "width": 0.217703,
+            "height": 0.148778
+          }
+        },
+        {
+          "name": "14_bottom_publish_actions",
+          "description": "底部右侧：发布流程与预览/清单按钮",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/07设备编辑/14_bottom_publish_actions.png",
+          "x": 1060,
+          "y": 790,
+          "width": 600,
+          "height": 140,
+          "normalized": {
+            "x": 0.633971,
+            "y": 0.839532,
+            "width": 0.358852,
+            "height": 0.148778
+          }
+        }
+      ]
+    },
+    {
+      "page": "08拓扑编辑",
+      "source": "/Users/ignorance/WebstormProjects/digital_twin/design/08拓扑编辑.png",
+      "type": "orchestration",
+      "size": {
+        "width": 1672,
+        "height": 941
+      },
+      "regions": [
+        {
+          "name": "00_full_reference",
+          "description": "完整参考图",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/00_full_reference.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 941,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          }
+        },
+        {
+          "name": "01_top_title_bar",
+          "description": "顶部标题栏：标题、面包屑、时间、版本、操作",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/01_top_title_bar.png",
+          "x": 0,
+          "y": 0,
+          "width": 1672,
+          "height": 58,
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.061637
+          }
+        },
+        {
+          "name": "02_top_tool_bar",
+          "description": "顶部工具栏：自动布局、对齐、导入、校验、预览、发布",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/02_top_tool_bar.png",
+          "x": 510,
+          "y": 67,
+          "width": 761,
+          "height": 36,
+          "normalized": {
+            "x": 0.305024,
+            "y": 0.071201,
+            "width": 0.455144,
+            "height": 0.038257
+          }
+        },
+        {
+          "name": "03_left_resource_panel",
+          "description": "左侧节点库和业务资产完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/03_left_resource_panel.png",
+          "x": 12,
+          "y": 66,
+          "width": 255,
+          "height": 680,
+          "normalized": {
+            "x": 0.007177,
+            "y": 0.070138,
+            "width": 0.152512,
+            "height": 0.722635
+          }
+        },
+        {
+          "name": "04_left_library_top",
+          "description": "左侧上方：节点库",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/04_left_library_top.png",
+          "x": 12,
+          "y": 66,
+          "width": 255,
+          "height": 332,
+          "normalized": {
+            "x": 0.007177,
+            "y": 0.070138,
+            "width": 0.152512,
+            "height": 0.352816
+          }
+        },
+        {
+          "name": "05_left_unplaced_assets",
+          "description": "左侧中下：业务资产与未绑定对象",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/05_left_unplaced_assets.png",
+          "x": 12,
+          "y": 407,
+          "width": 255,
+          "height": 339,
+          "normalized": {
+            "x": 0.007177,
+            "y": 0.432519,
+            "width": 0.152512,
+            "height": 0.360255
+          }
+        },
+        {
+          "name": "06_main_editor_canvas",
+          "description": "中间拓扑关系编辑画布完整区域",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/06_main_editor_canvas.png",
+          "x": 276,
+          "y": 106,
+          "width": 1030,
+          "height": 640,
+          "normalized": {
+            "x": 0.165072,
+            "y": 0.112646,
+            "width": 0.616029,
+            "height": 0.680128
+          }
+        },
+        {
+          "name": "07_main_canvas_core",
+          "description": "中间核心拓扑节点、链路和影响路径",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/07_main_canvas_core.png",
+          "x": 308,
+          "y": 136,
+          "width": 930,
+          "height": 550,
+          "normalized": {
+            "x": 0.184211,
+            "y": 0.144527,
+            "width": 0.55622,
+            "height": 0.584485
+          }
+        },
+        {
+          "name": "08_right_properties_panel",
+          "description": "右侧选中对象属性完整面板",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/08_right_properties_panel.png",
+          "x": 1316,
+          "y": 66,
+          "width": 344,
+          "height": 680,
+          "normalized": {
+            "x": 0.787081,
+            "y": 0.070138,
+            "width": 0.205742,
+            "height": 0.722635
+          }
+        },
+        {
+          "name": "09_right_properties_top",
+          "description": "右侧上方：基本属性和规则配置",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/09_right_properties_top.png",
+          "x": 1316,
+          "y": 66,
+          "width": 344,
+          "height": 379,
+          "normalized": {
+            "x": 0.787081,
+            "y": 0.070138,
+            "width": 0.205742,
+            "height": 0.402763
+          }
+        },
+        {
+          "name": "10_right_rules_bottom",
+          "description": "右侧下方：业务映射、继承与推演、建议模板",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/10_right_rules_bottom.png",
+          "x": 1316,
+          "y": 445,
+          "width": 344,
+          "height": 301,
+          "normalized": {
+            "x": 0.787081,
+            "y": 0.472901,
+            "width": 0.205742,
+            "height": 0.319872
+          }
+        },
+        {
+          "name": "11_bottom_bar_full",
+          "description": "底部完整区域：校验、版本、发布流程",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/11_bottom_bar_full.png",
+          "x": 12,
+          "y": 758,
+          "width": 1648,
+          "height": 155,
+          "normalized": {
+            "x": 0.007177,
+            "y": 0.805526,
+            "width": 0.985646,
+            "height": 0.164718
+          }
+        },
+        {
+          "name": "12_bottom_left_status",
+          "description": "底部左侧：关系校验结果",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/12_bottom_left_status.png",
+          "x": 12,
+          "y": 758,
+          "width": 566,
+          "height": 155,
+          "normalized": {
+            "x": 0.007177,
+            "y": 0.805526,
+            "width": 0.338517,
+            "height": 0.164718
+          }
+        },
+        {
+          "name": "13_bottom_middle_validation",
+          "description": "底部中间：版本记录",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/13_bottom_middle_validation.png",
+          "x": 587,
+          "y": 758,
+          "width": 558,
+          "height": 155,
+          "normalized": {
+            "x": 0.351077,
+            "y": 0.805526,
+            "width": 0.333732,
+            "height": 0.164718
+          }
+        },
+        {
+          "name": "14_bottom_publish_actions",
+          "description": "底部右侧：发布流程与导出按钮",
+          "file": "/Users/ignorance/WebstormProjects/digital_twin/design/cut_v2/08拓扑编辑/14_bottom_publish_actions.png",
+          "x": 1156,
+          "y": 758,
+          "width": 504,
+          "height": 155,
+          "normalized": {
+            "x": 0.691388,
+            "y": 0.805526,
+            "width": 0.301435,
+            "height": 0.164718
+          }
+        }
+      ]
+    }
+  ]
+}

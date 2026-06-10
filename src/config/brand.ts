@@ -22,6 +22,6 @@ export const BRAND_PROFILES = {
 export type BrandProfileKey = keyof typeof BRAND_PROFILES;
 
 // Change this value to switch all runtime branding between personal and work.
-export const ACTIVE_BRAND_PROFILE: BrandProfileKey = 'personal';
+export const ACTIVE_BRAND_PROFILE: BrandProfileKey = 'work';
 
 export const appBrand = BRAND_PROFILES[ACTIVE_BRAND_PROFILE];

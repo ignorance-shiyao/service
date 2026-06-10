@@ -1,0 +1,362 @@
+{
+  "version": "1.3",
+  "type": "svg_wrapped_png",
+  "note": "SVG files embed the original transparent PNG as base64 to preserve pseudo-3D raster styling.",
+  "output_dir": "/Users/ignorance/WebstormProjects/service/public/svg",
+  "assets": [
+    {
+      "name": "badge_alarm_critical",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/badge_alarm_critical.svg",
+      "width": 176,
+      "height": 96
+    },
+    {
+      "name": "badge_real_data",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/badge_real_data.svg",
+      "width": 176,
+      "height": 96
+    },
+    {
+      "name": "badge_sim_data",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/badge_sim_data.svg",
+      "width": 176,
+      "height": 96
+    },
+    {
+      "name": "device_agv",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/device_agv.svg",
+      "width": 512,
+      "height": 371
+    },
+    {
+      "name": "device_camera",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/device_camera.svg",
+      "width": 512,
+      "height": 411
+    },
+    {
+      "name": "device_plc",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/device_plc.svg",
+      "width": 512,
+      "height": 395
+    },
+    {
+      "name": "device_precision_ac_warning",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/device_precision_ac_warning.svg",
+      "width": 280,
+      "height": 512
+    },
+    {
+      "name": "device_server_2u",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/device_server_2u.svg",
+      "width": 512,
+      "height": 246
+    },
+    {
+      "name": "device_switch_1u_alarm",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/device_switch_1u_alarm.svg",
+      "width": 512,
+      "height": 205
+    },
+    {
+      "name": "device_ups",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/device_ups.svg",
+      "width": 291,
+      "height": 512
+    },
+    {
+      "name": "env_door_double",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/env_door_double.svg",
+      "width": 512,
+      "height": 476
+    },
+    {
+      "name": "env_floor_raised_tile",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/env_floor_raised_tile.svg",
+      "width": 768,
+      "height": 499
+    },
+    {
+      "name": "env_floor_room_slab",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/env_floor_room_slab.svg",
+      "width": 768,
+      "height": 450
+    },
+    {
+      "name": "env_glass_partition",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/env_glass_partition.svg",
+      "width": 768,
+      "height": 675
+    },
+    {
+      "name": "env_greenery_cluster",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/env_greenery_cluster.svg",
+      "width": 768,
+      "height": 635
+    },
+    {
+      "name": "env_road_straight",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/env_road_straight.svg",
+      "width": 768,
+      "height": 427
+    },
+    {
+      "name": "env_wall_corner_l",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/env_wall_corner_l.svg",
+      "width": 768,
+      "height": 464
+    },
+    {
+      "name": "env_wall_straight",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/env_wall_straight.svg",
+      "width": 768,
+      "height": 551
+    },
+    {
+      "name": "facility_cable_tray",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/facility_cable_tray.svg",
+      "width": 768,
+      "height": 552
+    },
+    {
+      "name": "facility_sensor_pole",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/facility_sensor_pole.svg",
+      "width": 157,
+      "height": 512
+    },
+    {
+      "name": "infra_ac_condenser",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_ac_condenser.svg",
+      "width": 768,
+      "height": 680
+    },
+    {
+      "name": "infra_ac_inrow",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_ac_inrow.svg",
+      "width": 197,
+      "height": 512
+    },
+    {
+      "name": "infra_ac_room_precision",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_ac_room_precision.svg",
+      "width": 390,
+      "height": 512
+    },
+    {
+      "name": "infra_ats_cabinet",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_ats_cabinet.svg",
+      "width": 369,
+      "height": 512
+    },
+    {
+      "name": "infra_diesel_generator",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_diesel_generator.svg",
+      "width": 742,
+      "height": 768
+    },
+    {
+      "name": "infra_fire_suppression_cylinders",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_fire_suppression_cylinders.svg",
+      "width": 299,
+      "height": 512
+    },
+    {
+      "name": "infra_led_light_fixture",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_led_light_fixture.svg",
+      "width": 512,
+      "height": 255
+    },
+    {
+      "name": "infra_pdu_strip",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_pdu_strip.svg",
+      "width": 62,
+      "height": 512
+    },
+    {
+      "name": "infra_power_distribution_cabinet",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_power_distribution_cabinet.svg",
+      "width": 400,
+      "height": 512
+    },
+    {
+      "name": "infra_smoke_detector",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_smoke_detector.svg",
+      "width": 512,
+      "height": 450
+    },
+    {
+      "name": "infra_temp_humidity_sensor",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_temp_humidity_sensor.svg",
+      "width": 416,
+      "height": 512
+    },
+    {
+      "name": "infra_ups_battery_cabinet",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_ups_battery_cabinet.svg",
+      "width": 242,
+      "height": 512
+    },
+    {
+      "name": "infra_ups_main",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_ups_main.svg",
+      "width": 288,
+      "height": 512
+    },
+    {
+      "name": "infra_water_leak_sensor",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/infra_water_leak_sensor.svg",
+      "width": 768,
+      "height": 369
+    },
+    {
+      "name": "overlay_selection_cyan",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/overlay_selection_cyan.svg",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "name": "park_ev_charger_parking",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/park_ev_charger_parking.svg",
+      "width": 768,
+      "height": 614
+    },
+    {
+      "name": "park_ev_charger_parking_alt",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/park_ev_charger_parking_alt.svg",
+      "width": 768,
+      "height": 609
+    },
+    {
+      "name": "park_factory_building",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/park_factory_building.svg",
+      "width": 768,
+      "height": 576
+    },
+    {
+      "name": "park_hvac_chiller",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/park_hvac_chiller.svg",
+      "width": 768,
+      "height": 648
+    },
+    {
+      "name": "park_loading_dock",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/park_loading_dock.svg",
+      "width": 768,
+      "height": 604
+    },
+    {
+      "name": "park_office_building",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/park_office_building.svg",
+      "width": 768,
+      "height": 694
+    },
+    {
+      "name": "park_security_gatehouse",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/park_security_gatehouse.svg",
+      "width": 768,
+      "height": 708
+    },
+    {
+      "name": "park_transformer_substation",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/park_transformer_substation.svg",
+      "width": 768,
+      "height": 594
+    },
+    {
+      "name": "rack_row",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/rack_row.svg",
+      "width": 768,
+      "height": 472
+    },
+    {
+      "name": "rack_single_42u",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/rack_single_42u.svg",
+      "width": 259,
+      "height": 512
+    },
+    {
+      "name": "room_inspection_robot",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/room_inspection_robot.svg",
+      "width": 405,
+      "height": 512
+    },
+    {
+      "name": "status_critical",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/status_critical.svg",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "name": "status_normal",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/status_normal.svg",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "name": "status_offline",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/status_offline.svg",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "name": "status_warning",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/status_warning.svg",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "name": "workshop_assembly_station",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/workshop_assembly_station.svg",
+      "width": 658,
+      "height": 768
+    },
+    {
+      "name": "workshop_cnc_machine",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/workshop_cnc_machine.svg",
+      "width": 687,
+      "height": 768
+    },
+    {
+      "name": "workshop_control_cabinet",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/workshop_control_cabinet.svg",
+      "width": 246,
+      "height": 512
+    },
+    {
+      "name": "workshop_conveyor",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/workshop_conveyor.svg",
+      "width": 768,
+      "height": 547
+    },
+    {
+      "name": "workshop_robot_arm",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/workshop_robot_arm.svg",
+      "width": 653,
+      "height": 768
+    },
+    {
+      "name": "workshop_safety_fence",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/workshop_safety_fence.svg",
+      "width": 768,
+      "height": 608
+    },
+    {
+      "name": "workstation_vision",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/workstation_vision.svg",
+      "width": 475,
+      "height": 512
+    },
+    {
+      "name": "zone_datacenter",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/zone_datacenter.svg",
+      "width": 768,
+      "height": 574
+    },
+    {
+      "name": "zone_factory",
+      "svg": "/Users/ignorance/WebstormProjects/service/public/svg/zone_factory.svg",
+      "width": 768,
+      "height": 532
+    }
+  ]
+}

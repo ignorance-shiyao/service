@@ -18,6 +18,7 @@ import { AppFeedbackHost } from './components/AppFeedback';
 import { useAppData } from './context/AppDataContext';
 import { DigitalTwinDashboard } from './digitalTwin/DigitalTwinDashboard';
 import { DigitalTwinEditor } from './digitalTwin/DigitalTwinEditor';
+import { IDCPerformance } from './pages/IDCPerformance';
 import { appBrand } from './config/brand';
 
 // --- Lazy Load Pages ---
@@ -91,6 +92,9 @@ const NAV_ITEMS = [
     title: '性能可视',
     icon: BarChart3,
     path: '/visual/performance',
+    children: [
+      { id: 'idc-performance', title: 'IDC性能', icon: BarChart3, path: '/visual/performance/idc' },
+    ],
   },
   {
     id: 'resource-view',
@@ -291,12 +295,12 @@ const App: React.FC = () => {
   const getCurrentPageTitle = () => {
     const currentPath = location.pathname;
     for (const item of NAV_ITEMS) {
-      if (item.path && currentPath.startsWith(item.path)) {
-        return { parent: item.title, child: '' };
-      }
       if (item.children) {
         const child = item.children.find(c => currentPath.startsWith(c.path));
         if (child) return { parent: item.title, child: child.title };
+      }
+      if (item.path && currentPath.startsWith(item.path)) {
+        return { parent: item.title, child: '' };
       }
     }
     if (currentPath === '/' || currentPath.startsWith('/overview/home')) return { parent: '业务总览', child: '首页概览' };
@@ -603,8 +607,9 @@ const App: React.FC = () => {
 
                     <Route
                       path="/visual/performance"
-                      element={<PlaceholderPage title="性能可视" subtitle="性能监测图谱、时延/丢包趋势、区域质量排名等功能入口。" />}
+                      element={<Navigate to="/visual/performance/idc" replace />}
                     />
+                    <Route path="/visual/performance/idc" element={<IDCPerformance />} />
                     <Route
                       path="/visual/resource"
                       element={<PlaceholderPage title="资源可视" subtitle="站点、设备、端口、容量资源的全局可视化入口。" />}
