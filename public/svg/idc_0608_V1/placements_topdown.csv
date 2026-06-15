@@ -1,0 +1,13 @@
+id,component,category,x,y,width,height,zIndex,note
+rack_rows_AK_topdown_body,rack_rows_AK_topdown_body_page.svg,rack_body,0,0,1920,1080,20,A-K 11列俯视连续机柜排，总容量196架
+access_door_double,components/access_door_double.svg,facility,1370,745,210,160,35,门禁入口
+room_precision_ac,components/room_precision_ac.svg,facility,1500,250,150,145,35,机房专用空调
+ups_main_cabinet,components/ups_main_cabinet.svg,facility,200,520,150,150,35,UPS主机
+ups_battery_cabinet,components/ups_battery_cabinet.svg,facility,320,610,150,125,35,电池柜
+power_distribution_cabinet,components/power_distribution_cabinet.svg,facility,150,250,210,140,35,配电柜
+fire_suppression_cylinders,components/fire_suppression_cylinders.svg,facility,1500,640,150,145,35,气体灭火钢瓶
+inspection_robot_patrol,components/inspection_robot_patrol.svg,facility,920,540,180,120,41,机房巡检机器人
+smoke_detector,components/smoke_detector.svg,sensor,870,190,70,60,40,烟感
+temp_humidity_sensor,components/temp_humidity_sensor.svg,sensor,1600,400,55,70,40,温湿度传感器
+water_leak_cable,components/water_leak_cable.svg,sensor,420,800,220,60,40,水浸线
+alarm_beacon_pole,components/alarm_beacon_pole.svg,sensor,1600,600,70,150,40,告警灯

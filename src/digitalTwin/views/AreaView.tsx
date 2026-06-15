@@ -332,16 +332,18 @@ const RoamingRobotSprite: React.FC<{ item: SceneItem; z: number; motionTime: num
 
   return (
     <>
-      <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ zIndex: z - 1 }}>
-        <polyline
-          points={getRobotTrackPoints(item)}
-          fill="none"
-          stroke="rgba(79,193,255,0.72)"
-          strokeWidth="0.24"
-          strokeDasharray="1.2 0.8"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
+      {getRobotTrackPoints(item) && (
+        <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ zIndex: z - 1 }}>
+          <polyline
+            points={getRobotTrackPoints(item)}
+            fill="none"
+            stroke="rgba(79,193,255,0.72)"
+            strokeWidth="0.24"
+            strokeDasharray="1.2 0.8"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+      )}
       <div
         className="absolute"
         title={item.label ?? item.asset}

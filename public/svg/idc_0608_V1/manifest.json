@@ -1,0 +1,758 @@
+{
+  "version": "idc_0608_V1",
+  "created": "2026-06-08",
+  "source_excel": "/Users/ignorance/WebstormProjects/digital_twin/docs/IDC设备信息.xlsx",
+  "style": "2.5D front-left isometric IDC virtual simulation assets",
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "excel_capacity": {
+    "rack_rows": {
+      "A": 17,
+      "B": 19,
+      "C": 19,
+      "D": 16,
+      "E": 19,
+      "F": 14,
+      "G": 19,
+      "H": 16,
+      "I": 19,
+      "J": 19,
+      "K": 19
+    },
+    "rack_total": 196,
+    "record_count": 332
+  },
+  "files": {
+    "room_base_empty": "room_base_empty_11_columns.svg",
+    "room_base_empty_raw": "room_base_empty_raw.svg",
+    "rack_body": "rack_columns_AK_body.svg",
+    "rack_body_page": "rack_columns_AK_body_page.svg",
+    "preview": "preview_room_with_AK_racks.svg",
+    "placements": "placements.csv",
+    "rack_rows": "rack_rows_AK.csv",
+    "rack_slots": "rack_slots_AK.csv",
+    "inspection_robot_patrol": "components/inspection_robot_patrol.svg"
+  },
+  "components": [
+    {
+      "id": "rack_row_12_body",
+      "name_cn": "12柜连续机柜列",
+      "category": "equipment",
+      "png": "components/rack_row_12_body.png",
+      "svg": "components/rack_row_12_body.svg",
+      "width": 531,
+      "height": 350,
+      "source_sheet": "source_rack_sheet.svg",
+      "source_bbox": {
+        "x": 26,
+        "y": 114,
+        "width": 531,
+        "height": 350
+      }
+    },
+    {
+      "id": "rack_row_8_body",
+      "name_cn": "8柜连续机柜列",
+      "category": "equipment",
+      "png": "components/rack_row_8_body.png",
+      "svg": "components/rack_row_8_body.svg",
+      "width": 395,
+      "height": 316,
+      "source_sheet": "source_rack_sheet.svg",
+      "source_bbox": {
+        "x": 596,
+        "y": 144,
+        "width": 395,
+        "height": 316
+      }
+    },
+    {
+      "id": "single_rack_42u",
+      "name_cn": "单个42U机柜",
+      "category": "equipment",
+      "png": "components/single_rack_42u.png",
+      "svg": "components/single_rack_42u.svg",
+      "width": 180,
+      "height": 376,
+      "source_sheet": "source_rack_sheet.svg",
+      "source_bbox": {
+        "x": 1042,
+        "y": 87,
+        "width": 180,
+        "height": 376
+      }
+    },
+    {
+      "id": "server_cabinet_front",
+      "name_cn": "正面服务器柜",
+      "category": "equipment",
+      "png": "components/server_cabinet_front.png",
+      "svg": "components/server_cabinet_front.svg",
+      "width": 157,
+      "height": 359,
+      "source_sheet": "source_rack_sheet.svg",
+      "source_bbox": {
+        "x": 1300,
+        "y": 102,
+        "width": 157,
+        "height": 359
+      }
+    },
+    {
+      "id": "half_height_network_cabinet",
+      "name_cn": "半高网络柜",
+      "category": "equipment",
+      "png": "components/half_height_network_cabinet.png",
+      "svg": "components/half_height_network_cabinet.svg",
+      "width": 244,
+      "height": 238,
+      "source_sheet": "source_rack_sheet.svg",
+      "source_bbox": {
+        "x": 88,
+        "y": 624,
+        "width": 244,
+        "height": 238
+      }
+    },
+    {
+      "id": "patch_panel_tray",
+      "name_cn": "配线架/桥架",
+      "category": "equipment",
+      "png": "components/patch_panel_tray.png",
+      "svg": "components/patch_panel_tray.svg",
+      "width": 385,
+      "height": 165,
+      "source_sheet": "source_rack_sheet.svg",
+      "source_bbox": {
+        "x": 421,
+        "y": 680,
+        "width": 385,
+        "height": 165
+      }
+    },
+    {
+      "id": "rack_end_cap",
+      "name_cn": "机柜端帽",
+      "category": "equipment",
+      "png": "components/rack_end_cap.png",
+      "svg": "components/rack_end_cap.svg",
+      "width": 157,
+      "height": 315,
+      "source_sheet": "source_rack_sheet.svg",
+      "source_bbox": {
+        "x": 900,
+        "y": 573,
+        "width": 157,
+        "height": 315
+      }
+    },
+    {
+      "id": "rack_sensor_module",
+      "name_cn": "机柜传感模块",
+      "category": "equipment",
+      "png": "components/rack_sensor_module.png",
+      "svg": "components/rack_sensor_module.svg",
+      "width": 327,
+      "height": 87,
+      "source_sheet": "source_rack_sheet.svg",
+      "source_bbox": {
+        "x": 1136,
+        "y": 734,
+        "width": 327,
+        "height": 87
+      }
+    },
+    {
+      "id": "room_precision_ac",
+      "name_cn": "房间精密空调",
+      "category": "equipment",
+      "png": "components/room_precision_ac.png",
+      "svg": "components/room_precision_ac.svg",
+      "width": 345,
+      "height": 419,
+      "source_sheet": "source_facility_sheet.svg",
+      "source_bbox": {
+        "x": 145,
+        "y": 28,
+        "width": 345,
+        "height": 419
+      }
+    },
+    {
+      "id": "inrow_cooling_unit",
+      "name_cn": "列间空调",
+      "category": "equipment",
+      "png": "components/inrow_cooling_unit.png",
+      "svg": "components/inrow_cooling_unit.svg",
+      "width": 189,
+      "height": 417,
+      "source_sheet": "source_facility_sheet.svg",
+      "source_bbox": {
+        "x": 705,
+        "y": 23,
+        "width": 189,
+        "height": 417
+      }
+    },
+    {
+      "id": "ups_main_cabinet",
+      "name_cn": "UPS主机柜",
+      "category": "equipment",
+      "png": "components/ups_main_cabinet.png",
+      "svg": "components/ups_main_cabinet.svg",
+      "width": 304,
+      "height": 421,
+      "source_sheet": "source_facility_sheet.svg",
+      "source_bbox": {
+        "x": 1097,
+        "y": 31,
+        "width": 304,
+        "height": 421
+      }
+    },
+    {
+      "id": "ups_battery_cabinet",
+      "name_cn": "UPS电池柜",
+      "category": "equipment",
+      "png": "components/ups_battery_cabinet.png",
+      "svg": "components/ups_battery_cabinet.svg",
+      "width": 277,
+      "height": 445,
+      "source_sheet": "source_facility_sheet.svg",
+      "source_bbox": {
+        "x": 153,
+        "y": 480,
+        "width": 277,
+        "height": 445
+      }
+    },
+    {
+      "id": "power_distribution_cabinet",
+      "name_cn": "配电柜",
+      "category": "equipment",
+      "png": "components/power_distribution_cabinet.png",
+      "svg": "components/power_distribution_cabinet.svg",
+      "width": 321,
+      "height": 427,
+      "source_sheet": "source_facility_sheet.svg",
+      "source_bbox": {
+        "x": 617,
+        "y": 491,
+        "width": 321,
+        "height": 427
+      }
+    },
+    {
+      "id": "ats_cabinet",
+      "name_cn": "ATS柜",
+      "category": "equipment",
+      "png": "components/ats_cabinet.png",
+      "svg": "components/ats_cabinet.svg",
+      "width": 314,
+      "height": 433,
+      "source_sheet": "source_facility_sheet.svg",
+      "source_bbox": {
+        "x": 1081,
+        "y": 491,
+        "width": 314,
+        "height": 433
+      }
+    },
+    {
+      "id": "fire_suppression_cylinders",
+      "name_cn": "气体灭火钢瓶",
+      "category": "equipment",
+      "png": "components/fire_suppression_cylinders.png",
+      "svg": "components/fire_suppression_cylinders.svg",
+      "width": 299,
+      "height": 380,
+      "source_sheet": "source_aux_sheet.svg",
+      "source_bbox": {
+        "x": 88,
+        "y": 67,
+        "width": 299,
+        "height": 380
+      }
+    },
+    {
+      "id": "smoke_detector",
+      "name_cn": "烟感",
+      "category": "equipment",
+      "png": "components/smoke_detector.png",
+      "svg": "components/smoke_detector.svg",
+      "width": 229,
+      "height": 195,
+      "source_sheet": "source_aux_sheet.svg",
+      "source_bbox": {
+        "x": 529,
+        "y": 185,
+        "width": 229,
+        "height": 195
+      }
+    },
+    {
+      "id": "temp_humidity_sensor",
+      "name_cn": "温湿度传感器",
+      "category": "equipment",
+      "png": "components/temp_humidity_sensor.png",
+      "svg": "components/temp_humidity_sensor.svg",
+      "width": 169,
+      "height": 258,
+      "source_sheet": "source_aux_sheet.svg",
+      "source_bbox": {
+        "x": 936,
+        "y": 141,
+        "width": 169,
+        "height": 258
+      }
+    },
+    {
+      "id": "water_leak_cable",
+      "name_cn": "水浸线缆",
+      "category": "equipment",
+      "png": "components/water_leak_cable.png",
+      "svg": "components/water_leak_cable.svg",
+      "width": 420,
+      "height": 173,
+      "source_sheet": "source_aux_sheet.svg",
+      "source_bbox": {
+        "x": 1212,
+        "y": 204,
+        "width": 420,
+        "height": 173
+      }
+    },
+    {
+      "id": "access_door_double",
+      "name_cn": "双开门禁",
+      "category": "equipment",
+      "png": "components/access_door_double.png",
+      "svg": "components/access_door_double.svg",
+      "width": 323,
+      "height": 335,
+      "source_sheet": "source_aux_sheet.svg",
+      "source_bbox": {
+        "x": 67,
+        "y": 517,
+        "width": 323,
+        "height": 335
+      }
+    },
+    {
+      "id": "pdu_power_strip",
+      "name_cn": "PDU电源条",
+      "category": "equipment",
+      "png": "components/pdu_power_strip.png",
+      "svg": "components/pdu_power_strip.svg",
+      "width": 398,
+      "height": 161,
+      "source_sheet": "source_aux_sheet.svg",
+      "source_bbox": {
+        "x": 477,
+        "y": 636,
+        "width": 398,
+        "height": 161
+      }
+    },
+    {
+      "id": "alarm_beacon_pole",
+      "name_cn": "告警灯柱",
+      "category": "equipment",
+      "png": "components/alarm_beacon_pole.png",
+      "svg": "components/alarm_beacon_pole.svg",
+      "width": 128,
+      "height": 341,
+      "source_sheet": "source_aux_sheet.svg",
+      "source_bbox": {
+        "x": 974,
+        "y": 499,
+        "width": 128,
+        "height": 341
+      }
+    },
+    {
+      "id": "wall_blue_light_strip",
+      "name_cn": "墙面蓝色灯带",
+      "category": "equipment",
+      "png": "components/wall_blue_light_strip.png",
+      "svg": "components/wall_blue_light_strip.svg",
+      "width": 373,
+      "height": 244,
+      "source_sheet": "source_aux_sheet.svg",
+      "source_bbox": {
+        "x": 1217,
+        "y": 585,
+        "width": 373,
+        "height": 244
+      }
+    },
+    {
+      "id": "rack_column_14",
+      "name_cn": "14架连续机柜列",
+      "category": "rack_column",
+      "png": "components/rack_column_14.png",
+      "svg": "components/rack_column_14.svg",
+      "width": 131,
+      "height": 483
+    },
+    {
+      "id": "rack_column_16",
+      "name_cn": "16架连续机柜列",
+      "category": "rack_column",
+      "png": "components/rack_column_16.png",
+      "svg": "components/rack_column_16.svg",
+      "width": 131,
+      "height": 545
+    },
+    {
+      "id": "rack_column_17",
+      "name_cn": "17架连续机柜列",
+      "category": "rack_column",
+      "png": "components/rack_column_17.png",
+      "svg": "components/rack_column_17.svg",
+      "width": 131,
+      "height": 576
+    },
+    {
+      "id": "rack_column_19",
+      "name_cn": "19架连续机柜列",
+      "category": "rack_column",
+      "png": "components/rack_column_19.png",
+      "svg": "components/rack_column_19.svg",
+      "width": 131,
+      "height": 638
+    }
+  ],
+  "rack_rows": [
+    {
+      "id": "row_A",
+      "row": "A",
+      "rack_count": 17,
+      "x": 180,
+      "y": 232,
+      "width": 100,
+      "height": 576,
+      "rack_numbers": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17"
+    },
+    {
+      "id": "row_B",
+      "row": "B",
+      "rack_count": 19,
+      "x": 317,
+      "y": 170,
+      "width": 100,
+      "height": 638,
+      "rack_numbers": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19"
+    },
+    {
+      "id": "row_C",
+      "row": "C",
+      "rack_count": 19,
+      "x": 454,
+      "y": 170,
+      "width": 100,
+      "height": 638,
+      "rack_numbers": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19"
+    },
+    {
+      "id": "row_D",
+      "row": "D",
+      "rack_count": 16,
+      "x": 591,
+      "y": 263,
+      "width": 100,
+      "height": 545,
+      "rack_numbers": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16"
+    },
+    {
+      "id": "row_E",
+      "row": "E",
+      "rack_count": 19,
+      "x": 728,
+      "y": 170,
+      "width": 100,
+      "height": 638,
+      "rack_numbers": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19"
+    },
+    {
+      "id": "row_F",
+      "row": "F",
+      "rack_count": 14,
+      "x": 865,
+      "y": 325,
+      "width": 100,
+      "height": 483,
+      "rack_numbers": "1,2,3,4,5,6,7,8,9,10,11,12,13,14"
+    },
+    {
+      "id": "row_G",
+      "row": "G",
+      "rack_count": 19,
+      "x": 1002,
+      "y": 170,
+      "width": 100,
+      "height": 638,
+      "rack_numbers": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19"
+    },
+    {
+      "id": "row_H",
+      "row": "H",
+      "rack_count": 16,
+      "x": 1139,
+      "y": 263,
+      "width": 100,
+      "height": 545,
+      "rack_numbers": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16"
+    },
+    {
+      "id": "row_I",
+      "row": "I",
+      "rack_count": 19,
+      "x": 1276,
+      "y": 170,
+      "width": 100,
+      "height": 638,
+      "rack_numbers": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19"
+    },
+    {
+      "id": "row_J",
+      "row": "J",
+      "rack_count": 19,
+      "x": 1413,
+      "y": 170,
+      "width": 100,
+      "height": 638,
+      "rack_numbers": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19"
+    },
+    {
+      "id": "row_K",
+      "row": "K",
+      "rack_count": 19,
+      "x": 1550,
+      "y": 170,
+      "width": 100,
+      "height": 638,
+      "rack_numbers": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19"
+    }
+  ],
+  "placements": [
+    {
+      "id": "rack_columns_AK_body",
+      "component": "rack_columns_AK_body.svg",
+      "category": "rack_body",
+      "x": 225,
+      "y": 210,
+      "width": 1120,
+      "height": 610,
+      "zIndex": 20
+    },
+    {
+      "id": "room_precision_ac",
+      "component": "components/room_precision_ac.svg",
+      "category": "facility",
+      "x": 1395,
+      "y": 220,
+      "width": 145,
+      "height": 150,
+      "zIndex": 30
+    },
+    {
+      "id": "inrow_cooling_unit",
+      "component": "components/inrow_cooling_unit.svg",
+      "category": "facility",
+      "x": 520,
+      "y": 405,
+      "width": 70,
+      "height": 150,
+      "zIndex": 30
+    },
+    {
+      "id": "inrow_cooling_unit",
+      "component": "components/inrow_cooling_unit.svg",
+      "category": "facility",
+      "x": 1030,
+      "y": 405,
+      "width": 70,
+      "height": 150,
+      "zIndex": 30
+    },
+    {
+      "id": "ups_main_cabinet",
+      "component": "components/ups_main_cabinet.svg",
+      "category": "facility",
+      "x": 100,
+      "y": 520,
+      "width": 120,
+      "height": 145,
+      "zIndex": 30
+    },
+    {
+      "id": "ups_battery_cabinet",
+      "component": "components/ups_battery_cabinet.svg",
+      "category": "facility",
+      "x": 230,
+      "y": 585,
+      "width": 120,
+      "height": 115,
+      "zIndex": 30
+    },
+    {
+      "id": "power_distribution_cabinet",
+      "component": "components/power_distribution_cabinet.svg",
+      "category": "facility",
+      "x": 130,
+      "y": 250,
+      "width": 140,
+      "height": 130,
+      "zIndex": 30
+    },
+    {
+      "id": "ats_cabinet",
+      "component": "components/ats_cabinet.svg",
+      "category": "facility",
+      "x": 290,
+      "y": 250,
+      "width": 110,
+      "height": 120,
+      "zIndex": 30
+    },
+    {
+      "id": "fire_suppression_cylinders",
+      "component": "components/fire_suppression_cylinders.svg",
+      "category": "facility",
+      "x": 1410,
+      "y": 620,
+      "width": 120,
+      "height": 140,
+      "zIndex": 30
+    },
+    {
+      "id": "smoke_detector",
+      "component": "components/smoke_detector.svg",
+      "category": "facility",
+      "x": 765,
+      "y": 150,
+      "width": 45,
+      "height": 42,
+      "zIndex": 30
+    },
+    {
+      "id": "smoke_detector",
+      "component": "components/smoke_detector.svg",
+      "category": "facility",
+      "x": 1085,
+      "y": 150,
+      "width": 45,
+      "height": 42,
+      "zIndex": 30
+    },
+    {
+      "id": "temp_humidity_sensor",
+      "component": "components/temp_humidity_sensor.svg",
+      "category": "facility",
+      "x": 1505,
+      "y": 385,
+      "width": 42,
+      "height": 60,
+      "zIndex": 30
+    },
+    {
+      "id": "water_leak_cable",
+      "component": "components/water_leak_cable.svg",
+      "category": "facility",
+      "x": 500,
+      "y": 820,
+      "width": 120,
+      "height": 42,
+      "zIndex": 30
+    },
+    {
+      "id": "access_door_double",
+      "component": "components/access_door_double.svg",
+      "category": "facility",
+      "x": 1220,
+      "y": 755,
+      "width": 150,
+      "height": 95,
+      "zIndex": 30
+    },
+    {
+      "id": "pdu_power_strip",
+      "component": "components/pdu_power_strip.svg",
+      "category": "facility",
+      "x": 1450,
+      "y": 805,
+      "width": 120,
+      "height": 38,
+      "zIndex": 30
+    },
+    {
+      "id": "alarm_beacon_pole",
+      "component": "components/alarm_beacon_pole.svg",
+      "category": "facility",
+      "x": 1580,
+      "y": 560,
+      "width": 45,
+      "height": 110,
+      "zIndex": 30
+    },
+    {
+      "id": "wall_blue_light_strip",
+      "component": "components/wall_blue_light_strip.svg",
+      "category": "facility",
+      "x": 90,
+      "y": 360,
+      "width": 150,
+      "height": 30,
+      "zIndex": 30
+    }
+  ],
+  "frontend_usage": "使用 room_base_empty_11_columns.svg 作为空机房背景；使用 rack_columns_AK_body.svg 作为 A-K 11列连续机柜主体；按 placements.csv 放置设施组件；rack_slots_AK.csv 保留每个机柜槽位用于交互命中。",
+  "notes": [
+    "机柜容量严格按 Excel 统计：A17 B19 C19 D16 E19 F14 G19 H16 I19 J19 K19。",
+    "SVG 为内嵌透明 PNG wrapper，便于前端直接使用。",
+    "设备素材由 imagegen 生成并经绿幕透明化，机柜主体按 Excel 容量程序化绘制，保证列数和容量正确。"
+  ],
+  "topdown_rack_rows": {
+    "source": "programmatic from docs/IDC设备信息.xlsx capacity",
+    "rack_rows": {
+      "A": 17,
+      "B": 19,
+      "C": 19,
+      "D": 16,
+      "E": 19,
+      "F": 14,
+      "G": 19,
+      "H": 16,
+      "I": 19,
+      "J": 19,
+      "K": 19
+    },
+    "rack_total": 196,
+    "files": {
+      "page_body": "rack_rows_AK_topdown_body_page",
+      "preview": "preview_room_with_AK_topdown_racks",
+      "variants": [
+        "components/topdown_rack_row_14",
+        "components/topdown_rack_row_16",
+        "components/topdown_rack_row_17",
+        "components/topdown_rack_row_19"
+      ],
+      "clean_preview": "preview_room_with_AK_topdown_racks_clean"
+    }
+  },
+  "recommended_frontend_placement": "placements_topdown.csv",
+  "audit_notes": {
+    "preferred_rack_asset": "rack_rows_AK_topdown_body_page.svg",
+    "avoid_for_room_floor": [
+      "components/rack_column_14.svg",
+      "components/rack_column_16.svg",
+      "components/rack_column_17.svg",
+      "components/rack_column_19.svg",
+      "rack_columns_AK_body.svg"
+    ],
+    "reason": "这些旧机柜列偏正面竖塔视角，和俯视机房底图不如 topdown_rack_row_* 匹配。"
+  }
+}

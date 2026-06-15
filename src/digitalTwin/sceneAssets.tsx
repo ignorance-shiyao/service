@@ -82,6 +82,7 @@ export const ASSETS = {
   idcAccessDoor:      { src: idc('access_door_double'),           w: 306, h: 390 },
   idcPduStrip:        { src: idc('pdu_power_strip'),              w: 369, h: 251 },
   idcAlarmBeacon:     { src: idc('alarm_beacon_pole'),            w: 132, h: 344 },
+  idcInspectionRobot:  { src: idc('inspection_robot_patrol'),      w: 1536, h: 1024 },
   ...FOLDER_SCENE_ASSETS,
 } as const;
 

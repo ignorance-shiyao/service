@@ -16,6 +16,13 @@ type RegistryItem = {
   h: number;
   anchorBottom: false;
   label: string;
+  rotate?: number;
+  motion?: {
+    enabled?: boolean;
+    duration?: number;
+    loop?: boolean;
+    path?: { x: number; y: number }[];
+  };
 };
 
 type RegistryLayout = {
@@ -54,6 +61,46 @@ const item = (
   h: +((height / canvasH) * 100).toFixed(2),
   anchorBottom: false,
   label,
+});
+
+const inspectionRobot = (sceneId: string): RegistryItem => ({
+  id: `${sceneId}-inspection-robot`,
+  asset: 'idcInspectionRobot',
+  cx: 54,
+  cy: 58,
+  w: 4.8,
+  h: 3.2,
+  rotate: -8,
+  anchorBottom: false,
+  label: '机房巡检机器人',
+  motion: {
+    enabled: true,
+    duration: 18000,
+    loop: true,
+    path: [
+      { x: -19, y: -10 },
+      { x: -5, y: -17 },
+      { x: 12, y: -13 },
+      { x: 22, y: -2 },
+      { x: 13, y: 9 },
+      { x: -4, y: 12 },
+      { x: -18, y: 5 },
+      { x: -19, y: -10 },
+    ],
+  },
+});
+
+const rackRow = (
+  sceneId: string,
+  id: string,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  label: string,
+): RegistryItem => ({
+  ...item(sceneId, id, 'idcRackRow', x, y, width, height, label),
+  rotate: 10,
 });
 
 export const FOLDER_SCENE_ORDER: FolderSceneId[] = [
@@ -259,10 +306,10 @@ export const FOLDER_SCENE_LAYOUTS: Record<string, RegistryLayout> = {
     items: [
       item('idc3', 'power_distribution', 'idcPowerCab', 315, 180, 220, 230, '配电柜'),
       item('idc3', 'wall_light', 'idcWallLight', 100, 330, 175, 32, '墙面灯带'),
-      item('idc3', 'rack_row_1', 'idcRackRow', 345, 300, 255, 240, '机柜排 1'),
-      item('idc3', 'rack_row_2', 'idcRackRow', 625, 325, 255, 240, '机柜排 2'),
-      item('idc3', 'rack_row_3', 'idcRackRow', 900, 325, 255, 240, '机柜排 3'),
-      item('idc3', 'rack_row_4', 'idcRackRow', 1165, 325, 255, 240, '机柜排 4'),
+      rackRow('idc3', 'rack_row_1', 345, 300, 255, 240, '机柜排 1'),
+      rackRow('idc3', 'rack_row_2', 625, 325, 255, 240, '机柜排 2'),
+      rackRow('idc3', 'rack_row_3', 900, 325, 255, 240, '机柜排 3'),
+      rackRow('idc3', 'rack_row_4', 1165, 325, 255, 240, '机柜排 4'),
       item('idc3', 'inrow_ac_cold', 'idcInrowAc', 475, 410, 105, 240, '冷通道列间空调'),
       item('idc3', 'inrow_ac_hot', 'idcInrowAc', 1030, 420, 105, 240, '热通道列间空调'),
       item('idc3', 'rack_single', 'idcRackSingle', 230, 520, 145, 285, '单体机柜'),
@@ -278,6 +325,7 @@ export const FOLDER_SCENE_LAYOUTS: Record<string, RegistryLayout> = {
       item('idc3', 'smoke_detector_2', 'idcSmokeSensor', 1090, 155, 54, 50, '烟感 2'),
       item('idc3', 'temp_humidity_sensor', 'idcTempHumSensor', 1515, 385, 52, 80, '温湿度传感器'),
       item('idc3', 'water_leak_sensor', 'idcWaterLeakSensor', 465, 825, 145, 58, '水浸传感线'),
+      inspectionRobot('idc3'),
     ],
   },
   cmpA: {
@@ -288,10 +336,10 @@ export const FOLDER_SCENE_LAYOUTS: Record<string, RegistryLayout> = {
     items: [
       item('cmpA', 'power_distribution', 'idcPowerCab', 315, 180, 220, 230, '能源配电柜'),
       item('cmpA', 'wall_light', 'idcWallLight', 100, 330, 175, 32, '墙面灯带'),
-      item('cmpA', 'rack_row_1', 'idcRackRow', 345, 300, 255, 240, '机柜排 1'),
-      item('cmpA', 'rack_row_2', 'idcRackRow', 625, 325, 255, 240, '机柜排 2'),
-      item('cmpA', 'rack_row_3', 'idcRackRow', 900, 325, 255, 240, '机柜排 3'),
-      item('cmpA', 'rack_row_4', 'idcRackRow', 1165, 325, 255, 240, '机柜排 4'),
+      rackRow('cmpA', 'rack_row_1', 345, 300, 255, 240, '机柜排 1'),
+      rackRow('cmpA', 'rack_row_2', 625, 325, 255, 240, '机柜排 2'),
+      rackRow('cmpA', 'rack_row_3', 900, 325, 255, 240, '机柜排 3'),
+      rackRow('cmpA', 'rack_row_4', 1165, 325, 255, 240, '机柜排 4'),
       item('cmpA', 'inrow_ac_cold', 'idcInrowAc', 475, 410, 105, 240, '冷通道列间空调'),
       item('cmpA', 'inrow_ac_hot', 'idcInrowAc', 1030, 420, 105, 240, '热通道列间空调'),
       item('cmpA', 'ups_main', 'idcUpsMain', 70, 535, 190, 270, 'UPS 主机'),
@@ -300,6 +348,7 @@ export const FOLDER_SCENE_LAYOUTS: Record<string, RegistryLayout> = {
       item('cmpA', 'fire_cylinders', 'idcFireCyl', 1395, 585, 165, 220, '气体灭火钢瓶'),
       item('cmpA', 'access_door', 'idcAccessDoor', 1000, 700, 200, 175, '门禁入口'),
       item('cmpA', 'alarm_beacon', 'idcAlarmBeacon', 1580, 555, 55, 145, '告警灯柱'),
+      inspectionRobot('cmpA'),
     ],
   },
   agv: {

@@ -2,16 +2,46 @@ import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { Trash2, RotateCw, FlipHorizontal2, FlipVertical2, Save, RotateCcw, ChevronDown, ChevronUp, Copy, Eye, EyeOff, Lock, Unlock, Undo2, Redo2, MoveUp, MoveDown, ArrowUpToLine, ArrowDownToLine, Link2, Upload, X } from 'lucide-react';
 import { AssetKey, getAllAssets, getAsset } from './sceneAssets';
 import {
-  SceneId, SceneItem, SceneLayout,
+  SceneId, SceneItem, SceneLayout, MotionPoint, normalizeMotionConfig,
   loadLayout, saveLayout, resetLayout, resetToBundledLayout, setLayoutAsDefault,
   getPaletteGroups, SCENE_NAMES, SCENE_DEFAULT_BG, newItemId,
 } from './layoutStore';
 import { addCustomAsset, customAssetKey, loadCustomAssets, removeCustomAsset } from './customAssets';
 import { shouldRenderSceneItem } from './renderGuards';
 import { FOLDER_SCENE_ORDER } from './svgSceneRegistry';
-import { getRobotMotionPoint, getRobotTrackPoints, isMotionRobotItem } from './robotMotion';
+import { DEFAULT_ROBOT_MOTION_PATH, ROBOT_MOTION_DURATION, getRobotMotionPoint, getRobotTrackPoints, isMotionRobotItem } from './robotMotion';
 
 const sceneIds: SceneId[] = ['overview', 'line1', 'idc3', 'cmpA', 'agv', 'vision', 'office', ...FOLDER_SCENE_ORDER];
+const DEFAULT_MOTION_DURATION = ROBOT_MOTION_DURATION;
+
+const motionPointsToText = (points: MotionPoint[]) => points.map(point => `${point.x},${point.y}`).join('\n');
+
+const parseMotionPointsText = (value: string): MotionPoint[] => value
+  .split(/\r?\n/)
+  .map(line => line.trim())
+  .filter(Boolean)
+  .map(line => {
+    const parts = line.split(/[,\s]+/).filter(Boolean);
+    if (parts.length < 2) return null;
+    const x = Number(parts[0]);
+    const y = Number(parts[1]);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    return { x, y };
+  })
+  .filter((point): point is MotionPoint => point != null);
+
+const getMotionPathText = (item: SceneItem) => {
+  if (item.motion?.path?.length) return motionPointsToText(item.motion.path);
+  if (item.motion?.enabled === false || isMotionRobotItem(item)) return motionPointsToText(DEFAULT_ROBOT_MOTION_PATH);
+  return '';
+};
+
+const getMotionTrackPoints = (item: SceneItem) => {
+  if (item.motion?.path?.length) {
+    return item.motion.path.map(point => `${item.cx + point.x},${item.cy + point.y}`).join(' ');
+  }
+  return getRobotTrackPoints(item);
+};
 
 // ── 按钮样式 ──────────────────────────────────────────────────────────
 const btn = 'inline-flex h-7 items-center gap-1.5 rounded border border-[#2b6aa8] bg-[#0b2f61] px-2.5 text-[11px] font-semibold text-[#bde3ff] transition hover:border-[#4ea4ff] hover:bg-[#12407e] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed';
@@ -51,22 +81,54 @@ const DRILL_TREE = [
 
 const clampSize = (value: number, max = ITEM_SIZE_MAX) => Math.max(ITEM_SIZE_MIN, Math.min(max, +value.toFixed(2)));
 
+// 角度吸附：默认软吸附到最近的 15°（容差 3°），Shift 强制 15° 步进，Alt 完全自由
+const snapAngleDeg = (val: number, alt: boolean, shift: boolean) => {
+  if (alt) return +val.toFixed(1);
+  if (shift) return Math.round(val / 15) * 15;
+  const nearest = Math.round(val / 15) * 15;
+  return Math.abs(val - nearest) <= 3 ? nearest : +val.toFixed(1);
+};
+
 export const DigitalTwinEditor: React.FC = () => {
   const [sceneId, setSceneId] = useState<SceneId>('overview');
   const [layout, setLayoutState] = useState<SceneLayout>(() => loadLayout('overview'));
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  // 主选中项（最后点选的那个）：驱动右侧单项属性面板与既有单项逻辑
+  const selectedId = selectedIds.length ? selectedIds[selectedIds.length - 1] : null;
+  const selectOnly = useCallback((id: string | null) => setSelectedIds(id == null ? [] : [id]), []);
+  const toggleSelect = useCallback((id: string) => setSelectedIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])), []);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ id: string; startX: number; startY: number; cx: number; cy: number; rect: DOMRect } | null>(null);
+  const dragRef = useRef<{ id: string; startX: number; startY: number; cx: number; cy: number; rect: DOMRect; snapX: number[]; snapY: number[]; items: { id: string; cx: number; cy: number }[] } | null>(null);
   const rotateRef = useRef<{ id: string; centerX: number; centerY: number; startAngle: number; startRotate: number } | null>(null);
   const resizeRef = useRef<{ id: string; startX: number; startY: number; w: number; h?: number; corner: string; rect: DOMRect; itemRect: DOMRect; aspect: boolean; max: number } | null>(null);
   const yawRef = useRef<{ id: string; startX: number; startYaw: number } | null>(null);
   const pitchRef = useRef<{ id: string; startY: number; startPitch: number } | null>(null);
+  const pathNodeDragRef = useRef<{ id: string; index: number; cx: number; cy: number; path: MotionPoint[] } | null>(null);
   const [paletteCollapsed, setPaletteCollapsed] = useState(false);
   const [collapsedPaletteGroups, setCollapsedPaletteGroups] = useState<string[]>([]);
   const [assetVersion, setAssetVersion] = useState(0);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [canvasZoom, setCanvasZoom] = useState(1);
+  const [canvasPan, setCanvasPan] = useState({ x: 0, y: 0 });
+  const canvasZoomRef = useRef(1);
+  const canvasPanRef = useRef({ x: 0, y: 0 });
+  const panRef = useRef<{ startX: number; startY: number; ox: number; oy: number; moved: boolean } | null>(null);
+  const suppressClickRef = useRef(false);
+  const spaceRef = useRef(false);
+  const marqueeRef = useRef<{ startX: number; startY: number; rect: DOMRect; additive: boolean; base: string[]; moved: boolean } | null>(null);
+  const [marquee, setMarquee] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const [dragHud, setDragHud] = useState<string | null>(null);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({ common: true, transform: false, interaction: false, motion: false, advanced: false });
+  const toggleSection = useCallback((k: string) => setOpenSections(p => ({ ...p, [k]: !p[k] })), []);
+  const applyView = useCallback((zoom: number, panX: number, panY: number) => {
+    canvasZoomRef.current = zoom;
+    canvasPanRef.current = { x: panX, y: panY };
+    setCanvasZoom(zoom);
+    setCanvasPan({ x: panX, y: panY });
+  }, []);
   const [motionTime, setMotionTime] = useState(0);
+  const [pathEditId, setPathEditId] = useState<string | null>(null);
+  const [snapGuides, setSnapGuides] = useState<{ x?: number; y?: number } | null>(null);
   const [dialog, setDialog] = useState<{
     open: boolean;
     mode: 'alert' | 'confirm';
@@ -137,10 +199,20 @@ export const DigitalTwinEditor: React.FC = () => {
     isInitialMount.current = true;
     const fresh = loadLayout(sceneId);
     setLayoutState(fresh);
-    setSelectedId(null);
+    setSelectedIds([]);
+    setPathEditId(null);
+    canvasZoomRef.current = 1;
+    canvasPanRef.current = { x: 0, y: 0 };
+    setCanvasZoom(1);
+    setCanvasPan({ x: 0, y: 0 });
     historyRef.current = { stack: [JSON.parse(JSON.stringify(fresh))], idx: 0, bypass: false };
     setHistoryTick(t => t + 1);
   }, [sceneId]);
+
+  // 选中目标变化时退出路径绘制模式，避免误编辑
+  useEffect(() => {
+    if (pathEditId && pathEditId !== selectedId) setPathEditId(null);
+  }, [selectedId, pathEditId]);
 
   // 自动保存（debounce 400ms）
   useEffect(() => {
@@ -184,6 +256,9 @@ export const DigitalTwinEditor: React.FC = () => {
     });
   }, [baseEditableItem, layout.items, baseSrc, selectedId]);
   const selected = useMemo(() => renderItems.find(i => i.id === selectedId) || null, [renderItems, selectedId]);
+  const renderItemsRef = useRef(renderItems);
+  renderItemsRef.current = renderItems;
+  const pathEditItem = useMemo(() => (pathEditId ? renderItems.find(i => i.id === pathEditId) || null : null), [renderItems, pathEditId]);
   const isBaseSelected = selected?.id === BASE_ITEM_ID;
   const hasRoamingRobot = useMemo(() => renderItems.some(item => item.id !== BASE_ITEM_ID && isMotionRobotItem(item)), [renderItems]);
 
@@ -218,6 +293,36 @@ export const DigitalTwinEditor: React.FC = () => {
     setLayout(prev => ({ ...prev, items: prev.items.map(i => i.id === id ? { ...i, ...patch } : i) }));
   }, [setLayout]);
 
+  const updateSelectedMotion = useCallback((patch: Partial<NonNullable<SceneItem['motion']>>) => {
+    if (!selected) return;
+    const next = normalizeMotionConfig({ ...(selected.motion ?? {}), ...patch });
+    updateItem(selected.id, { motion: next });
+  }, [selected, updateItem]);
+
+  // ── 路径绘制（在画布上连线编辑运动轨迹） ─────────────────────────────
+  const getEditablePath = useCallback((item: SceneItem): MotionPoint[] => {
+    if (item.motion?.path?.length) return item.motion.path;
+    return DEFAULT_ROBOT_MOTION_PATH;
+  }, []);
+
+  const setMotionPath = useCallback((id: string, path: MotionPoint[]) => {
+    setLayout(prev => ({
+      ...prev,
+      items: prev.items.map(i => i.id === id
+        ? { ...i, motion: normalizeMotionConfig({ ...(i.motion ?? {}), enabled: true, path }) }
+        : i),
+    }));
+  }, [setLayout]);
+
+  // 把画布上的鼠标位置换算成相对设备当前位置的百分比偏移点
+  const clientToMotionPoint = useCallback((clientX: number, clientY: number, cx: number, cy: number): MotionPoint => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return { x: 0, y: 0 };
+    const px = ((clientX - rect.left) / rect.width) * 100;
+    const py = ((clientY - rect.top) / rect.height) * 100;
+    return { x: +(px - cx).toFixed(1), y: +(py - cy).toFixed(1) };
+  }, []);
+
   const queueItemPatch = useCallback((id: string, patch: Partial<SceneItem>) => {
     const prev = pendingPatchRef.current;
     if (prev && prev.id === id) {
@@ -237,14 +342,21 @@ export const DigitalTwinEditor: React.FC = () => {
   const removeItem = useCallback((id: string) => {
     if (id === BASE_ITEM_ID) return;
     setLayout(prev => ({ ...prev, items: prev.items.filter(i => i.id !== id) }));
-    setSelectedId(s => (s === id ? null : s));
+    setSelectedIds(prev => prev.filter(x => x !== id));
+  }, [setLayout]);
+
+  const removeItems = useCallback((ids: string[]) => {
+    const set = new Set(ids.filter(id => id !== BASE_ITEM_ID));
+    if (!set.size) return;
+    setLayout(prev => ({ ...prev, items: prev.items.filter(i => !set.has(i.id)) }));
+    setSelectedIds(prev => prev.filter(x => !set.has(x)));
   }, [setLayout]);
 
   const addItemAt = useCallback((asset: AssetKey, name: string, cx = 50, cy = 50, w = 14) => {
     const id = newItemId();
-    const item: SceneItem = { id, asset, cx, cy, w, sx: 1, label: name };
+    const item: SceneItem = { id, asset, cx, cy, w, sx: 1, label: name, motion: { enabled: false } };
     setLayout(prev => ({ ...prev, items: [...prev.items, item] }));
-    setSelectedId(id);
+    selectOnly(id);
     return id;
   }, [setLayout]);
 
@@ -257,8 +369,49 @@ export const DigitalTwinEditor: React.FC = () => {
     const newId = newItemId();
     const clone: SceneItem = { ...orig, id: newId, cx: orig.cx + 3, cy: orig.cy + 3, label: orig.label ? `${orig.label} 副本` : undefined };
     setLayout(prev => ({ ...prev, items: [...prev.items, clone] }));
-    setSelectedId(newId);
-  }, [layout, setLayout]);
+    selectOnly(newId);
+  }, [layout, setLayout, selectOnly]);
+
+  // 多选对齐（按中心对齐）
+  const alignSelected = useCallback((axis: 'x' | 'y', mode: 'min' | 'center' | 'max') => {
+    const items = renderItemsRef.current.filter(i => selectedIds.includes(i.id) && i.id !== BASE_ITEM_ID && !i.locked);
+    if (items.length < 2) return;
+    const vals = items.map(i => (axis === 'x' ? i.cx : i.cy));
+    const target = mode === 'min' ? Math.min(...vals) : mode === 'max' ? Math.max(...vals) : (Math.min(...vals) + Math.max(...vals)) / 2;
+    const key = axis === 'x' ? 'cx' : 'cy';
+    const set = new Set(items.map(i => i.id));
+    setLayout(prev => ({ ...prev, items: prev.items.map(i => (set.has(i.id) ? { ...i, [key]: +target.toFixed(2) } : i)) }));
+  }, [selectedIds, setLayout]);
+
+  // 多选等距分布
+  const distributeSelected = useCallback((axis: 'x' | 'y') => {
+    const items = renderItemsRef.current
+      .filter(i => selectedIds.includes(i.id) && i.id !== BASE_ITEM_ID && !i.locked)
+      .sort((a, b) => (axis === 'x' ? a.cx - b.cx : a.cy - b.cy));
+    if (items.length < 3) return;
+    const key = axis === 'x' ? 'cx' : 'cy';
+    const first = (items[0] as any)[key];
+    const last = (items[items.length - 1] as any)[key];
+    const gap = (last - first) / (items.length - 1);
+    const updates = new Map(items.map((it, idx) => [it.id, +(first + gap * idx).toFixed(2)]));
+    setLayout(prev => ({ ...prev, items: prev.items.map(i => (updates.has(i.id) ? { ...i, [key]: updates.get(i.id)! } : i)) }));
+  }, [selectedIds, setLayout]);
+
+  // 批量复制（保留相对位置，整体偏移 +3）
+  const duplicateItems = useCallback((ids: string[]) => {
+    const set = new Set(ids.filter(id => id !== BASE_ITEM_ID));
+    if (!set.size) return;
+    const newIds: string[] = [];
+    setLayout(prev => {
+      const clones = prev.items.filter(i => set.has(i.id)).map(orig => {
+        const newId = newItemId();
+        newIds.push(newId);
+        return { ...orig, id: newId, cx: orig.cx + 3, cy: orig.cy + 3, label: orig.label ? `${orig.label} 副本` : undefined } as SceneItem;
+      });
+      return { ...prev, items: [...prev.items, ...clones] };
+    });
+    if (newIds.length) setSelectedIds(newIds);
+  }, [setLayout]);
 
   const resizeItemBy = useCallback((id: string, factor: number) => {
     const item = renderItems.find(i => i.id === id);
@@ -318,36 +471,45 @@ export const DigitalTwinEditor: React.FC = () => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
+      // 路径绘制模式下：Esc 退出绘制（优先于取消选中）
+      if (pathEditId && e.key === 'Escape') { e.preventDefault(); setPathEditId(null); return; }
+
       // 撤销/重做（全局）
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
       if (((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y') || ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'z')) { e.preventDefault(); redo(); return; }
-      // 复制
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd' && selectedId) { e.preventDefault(); duplicateItem(selectedId); return; }
+      // 复制（支持多选整组）
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd' && selectedIds.length) { e.preventDefault(); duplicateItems(selectedIds); return; }
 
-      if (!selectedId) return;
-      const sel = renderItems.find(i => i.id === selectedId);
-      if (!sel || sel.locked) return;
+      if (!selectedIds.length) return;
 
-      // 删除
-      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeItem(selectedId); return; }
+      // 删除（整组）
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeItems(selectedIds); return; }
       // Esc 取消选中
-      if (e.key === 'Escape') { setSelectedId(null); return; }
-      // 方向键移动
+      if (e.key === 'Escape') { setSelectedIds([]); return; }
+
+      const movableIds = selectedIds.filter(id => { const it = renderItems.find(i => i.id === id); return it && !it.locked; });
+      if (!movableIds.length) return;
+      const clamp = (v: number) => Math.max(-20, Math.min(120, v));
       const step = e.shiftKey ? 5 : 0.5;
-      if (e.key === 'ArrowUp')    { e.preventDefault(); updateItem(selectedId, { cy: sel.cy - step }); return; }
-      if (e.key === 'ArrowDown')  { e.preventDefault(); updateItem(selectedId, { cy: sel.cy + step }); return; }
-      if (e.key === 'ArrowLeft')  { e.preventDefault(); updateItem(selectedId, { cx: sel.cx - step }); return; }
-      if (e.key === 'ArrowRight') { e.preventDefault(); updateItem(selectedId, { cx: sel.cx + step }); return; }
+      const nudge = (dx: number, dy: number) => {
+        movableIds.forEach(id => { if (id === BASE_ITEM_ID) { const it = renderItems.find(i => i.id === id); if (it) updateItem(id, { cx: clamp(it.cx + dx), cy: clamp(it.cy + dy) }); } });
+        const nonBase = new Set(movableIds.filter(id => id !== BASE_ITEM_ID));
+        if (nonBase.size) setLayout(prev => ({ ...prev, items: prev.items.map(i => (nonBase.has(i.id) ? { ...i, cx: clamp(i.cx + dx), cy: clamp(i.cy + dy) } : i)) }));
+      };
+      if (e.key === 'ArrowUp')    { e.preventDefault(); nudge(0, -step); return; }
+      if (e.key === 'ArrowDown')  { e.preventDefault(); nudge(0, step); return; }
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); nudge(-step, 0); return; }
+      if (e.key === 'ArrowRight') { e.preventDefault(); nudge(step, 0); return; }
       if (e.key === '[' || e.key === ']' || e.key === '-' || e.key === '=') {
         e.preventDefault();
         const grow = e.key === ']' || e.key === '=';
-        resizeItemBy(selectedId, grow ? 1.08 : 0.92);
+        movableIds.forEach(id => resizeItemBy(id, grow ? 1.08 : 0.92));
         return;
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId, renderItems, updateItem, removeItem, duplicateItem, resizeItemBy, undo, redo]);
+  }, [selectedIds, renderItems, updateItem, removeItems, duplicateItems, resizeItemBy, undo, redo, pathEditId, setLayout]);
 
   // ── 工具栏操作 ───────────────────────────────────────────────────
   const onSave = () => {
@@ -366,7 +528,7 @@ export const DigitalTwinEditor: React.FC = () => {
     const def = resetLayout(sceneId);
     setLayoutState(def);
     historyRef.current = { stack: [JSON.parse(JSON.stringify(def))], idx: 0, bypass: false };
-    setSelectedId(null);
+    setSelectedIds([]);
     setHistoryTick(t => t + 1);
   };
   const onResetBundled = async () => {
@@ -376,7 +538,7 @@ export const DigitalTwinEditor: React.FC = () => {
     setLayoutState(def);
     saveLayout(def);
     historyRef.current = { stack: [JSON.parse(JSON.stringify(def))], idx: 0, bypass: false };
-    setSelectedId(null);
+    setSelectedIds([]);
     setHistoryTick(t => t + 1);
     const el = document.getElementById('save-indicator');
     if (el) { el.textContent = '已同步最新还原'; el.style.opacity = '1'; setTimeout(() => { if (el) el.style.opacity = '0'; }, 1400); }
@@ -459,6 +621,7 @@ export const DigitalTwinEditor: React.FC = () => {
           alarm: it.alarm,
           tone: it.tone,
           anchorBottom: it.anchorBottom,
+          motion: normalizeMotionConfig(it.motion),
           zOffset: Number.isFinite(it.zOffset as number) ? Number(it.zOffset) : 0,
         })),
       };
@@ -467,7 +630,7 @@ export const DigitalTwinEditor: React.FC = () => {
       setLayoutState(next);
       saveLayout(next);
       historyRef.current = { stack: [JSON.parse(JSON.stringify(next))], idx: 0, bypass: false };
-      setSelectedId(null);
+      setSelectedIds([]);
       setHistoryTick(t => t + 1);
       const el = document.getElementById('save-indicator');
       if (el) { el.textContent = '已导入'; el.style.opacity = '1'; setTimeout(() => { if (el) el.style.opacity = '0'; }, 1400); }
@@ -491,12 +654,33 @@ export const DigitalTwinEditor: React.FC = () => {
 
   // ── 鼠标变换（拖拽 / 旋转 / 缩放） ───────────────────────────────
   const onItemMouseDown = (e: React.MouseEvent, item: SceneItem) => {
+    if (e.button !== 0) return; // 中键放行：交给画布平移
     e.preventDefault(); e.stopPropagation();
-    setSelectedId(item.id);
+    // Shift / Ctrl / Cmd：加选/减选，不进入拖拽
+    if (e.shiftKey || e.metaKey || e.ctrlKey) { toggleSelect(item.id); return; }
+    // 点中已在多选集合内的项 → 整组拖拽；否则只选它
+    const inSelection = selectedIds.includes(item.id);
+    const groupIds = inSelection && selectedIds.length > 1 ? selectedIds.slice() : [item.id];
+    if (!inSelection) selectOnly(item.id);
     if (item.locked) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
-    dragRef.current = { id: item.id, startX: e.clientX, startY: e.clientY, cx: item.cx, cy: item.cy, rect };
+    // 参与移动的成员（排除锁定项与底图）
+    const moveItems = renderItems.filter(it => groupIds.includes(it.id) && !it.locked && it.id !== BASE_ITEM_ID);
+    if (item.id === BASE_ITEM_ID) moveItems.push(item); // 底图单独可拖
+    const moveSet = new Set(moveItems.map(it => it.id));
+    // 对齐吸附目标：组外可见设备的中心 + 画布中心 50
+    const snapX: number[] = [50];
+    const snapY: number[] = [50];
+    for (const other of renderItems) {
+      if (moveSet.has(other.id) || other.id === BASE_ITEM_ID || other.hidden) continue;
+      snapX.push(other.cx);
+      snapY.push(other.cy);
+    }
+    dragRef.current = {
+      id: item.id, startX: e.clientX, startY: e.clientY, cx: item.cx, cy: item.cy, rect, snapX, snapY,
+      items: (moveSet.has(item.id) ? moveItems : [item, ...moveItems]).map(it => ({ id: it.id, cx: it.cx, cy: it.cy })),
+    };
   };
 
   useEffect(() => {
@@ -507,14 +691,45 @@ export const DigitalTwinEditor: React.FC = () => {
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
+      const mq = marqueeRef.current;
+      if (mq) {
+        if (!mq.moved && Math.hypot(e.clientX - mq.startX, e.clientY - mq.startY) < 3) return;
+        mq.moved = true;
+        const r = mq.rect;
+        const x1 = Math.min(mq.startX, e.clientX), y1 = Math.min(mq.startY, e.clientY);
+        const x2 = Math.max(mq.startX, e.clientX), y2 = Math.max(mq.startY, e.clientY);
+        setMarquee({
+          x: ((x1 - r.left) / r.width) * 100,
+          y: ((y1 - r.top) / r.height) * 100,
+          w: ((x2 - x1) / r.width) * 100,
+          h: ((y2 - y1) / r.height) * 100,
+        });
+        return;
+      }
+      const pan = panRef.current;
+      if (pan) {
+        const dx = e.clientX - pan.startX;
+        const dy = e.clientY - pan.startY;
+        if (!pan.moved && Math.hypot(dx, dy) < 3) return;
+        pan.moved = true;
+        applyView(canvasZoomRef.current, pan.ox + dx, pan.oy + dy);
+        return;
+      }
+      const pn = pathNodeDragRef.current;
+      if (pn) {
+        const np = clientToMotionPoint(e.clientX, e.clientY, pn.cx, pn.cy);
+        setMotionPath(pn.id, pn.path.map((point, i) => (i === pn.index ? np : point)));
+        return;
+      }
       const p = pitchRef.current;
       if (p) {
         const dy = e.clientY - p.startY;
         let next = p.startPitch + dy * 0.6;
         while (next > 180) next -= 360;
         while (next < -180) next += 360;
-        if (e.shiftKey) next = Math.round(next / 15) * 15;
+        next = snapAngleDeg(next, e.altKey, e.shiftKey);
         queueItemPatch(p.id, { pitch: next });
+        setDragHud(`X 俯仰  ${Math.round(next)}°`);
         return;
       }
       const y = yawRef.current;
@@ -523,8 +738,9 @@ export const DigitalTwinEditor: React.FC = () => {
         let next = y.startYaw + dx * 0.6;
         while (next > 180) next -= 360;
         while (next < -180) next += 360;
-        if (e.shiftKey) next = Math.round(next / 15) * 15;
+        next = snapAngleDeg(next, e.altKey, e.shiftKey);
         queueItemPatch(y.id, { yaw: next });
+        setDragHud(`Y 水平  ${Math.round(next)}°`);
         return;
       }
       const rs = resizeRef.current;
@@ -536,21 +752,27 @@ export const DigitalTwinEditor: React.FC = () => {
         const speed = e.altKey ? 0.35 : (e.shiftKey ? 0.7 : 1.4);
         if (rs.aspect) {
           const change = Math.abs(dx) > Math.abs(dy) ? dx * signX : dy * signY;
-          queueItemPatch(rs.id, { w: clampSize(rs.w + change * speed, rs.max) });
+          const nw = clampSize(rs.w + change * speed, rs.max);
+          queueItemPatch(rs.id, { w: nw });
+          setDragHud(`宽  ${nw.toFixed(1)}`);
         } else {
           // 角点：自由拉伸（同时改 w/h）
           // 边手柄：只改单维（由 corner 的 'n/s/e/w' 区分）
           if (rs.corner === 'e' || rs.corner === 'w') {
-            queueItemPatch(rs.id, { w: clampSize(rs.w + dx * signX * speed, rs.max) });
+            const nw = clampSize(rs.w + dx * signX * speed, rs.max);
+            queueItemPatch(rs.id, { w: nw });
+            setDragHud(`宽  ${nw.toFixed(1)}`);
           } else if (rs.corner === 'n' || rs.corner === 's') {
             const baseH = rs.h ?? (rs.itemRect.height / rs.rect.height * 100);
-            queueItemPatch(rs.id, { h: clampSize(baseH + dy * signY * speed, rs.max) });
+            const nh = clampSize(baseH + dy * signY * speed, rs.max);
+            queueItemPatch(rs.id, { h: nh });
+            setDragHud(`高  ${nh.toFixed(1)}`);
           } else {
             const baseH = rs.h ?? (rs.itemRect.height / rs.rect.height * 100);
-            queueItemPatch(rs.id, {
-              w: clampSize(rs.w + dx * signX * speed, rs.max),
-              h: clampSize(baseH + dy * signY * speed, rs.max),
-            });
+            const nw = clampSize(rs.w + dx * signX * speed, rs.max);
+            const nh = clampSize(baseH + dy * signY * speed, rs.max);
+            queueItemPatch(rs.id, { w: nw, h: nh });
+            setDragHud(`${nw.toFixed(1)} × ${nh.toFixed(1)}`);
           }
         }
         return;
@@ -563,24 +785,82 @@ export const DigitalTwinEditor: React.FC = () => {
         let next = r.startRotate + (currentAngle - r.startAngle);
         while (next > 180) next -= 360;
         while (next < -180) next += 360;
-        if (e.shiftKey) next = Math.round(next / 15) * 15;
+        next = snapAngleDeg(next, e.altKey, e.shiftKey);
         queueItemPatch(r.id, { rotate: next });
+        setDragHud(`Z 旋转  ${Math.round(next)}°`);
         return;
       }
       const d = dragRef.current;
       if (!d) return;
       const dx = ((e.clientX - d.startX) / d.rect.width) * 100;
       const dy = ((e.clientY - d.startY) / d.rect.height) * 100;
-      queueItemPatch(d.id, {
-        cx: Math.max(-20, Math.min(120, d.cx + dx)),
-        cy: Math.max(-20, Math.min(120, d.cy + dy)),
-      });
+      let ncx = Math.max(-20, Math.min(120, d.cx + dx));
+      let ncy = Math.max(-20, Math.min(120, d.cy + dy));
+      // 对齐吸附（按住 Alt 临时关闭）；按主选中项吸附，整组同步偏移
+      if (!e.altKey) {
+        const thX = (6 / d.rect.width) * 100;
+        const thY = (6 / d.rect.height) * 100;
+        let bestX: number | undefined, bestY: number | undefined, dXmin = thX, dYmin = thY;
+        for (const tx of d.snapX) { const diff = Math.abs(ncx - tx); if (diff <= dXmin) { dXmin = diff; bestX = tx; } }
+        for (const ty of d.snapY) { const diff = Math.abs(ncy - ty); if (diff <= dYmin) { dYmin = diff; bestY = ty; } }
+        if (bestX != null) ncx = bestX;
+        if (bestY != null) ncy = bestY;
+        setSnapGuides(bestX != null || bestY != null ? { x: bestX, y: bestY } : null);
+      } else {
+        setSnapGuides(null);
+      }
+      if (d.items.length <= 1) {
+        queueItemPatch(d.id, { cx: ncx, cy: ncy });
+      } else {
+        const adx = ncx - d.cx;
+        const ady = ncy - d.cy;
+        const updates = new Map<string, { cx: number; cy: number }>(d.items.map(it => [it.id, {
+          cx: Math.max(-20, Math.min(120, it.cx + adx)),
+          cy: Math.max(-20, Math.min(120, it.cy + ady)),
+        }]));
+        setLayout(prev => ({ ...prev, items: prev.items.map(i => (updates.has(i.id) ? { ...i, ...updates.get(i.id)! } : i)) }));
+      }
     };
-    const onUp = () => { dragRef.current = null; rotateRef.current = null; resizeRef.current = null; yawRef.current = null; pitchRef.current = null; };
+    const onUp = (e: MouseEvent) => {
+      const mq = marqueeRef.current;
+      if (mq) {
+        if (mq.moved) {
+          const r = mq.rect;
+          const bx1 = ((Math.min(mq.startX, e.clientX) - r.left) / r.width) * 100;
+          const bx2 = ((Math.max(mq.startX, e.clientX) - r.left) / r.width) * 100;
+          const by1 = ((Math.min(mq.startY, e.clientY) - r.top) / r.height) * 100;
+          const by2 = ((Math.max(mq.startY, e.clientY) - r.top) / r.height) * 100;
+          const hit = renderItemsRef.current
+            .filter(it => it.id !== BASE_ITEM_ID && !it.hidden && it.cx >= bx1 && it.cx <= bx2 && it.cy >= by1 && it.cy <= by2)
+            .map(it => it.id);
+          setSelectedIds(mq.additive ? Array.from(new Set([...mq.base, ...hit])) : hit);
+          suppressClickRef.current = true; // 阻止随后的 click 清空选择
+        }
+        setMarquee(null);
+        marqueeRef.current = null;
+      }
+      if (panRef.current?.moved) suppressClickRef.current = true;
+      if (dragRef.current) setSnapGuides(null);
+      if (rotateRef.current || yawRef.current || pitchRef.current || resizeRef.current) setDragHud(null);
+      dragRef.current = null; rotateRef.current = null; resizeRef.current = null; yawRef.current = null; pitchRef.current = null; pathNodeDragRef.current = null; panRef.current = null;
+    };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
-  }, [queueItemPatch]);
+  }, [queueItemPatch, clientToMotionPoint, setMotionPath, applyView, setLayout]);
+
+  // 空格键临时切换为平移模式（按住 + 左键拖拽 = 平移）
+  useEffect(() => {
+    const isTyping = () => {
+      const el = document.activeElement as HTMLElement | null;
+      return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
+    };
+    const kd = (e: KeyboardEvent) => { if (e.code === 'Space' && !isTyping()) spaceRef.current = true; };
+    const ku = (e: KeyboardEvent) => { if (e.code === 'Space') spaceRef.current = false; };
+    window.addEventListener('keydown', kd);
+    window.addEventListener('keyup', ku);
+    return () => { window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); };
+  }, []);
 
   const onItemWheel = (e: React.WheelEvent, item: SceneItem) => {
     if (item.locked || item.id !== selectedId || e.ctrlKey || e.metaKey) return;
@@ -597,12 +877,57 @@ export const DigitalTwinEditor: React.FC = () => {
     updateItem(item.id, { w: clampSize(item.w + delta, max) });
   };
 
+  // ── 画布视图（缩放 + 平移，缩放跟随光标） ─────────────────────────────
+  const ZOOM_MIN = 0.3;
+  const ZOOM_MAX = 4;
+  const resetView = useCallback(() => applyView(1, 0, 0), [applyView]);
+  // 围绕画布上的某个屏幕点缩放（fx/fy 为该点在画布盒子内的比例 0..1）
+  const zoomAtFraction = useCallback((factor: number, fx: number, fy: number) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const z0 = canvasZoomRef.current;
+    const z1 = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, +(z0 * factor).toFixed(3)));
+    if (z1 === z0) return;
+    const w0 = rect.width / z0;
+    const h0 = rect.height / z0;
+    const dtx = w0 * (z1 - z0) * (0.5 - fx);
+    const dty = h0 * (z1 - z0) * (0.5 - fy);
+    const p0 = canvasPanRef.current;
+    applyView(z1, p0.x + dtx, p0.y + dty);
+  }, [applyView]);
+  const zoomAtCenter = useCallback((factor: number) => zoomAtFraction(factor, 0.5, 0.5), [zoomAtFraction]);
+
   const onCanvasWheel = (e: React.WheelEvent) => {
-    if (e.ctrlKey || e.metaKey) return;
-    if (!e.altKey) return;
     e.preventDefault();
-    const step = e.deltaY < 0 ? 0.08 : -0.08;
-    setCanvasZoom(z => Math.max(0.3, Math.min(3, +(z + step).toFixed(2))));
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    // 触控板 pinch 会带 ctrlKey，按更细的步进缩放；普通滚轮 1.1 倍
+    const intensity = (e.ctrlKey || e.metaKey) ? 0.01 : 0.0018;
+    const factor = Math.exp(-e.deltaY * intensity);
+    const fx = (e.clientX - rect.left) / rect.width;
+    const fy = (e.clientY - rect.top) / rect.height;
+    zoomAtFraction(factor, fx, fy);
+  };
+
+  // 画布空白处：左键拖拽=框选；中键 / 空格+左键=平移
+  const onCanvasMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0 && e.button !== 1) return;
+    suppressClickRef.current = false; // 新一轮交互，清除上次平移遗留的抑制标记
+    const isPan = e.button === 1 || (e.button === 0 && spaceRef.current);
+    if (isPan) {
+      e.preventDefault();
+      panRef.current = { startX: e.clientX, startY: e.clientY, ox: canvasPanRef.current.x, oy: canvasPanRef.current.y, moved: false };
+      return;
+    }
+    // 左键框选（Shift/Cmd/Ctrl 为追加框选）
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    marqueeRef.current = {
+      startX: e.clientX, startY: e.clientY, rect,
+      additive: e.shiftKey || e.metaKey || e.ctrlKey,
+      base: e.shiftKey || e.metaKey || e.ctrlKey ? selectedIds.slice() : [],
+      moved: false,
+    };
   };
 
   const onResizeHandleDown = (e: React.MouseEvent, item: SceneItem, corner: string) => {
@@ -645,7 +970,7 @@ export const DigitalTwinEditor: React.FC = () => {
           </select>
           <span className="text-[#7e9fc8] ml-2">{layout.items.length} 项设施</span>
           {baseEditableItem && (
-            <button className={btn + ' !h-6 !px-2 ml-1'} onClick={() => setSelectedId(BASE_ITEM_ID)}>选中底图</button>
+            <button className={btn + ' !h-6 !px-2 ml-1'} onClick={() => selectOnly(BASE_ITEM_ID)}>选中底图</button>
           )}
 
           <span className="mx-2 text-[#244871]">|</span>
@@ -663,9 +988,9 @@ export const DigitalTwinEditor: React.FC = () => {
           <button className={btnDanger} onClick={onResetBundled}><RotateCcw size={11} />最新还原</button>
           <button className={btnPrimary} onClick={onSave}><Save size={11} />保存</button>
           <div className="ml-2 flex items-center gap-1 rounded border border-[#2b6aa8] bg-[#0d2e5b] px-1.5">
-            <button className={iconBtn + ' !h-5 !w-5 !border-0 !bg-transparent'} onClick={() => setCanvasZoom(z => Math.max(0.3, +(z - 0.1).toFixed(2)))} title="画布缩小">-</button>
-            <span className="w-12 text-center text-[10px] text-[#cfe9ff]">{Math.round(canvasZoom * 100)}%</span>
-            <button className={iconBtn + ' !h-5 !w-5 !border-0 !bg-transparent'} onClick={() => setCanvasZoom(z => Math.min(3, +(z + 0.1).toFixed(2)))} title="画布放大">+</button>
+            <button className={iconBtn + ' !h-5 !w-5 !border-0 !bg-transparent'} onClick={() => zoomAtCenter(1 / 1.15)} title="画布缩小">-</button>
+            <button className="w-12 text-center text-[10px] text-[#cfe9ff] hover:text-white" onClick={resetView} title="点击复位（100% 居中）">{Math.round(canvasZoom * 100)}%</button>
+            <button className={iconBtn + ' !h-5 !w-5 !border-0 !bg-transparent'} onClick={() => zoomAtCenter(1.15)} title="画布放大">+</button>
           </div>
           <input
             ref={importInputRef}
@@ -760,8 +1085,9 @@ export const DigitalTwinEditor: React.FC = () => {
             <div
               ref={canvasRef}
               className="relative overflow-visible"
-              style={{ aspectRatio: `${layout.width} / ${layout.height}`, height: '100%', maxHeight: '100%', maxWidth: '100%', transform: `scale(${canvasZoom})`, transformOrigin: '50% 50%' }}
-              onClick={() => setSelectedId(null)}
+              style={{ aspectRatio: `${layout.width} / ${layout.height}`, height: '100%', maxHeight: '100%', maxWidth: '100%', transform: `translate(${canvasPan.x}px, ${canvasPan.y}px) scale(${canvasZoom})`, transformOrigin: '50% 50%', cursor: 'default' }}
+              onMouseDown={onCanvasMouseDown}
+              onClick={() => { if (suppressClickRef.current) { suppressClickRef.current = false; return; } setSelectedIds([]); }}
               onWheel={onCanvasWheel}
               onDragOver={e => {
                 if (e.dataTransfer.types.includes('text/dt-asset')) {
@@ -821,16 +1147,18 @@ export const DigitalTwinEditor: React.FC = () => {
                   {/* 设施层（可交互） */}
                   <div className="absolute inset-0" style={{ zIndex: 10 }}>
                     <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ zIndex: 2 }}>
-                      {renderItems.filter(item => item.id !== BASE_ITEM_ID && isMotionRobotItem(item)).map(item => (
-                        <polyline
-                          key={`${item.id}-motion-track`}
-                          points={getRobotTrackPoints(item)}
-                          fill="none"
-                          stroke="rgba(79,193,255,0.72)"
-                          strokeWidth="0.24"
-                          strokeDasharray="1.2 0.8"
-                          vectorEffect="non-scaling-stroke"
-                        />
+                      {renderItems.filter(item => item.id !== BASE_ITEM_ID && (isMotionRobotItem(item) || item.motion?.path?.length)).map(item => (
+                        getMotionTrackPoints(item) ? (
+                          <polyline
+                            key={`${item.id}-motion-track`}
+                            points={getMotionTrackPoints(item)}
+                            fill="none"
+                            stroke="rgba(79,193,255,0.72)"
+                            strokeWidth="0.24"
+                            strokeDasharray="1.2 0.8"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        ) : null
                       ))}
                     </svg>
 
@@ -840,7 +1168,8 @@ export const DigitalTwinEditor: React.FC = () => {
                   : getAsset(item.asset);
                 const missingAsset = item.id !== BASE_ITEM_ID && !a;
                 const assetSize = a ?? { src: '', w: 512, h: 512 };
-                const isSel = item.id === selectedId;
+                const isSel = selectedIds.includes(item.id);
+                const isPrimary = isSel && item.id === selectedId && selectedIds.length === 1;
                 if (item.id === BASE_ITEM_ID && !isSel) return null;
                 const isHidden = item.hidden;
                 const isLocked = item.locked;
@@ -852,7 +1181,7 @@ export const DigitalTwinEditor: React.FC = () => {
                     key={item.id}
                     onMouseDown={e => onItemMouseDown(e, item)}
                     onWheel={e => onItemWheel(e, item)}
-                    onClick={e => { e.stopPropagation(); setSelectedId(item.id); }}
+                    onClick={e => e.stopPropagation()}
                     className={`absolute select-none ${isLocked ? 'cursor-not-allowed' : 'cursor-move'} ${item.id === BASE_ITEM_ID ? 'bg-transparent' : ''}`}
                     style={{
                       left: `${robotPoint.x}%`,
@@ -903,7 +1232,7 @@ export const DigitalTwinEditor: React.FC = () => {
                       </div>
                     )}
 
-                    {isSel && (
+                    {isPrimary && (
                       <>
                         <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 rounded bg-[#0a2547]/95 px-1.5 py-0.5 text-[10px] font-mono text-[#ffb672] whitespace-nowrap">
                           {item.label || item.asset} · ({item.cx.toFixed(1)},{item.cy.toFixed(1)}) · w{item.w.toFixed(1)}{item.h != null ? `×h${item.h.toFixed(1)}` : ''}
@@ -912,42 +1241,48 @@ export const DigitalTwinEditor: React.FC = () => {
                           <span className="ml-1 text-[#4fc1ff]">X{Math.round(((item.pitch ?? 0) + 360) % 360)}°</span>
                         </div>
 
+                        {dragHud && (
+                          <div className="pointer-events-none absolute left-1/2 top-1/2 z-[20] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-[#4fc1ff] bg-[#041326]/95 px-2.5 py-1 font-mono text-[13px] font-bold tracking-wide text-[#eaf6ff] shadow-[0_0_16px_rgba(79,193,255,0.65)]">
+                            {dragHud}
+                          </div>
+                        )}
+
                         {!isLocked && (
                           <>
-                            {/* Z 轴旋转手柄 */}
+                            {/* Z 轴旋转手柄（屏幕平面旋转） */}
                             <div className="pointer-events-none absolute left-1/2 -top-5 -translate-x-1/2" style={{ width: 1, height: 20, background: '#ffb672' }} />
                             <div onMouseDown={e => onRotateHandleDown(e, item, (e.currentTarget.parentElement as HTMLElement))} onClick={e => e.stopPropagation()}
-                              title="Z 轴旋转 · Shift 吸附 15°"
-                              className="absolute left-1/2 -top-9 flex h-6 w-6 -translate-x-1/2 cursor-grab items-center justify-center rounded-full border-2 border-[#ffb672] bg-[#3a2c0d] text-[#fff0d4] shadow-[0_0_8px_rgba(255,182,114,0.55)] active:cursor-grabbing hover:bg-[#5a4214]">
-                              <RotateCw size={11} />
+                              title="Z 轴旋转（屏幕平面）· 拖拽旋转 · Shift 锁定 15° · Alt 自由"
+                              className="absolute left-1/2 -top-10 flex h-7 w-7 -translate-x-1/2 cursor-grab items-center justify-center rounded-full border-2 border-[#ffb672] bg-[#3a2c0d] text-[12px] font-bold text-[#fff0d4] shadow-[0_0_8px_rgba(255,182,114,0.6)] active:cursor-grabbing hover:bg-[#5a4214]">
+                              Z
                             </div>
 
-                            {/* Y 轴 */}
+                            {/* Y 轴（水平朝向） */}
                             <div className="pointer-events-none absolute top-1/2 -right-5 -translate-y-1/2" style={{ height: 1, width: 20, background: '#6ce09a' }} />
                             <div onMouseDown={e => onYawHandleDown(e, item)} onClick={e => e.stopPropagation()}
-                              title="Y 轴水平旋转 · 左右拖拽"
-                              className="absolute top-1/2 -right-9 flex h-6 w-6 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border-2 border-[#6ce09a] bg-[#0d3a26] text-[#cfeedf] shadow-[0_0_8px_rgba(108,224,154,0.5)] active:cursor-grabbing hover:bg-[#155538]">
-                              <FlipHorizontal2 size={11} />
+                              title="Y 轴水平朝向 · 左右拖拽 · Shift 锁定 15° · Alt 自由"
+                              className="absolute top-1/2 -right-10 flex h-7 w-7 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border-2 border-[#6ce09a] bg-[#0d3a26] text-[12px] font-bold text-[#cfeedf] shadow-[0_0_8px_rgba(108,224,154,0.55)] active:cursor-grabbing hover:bg-[#155538]">
+                              Y
                             </div>
 
-                            {/* X 轴 */}
+                            {/* X 轴（俯仰） */}
                             <div className="pointer-events-none absolute left-1/2 -bottom-5 -translate-x-1/2" style={{ width: 1, height: 20, background: '#4fc1ff' }} />
                             <div onMouseDown={e => onPitchHandleDown(e, item)} onClick={e => e.stopPropagation()}
-                              title="X 轴俯仰旋转 · 上下拖拽"
-                              className="absolute left-1/2 -bottom-9 flex h-6 w-6 -translate-x-1/2 cursor-ns-resize items-center justify-center rounded-full border-2 border-[#4fc1ff] bg-[#0a2f63] text-[#cfe9ff] shadow-[0_0_8px_rgba(79,193,255,0.5)] active:cursor-grabbing hover:bg-[#13427d]">
-                              <FlipVertical2 size={11} />
+                              title="X 轴俯仰 · 上下拖拽 · Shift 锁定 15° · Alt 自由"
+                              className="absolute left-1/2 -bottom-10 flex h-7 w-7 -translate-x-1/2 cursor-ns-resize items-center justify-center rounded-full border-2 border-[#4fc1ff] bg-[#0a2f63] text-[12px] font-bold text-[#cfe9ff] shadow-[0_0_8px_rgba(79,193,255,0.55)] active:cursor-grabbing hover:bg-[#13427d]">
+                              X
                             </div>
 
                             {/* 4 角缩放手柄（按比例） */}
                             {[
-                              { c: 'nw', top: -8, left: -8, cursor: 'nwse-resize' },
-                              { c: 'ne', top: -8, right: -8, cursor: 'nesw-resize' },
-                              { c: 'sw', bottom: -8, left: -8, cursor: 'nesw-resize' },
-                              { c: 'se', bottom: -8, right: -8, cursor: 'nwse-resize' },
+                              { c: 'nw', top: -9, left: -9, cursor: 'nwse-resize' },
+                              { c: 'ne', top: -9, right: -9, cursor: 'nesw-resize' },
+                              { c: 'sw', bottom: -9, left: -9, cursor: 'nesw-resize' },
+                              { c: 'se', bottom: -9, right: -9, cursor: 'nwse-resize' },
                             ].map(h => (
                               <div key={h.c} onMouseDown={e => onResizeHandleDown(e, item, h.c)} onClick={e => e.stopPropagation()}
                                 title={item.lockAspect !== false ? '按比例缩放 · Shift/Alt 精细调整' : '自由拉伸 · Shift/Alt 精细调整'}
-                                className="absolute h-4 w-4 rounded border-2 border-white bg-[#ffb672] shadow-[0_0_10px_rgba(255,182,114,0.85)] hover:scale-125"
+                                className="absolute h-[18px] w-[18px] rounded-[3px] border-2 border-white bg-[#ffb672] shadow-[0_0_10px_rgba(255,182,114,0.85)] transition-transform hover:scale-125"
                                 style={{ top: h.top, bottom: h.bottom, left: h.left, right: h.right, cursor: h.cursor, zIndex: 8 }}
                               />
                             ))}
@@ -973,6 +1308,109 @@ export const DigitalTwinEditor: React.FC = () => {
                   </div>
                 );
               })}
+
+                  {/* 运动轨迹绘制层：点击空白加点、拖拽圆点移动、双击删除 */}
+                  {pathEditItem && (() => {
+                    const editPath = getEditablePath(pathEditItem);
+                    const ax = pathEditItem.cx;
+                    const ay = pathEditItem.cy;
+                    return (
+                      <svg
+                        className="absolute inset-0 h-full w-full overflow-visible"
+                        viewBox="0 0 100 100"
+                        preserveAspectRatio="none"
+                        style={{ zIndex: 60 }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        {/* 空白捕获层：点击追加一个新点 */}
+                        <rect
+                          x={0} y={0} width={100} height={100} fill="transparent"
+                          style={{ cursor: 'crosshair' }}
+                          onMouseDown={e => {
+                            if (e.button !== 0) return; // 中键/右键放行用于平移
+                            e.preventDefault(); e.stopPropagation();
+                            const np = clientToMotionPoint(e.clientX, e.clientY, ax, ay);
+                            setMotionPath(pathEditItem.id, [...editPath, np]);
+                          }}
+                        />
+                        {editPath.length > 1 && (
+                          <polyline
+                            points={editPath.map(p => `${ax + p.x},${ay + p.y}`).join(' ')}
+                            fill="none" stroke="#ffb672" strokeWidth="0.34" strokeDasharray="1.4 0.9"
+                            vectorEffect="non-scaling-stroke" pointerEvents="none"
+                          />
+                        )}
+                        {/* 线段命中区：在两点之间点击插入新点 */}
+                        {editPath.length > 1 && editPath.map((p, i) => {
+                          const loop = pathEditItem.motion?.loop ?? true;
+                          if (i === editPath.length - 1 && !loop) return null;
+                          const next = editPath[(i + 1) % editPath.length];
+                          return (
+                            <line
+                              key={`seg-${i}`}
+                              x1={ax + p.x} y1={ay + p.y} x2={ax + next.x} y2={ay + next.y}
+                              stroke="transparent" strokeWidth="2.4" vectorEffect="non-scaling-stroke"
+                              style={{ cursor: 'copy' }}
+                              onMouseDown={e => {
+                                if (e.button !== 0) return;
+                                e.preventDefault(); e.stopPropagation();
+                                const np = clientToMotionPoint(e.clientX, e.clientY, ax, ay);
+                                const nextPath = [...editPath];
+                                nextPath.splice(i + 1, 0, np);
+                                setMotionPath(pathEditItem.id, nextPath);
+                                pathNodeDragRef.current = { id: pathEditItem.id, index: i + 1, cx: ax, cy: ay, path: nextPath };
+                              }}
+                            />
+                          );
+                        })}
+                        {editPath.map((p, i) => {
+                          const x = ax + p.x;
+                          const y = ay + p.y;
+                          return (
+                            <g key={i}>
+                              <circle
+                                cx={x} cy={y} r={1.5}
+                                fill={i === 0 ? '#1c5e3a' : '#0a2f63'}
+                                stroke={i === 0 ? '#6ce09a' : '#ffb672'} strokeWidth="0.5"
+                                vectorEffect="non-scaling-stroke"
+                                style={{ cursor: 'grab' }}
+                                onMouseDown={e => {
+                                  if (e.button !== 0) return;
+                                  e.preventDefault(); e.stopPropagation();
+                                  pathNodeDragRef.current = { id: pathEditItem.id, index: i, cx: ax, cy: ay, path: editPath };
+                                }}
+                                onDoubleClick={e => {
+                                  e.preventDefault(); e.stopPropagation();
+                                  setMotionPath(pathEditItem.id, editPath.filter((_, idx) => idx !== i));
+                                }}
+                              >
+                                <title>{`第 ${i + 1} 点 · 拖拽移动 · 双击删除`}</title>
+                              </circle>
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    );
+                  })()}
+
+                  {/* 框选矩形 */}
+                  {marquee && (
+                    <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ zIndex: 72 }}>
+                      <rect x={marquee.x} y={marquee.y} width={marquee.w} height={marquee.h} fill="rgba(79,193,255,0.12)" stroke="#4fc1ff" strokeWidth="0.16" strokeDasharray="0.8 0.5" vectorEffect="non-scaling-stroke" />
+                    </svg>
+                  )}
+
+                  {/* 对齐参考线 */}
+                  {snapGuides && (snapGuides.x != null || snapGuides.y != null) && (
+                    <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ zIndex: 70 }}>
+                      {snapGuides.x != null && (
+                        <line x1={snapGuides.x} y1={-20} x2={snapGuides.x} y2={120} stroke="#ff5cf0" strokeWidth="0.18" strokeDasharray="0.8 0.6" vectorEffect="non-scaling-stroke" />
+                      )}
+                      {snapGuides.y != null && (
+                        <line x1={-20} y1={snapGuides.y} x2={120} y2={snapGuides.y} stroke="#ff5cf0" strokeWidth="0.18" strokeDasharray="0.8 0.6" vectorEffect="non-scaling-stroke" />
+                      )}
+                    </svg>
+                  )}
                   </div>
 
                 </div>
@@ -982,8 +1420,10 @@ export const DigitalTwinEditor: React.FC = () => {
 
           {/* 画布提示 */}
           <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-[#0a2547]/85 px-2 py-1 text-[10px] leading-relaxed text-[#7e9fc8]">
-            素材库拖入 / 点选 · 拖拽建筑移动 · <span className="text-[#ffb672]">4 角 ⬚</span>缩放 · <span className="text-[#79d0ff]">4 边 ▭</span>单维拉伸（需关锁定）· Alt+滚轮缩放画布/选中设备<br />
-            旋转：<span className="text-[#ffb672]">⟳ Z</span> · <span className="text-[#6ce09a]">⇆ Y</span>（左右） · <span className="text-[#4fc1ff]">⇅ X</span>（上下）· Shift+滚轮旋转选中设备 · Ctrl/Cmd+滚轮保留页面缩放<br />
+            素材库拖入 / 点选 · 拖拽移动（<span className="text-[#ff8fe0]">自动对齐吸附</span>，按 Alt 关闭）· <span className="text-[#ffb672]">4 角 ⬚</span>缩放 · <span className="text-[#79d0ff]">4 边 ▭</span>单维拉伸（需关锁定）<br />
+            画布：<span className="text-[#9fe0ff]">滚轮缩放（跟随光标）</span> · 空白处拖拽<span className="text-[#9fe0ff]">框选</span> · 中键 / 空格+拖拽<span className="text-[#9fe0ff]">平移</span> · 点缩放比例<span className="text-[#9fe0ff]">复位</span><br />
+            多选：框选 / <span className="text-[#9fe0ff]">Shift·⌘ 点击</span>加减选 · 拖任一选中项整组移动 · 右侧面板可对齐/分布<br />
+            旋转手柄：<span className="text-[#ffb672]">Z</span> 平面 · <span className="text-[#6ce09a]">Y</span> 水平 · <span className="text-[#4fc1ff]">X</span> 俯仰 · 拖拽时<span className="text-[#9fe0ff]">实时显示角度</span> · Shift 锁 15° · Alt 自由<br />
             快捷键：方向键移动 · Shift+方向 5% · Delete 删除 · Esc 取消 · Ctrl+D 复制 · Ctrl+Z/Y 撤销/重做 · 自动保存
           </div>
         </div>
@@ -996,9 +1436,9 @@ export const DigitalTwinEditor: React.FC = () => {
           </div>
           <div className="max-h-[28vh] space-y-0.5 overflow-auto custom-scrollbar pr-0.5">
             {renderItems.map((it, idx) => {
-              const isSel = it.id === selectedId;
+              const isSel = selectedIds.includes(it.id);
               return (
-                <div key={it.id} onClick={() => setSelectedId(it.id)}
+                <div key={it.id} onClick={e => { if (e.shiftKey || e.metaKey || e.ctrlKey) toggleSelect(it.id); else selectOnly(it.id); }}
                   className={`flex cursor-pointer items-center gap-1 rounded px-1.5 py-1 text-[11px] ${isSel ? 'border border-[#ffb672] bg-[#3a2c0d]/40 text-[#fff0d4]' : 'border border-[#244871] bg-[#081f3d] text-[#a9c8ee] hover:bg-[#103968]'}`}>
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-[#0d2e5b] text-[9px]">{idx + 1}</span>
                   <span className="flex-1 truncate" style={it.hidden ? { opacity: 0.5 } : undefined}>{it.label || it.asset}</span>
@@ -1048,7 +1488,33 @@ export const DigitalTwinEditor: React.FC = () => {
                 </div>
               </Row>
             </div>
-            {selected ? (
+            {selectedIds.length > 1 ? (
+              <div className="space-y-2">
+                <div className="rounded border border-[#ffb672]/50 bg-[#3a2c0d]/30 px-2 py-1.5 text-[11px] text-[#fff0d4]">已选中 <b>{selectedIds.length}</b> 项 · 拖动其中任意一个可整组移动</div>
+                <div className="text-[10px] text-[#7e9fc8]">水平对齐（按中心）</div>
+                <div className="grid grid-cols-3 gap-1">
+                  <button className={btn + ' justify-center'} onClick={() => alignSelected('x', 'min')}>左</button>
+                  <button className={btn + ' justify-center'} onClick={() => alignSelected('x', 'center')}>水平居中</button>
+                  <button className={btn + ' justify-center'} onClick={() => alignSelected('x', 'max')}>右</button>
+                </div>
+                <div className="text-[10px] text-[#7e9fc8]">垂直对齐（按中心）</div>
+                <div className="grid grid-cols-3 gap-1">
+                  <button className={btn + ' justify-center'} onClick={() => alignSelected('y', 'min')}>顶</button>
+                  <button className={btn + ' justify-center'} onClick={() => alignSelected('y', 'center')}>垂直居中</button>
+                  <button className={btn + ' justify-center'} onClick={() => alignSelected('y', 'max')}>底</button>
+                </div>
+                <div className="text-[10px] text-[#7e9fc8]">等距分布（需 ≥3 项）</div>
+                <div className="grid grid-cols-2 gap-1">
+                  <button className={btn + ' justify-center'} onClick={() => distributeSelected('x')}>水平等距</button>
+                  <button className={btn + ' justify-center'} onClick={() => distributeSelected('y')}>垂直等距</button>
+                </div>
+                <div className="flex gap-1 pt-1">
+                  <button className={btn + ' flex-1 justify-center'} onClick={() => duplicateItems(selectedIds)}><Copy size={11} />复制整组</button>
+                  <button className={btnDanger + ' flex-1 justify-center'} onClick={() => removeItems(selectedIds)}><Trash2 size={11} />删除整组</button>
+                </div>
+                <div className="text-[10px] leading-4 text-[#7e9fc8]">框选：空白处左键拖拽 · Shift/⌘ 点击加/减选 · 方向键整组移动 · Esc 取消选择</div>
+              </div>
+            ) : selected ? (
               isBaseSelected ? (
                 <div className="space-y-1.5">
                   <div className="rounded border border-[#244871] bg-[#081f3d] px-2 py-1 text-[10px] text-[#79d0ff]">底图（复用同一套拖拽/旋转/缩放）</div>
@@ -1124,6 +1590,7 @@ export const DigitalTwinEditor: React.FC = () => {
                   </button>
                 </div>
 
+                <Section title="常用项" open={openSections.common} onToggle={() => toggleSection('common')}>
                 <Row label="资源">
                   <select value={selected.asset} onChange={e => updateItem(selected.id, { asset: e.target.value as AssetKey })} className="input">
                     {Object.keys(allAssets).map(k => <option key={k} value={k}>{k}</option>)}
@@ -1201,6 +1668,9 @@ export const DigitalTwinEditor: React.FC = () => {
                     <span className="w-10 text-right font-mono text-[10px] text-[#cfe9ff]">{Math.round(Math.max(0.12, selected.opacity ?? 1) * 100)}%</span>
                   </div>
                 </Row>
+                </Section>
+
+                <Section title="旋转 / 深度" open={openSections.transform} onToggle={() => toggleSection('transform')}>
                 <Row label="Z 旋转">
                   <div className="flex items-center gap-1.5">
                     <input type="range" min={-180} max={180} step={1} value={selected.rotate ?? 0}
@@ -1232,6 +1702,9 @@ export const DigitalTwinEditor: React.FC = () => {
                 <Row label="底部锚点">
                   <input type="checkbox" checked={selected.anchorBottom !== false} onChange={e => updateItem(selected.id, { anchorBottom: e.target.checked })} className="h-4 w-4 accent-[#4fc1ff]" />
                 </Row>
+                </Section>
+
+                <Section title="交互 / 状态" open={openSections.interaction} onToggle={() => toggleSection('interaction')}>
                 <Row label="点击下钻">
                   <DrillTargetTree
                     value={selected.drillTargets ?? (selected.zone ? [selected.zone] : [])}
@@ -1251,9 +1724,90 @@ export const DigitalTwinEditor: React.FC = () => {
                     <option value="alarm">告警(严重)</option>
                   </select>
                 </Row>
+                </Section>
+
+                <Section title="移动轨迹" open={openSections.motion} onToggle={() => toggleSection('motion')}>
+                <Row label="移动">
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-[11px] text-[#cfe9ff]">
+                      <input
+                        type="checkbox"
+                        checked={selected.motion?.enabled ?? isMotionRobotItem(selected)}
+                        onChange={e => updateSelectedMotion({
+                          enabled: e.target.checked,
+                          path: selected.motion?.path ?? (e.target.checked ? DEFAULT_ROBOT_MOTION_PATH : undefined),
+                        })}
+                        className="h-4 w-4 accent-[#4fc1ff]"
+                      />
+                      启用移动
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-8 text-[10px] text-[#7e9fc8]">时长</span>
+                        <NumInput
+                          value={selected.motion?.duration ?? DEFAULT_MOTION_DURATION}
+                          onChange={v => updateSelectedMotion({ duration: Math.max(1000, v) })}
+                          step={500}
+                          min={1000}
+                        />
+                      </div>
+                      <label className="flex items-center gap-1.5 text-[11px] text-[#cfe9ff]">
+                        <input
+                          type="checkbox"
+                          checked={selected.motion?.loop ?? true}
+                          onChange={e => updateSelectedMotion({ loop: e.target.checked })}
+                          className="h-4 w-4 accent-[#4fc1ff]"
+                        />
+                        循环路径
+                      </label>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <button
+                        className={(pathEditId === selected.id ? btnPrimary : btn) + ' h-7 flex-1 justify-center'}
+                        onClick={() => {
+                          if (pathEditId === selected.id) { setPathEditId(null); return; }
+                          if (!selected.motion?.path?.length) {
+                            updateSelectedMotion({ enabled: true, path: DEFAULT_ROBOT_MOTION_PATH });
+                          } else if (selected.motion?.enabled === false) {
+                            updateSelectedMotion({ enabled: true });
+                          }
+                          setPathEditId(selected.id);
+                        }}
+                      >
+                        {pathEditId === selected.id ? '✓ 绘制中 · 点击结束' : '✎ 在画布上绘制路径'}
+                      </button>
+                      <button
+                        className={btn + ' h-7 justify-center'}
+                        title="清空所有路径点"
+                        onClick={() => updateSelectedMotion({ path: [] })}
+                      >
+                        清空
+                      </button>
+                    </div>
+                    {pathEditId === selected.id && (
+                      <div className="rounded border border-[#3a5d2c] bg-[#10260a]/70 px-2 py-1 text-[10px] leading-4 text-[#a8e08c]">
+                        画布操作：单击空白<b>末尾加点</b> · 点击连线<b>中间插点</b> · 拖拽圆点<b>移动</b> · 双击圆点<b>删除</b> · Esc <b>退出</b>。绿色为起点。
+                      </div>
+                    )}
+                    <textarea
+                      value={getMotionPathText(selected)}
+                      onChange={e => updateSelectedMotion({ path: parseMotionPointsText(e.target.value) })}
+                      className="input h-20 resize-none py-1 font-mono text-[10px] leading-4"
+                      placeholder="0,0&#10;8,-4&#10;13,1"
+                    />
+                    <div className="text-[10px] leading-4 text-[#7e9fc8]">
+                      也可直接编辑坐标：每行一个点 `x,y`，相对当前位置的百分比偏移。
+                    </div>
+                  </div>
+                </Row>
+                </Section>
+
+                <Section title="高级" open={openSections.advanced} onToggle={() => toggleSection('advanced')}>
                 <Row label="CSS Filter">
                   <input type="text" placeholder="如：drop-shadow(0 0 6px #f00)" value={selected.filter || ''} onChange={e => updateItem(selected.id, { filter: e.target.value || undefined })} className="input" />
                 </Row>
+                </Section>
+
                 <div className="mt-2 flex gap-1.5">
                   <button className={btnDanger + ' flex-1'} onClick={() => removeItem(selected.id)}><Trash2 size={11} />删除 (Del)</button>
                 </div>
@@ -1280,6 +1834,13 @@ export const DigitalTwinEditor: React.FC = () => {
       <style>{`
         .input{height:24px;border:1px solid #2b6aa8;background:#0d2e5b;color:#cfe9ff;font:11px monospace;padding:0 6px;border-radius:3px;width:100%;outline:none;}
         .input:focus{border-color:#4fc1ff;}
+        .num-wrap{display:flex;align-items:stretch;width:100%;height:24px;border:1px solid #2b6aa8;background:#0d2e5b;border-radius:3px;overflow:hidden;}
+        .num-wrap:focus-within{border-color:#4fc1ff;}
+        .num-field{flex:1;min-width:0;border:0;background:transparent;color:#cfe9ff;font:11px monospace;padding:0 4px;text-align:center;outline:none;-moz-appearance:textfield;}
+        .num-field::-webkit-outer-spin-button,.num-field::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+        .num-step{width:18px;flex:none;border:0;background:#0b2547;color:#9fc4ee;font-size:13px;line-height:1;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:center;}
+        .num-step:hover{background:#13427d;color:#fff;}
+        .num-step:active{background:#1c5aa0;}
       `}</style>
 
       {dialog.open && (
@@ -1304,6 +1865,16 @@ const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, ch
   <div className="grid grid-cols-[70px_1fr] items-center gap-1.5">
     <span className="text-[10px] text-[#7e9fc8]">{label}</span>
     <div>{children}</div>
+  </div>
+);
+
+const Section: React.FC<{ title: string; open: boolean; onToggle: () => void; children: React.ReactNode }> = ({ title, open, onToggle, children }) => (
+  <div className="rounded border border-[#1b4378] bg-[#06182f]/50">
+    <button type="button" onClick={onToggle} className="flex w-full items-center justify-between px-2 py-1.5 text-[11px] font-semibold text-[#9fd0ff] hover:text-white">
+      <span>{title}</span>
+      {open ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+    </button>
+    {open && <div className="space-y-1.5 px-2 pb-2 pt-0.5">{children}</div>}
   </div>
 );
 
@@ -1343,10 +1914,23 @@ const DrillTargetTree: React.FC<{ value: string[]; onChange: (targets: string[])
   );
 };
 
-const NumInput: React.FC<{ value: number; onChange: (v: number) => void; step?: number; min?: number; max?: number }> = ({ value, onChange, step = 1, min, max }) => (
-  <input type="number" value={Number.isFinite(value) ? value : 0} step={step} min={min} max={max}
-    onChange={e => onChange(parseFloat(e.target.value) || 0)} className="input" />
-);
+const NumInput: React.FC<{ value: number; onChange: (v: number) => void; step?: number; min?: number; max?: number }> = ({ value, onChange, step = 1, min, max }) => {
+  const clamp = (v: number) => {
+    let n = v;
+    if (min != null) n = Math.max(min, n);
+    if (max != null) n = Math.min(max, n);
+    return +n.toFixed(4);
+  };
+  const base = Number.isFinite(value) ? value : 0;
+  return (
+    <div className="num-wrap">
+      <button type="button" tabIndex={-1} className="num-step" title={`-${step}`} onClick={() => onChange(clamp(base - step))}>−</button>
+      <input type="number" value={base} step={step} min={min} max={max}
+        onChange={e => onChange(parseFloat(e.target.value) || 0)} className="num-field" />
+      <button type="button" tabIndex={-1} className="num-step" title={`+${step}`} onClick={() => onChange(clamp(base + step))}>+</button>
+    </div>
+  );
+};
 
 const UploadAssetDialog: React.FC<{ onClose: () => void; onUploaded: () => void }> = ({ onClose, onUploaded }) => {
   const existingGroups = useMemo(() => {

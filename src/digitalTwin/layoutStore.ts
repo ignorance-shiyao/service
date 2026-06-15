@@ -13,6 +13,15 @@ import {
 
 export type SceneId = 'overview' | 'line1' | 'idc3' | 'cmpA' | 'agv' | 'vision' | 'office' | FolderSceneId;
 
+export type MotionPoint = { x: number; y: number };
+
+export interface SceneMotionConfig {
+  enabled?: boolean;
+  path?: MotionPoint[];
+  duration?: number;
+  loop?: boolean;
+}
+
 export interface SceneItem {
   id: string;          // 唯一 ID
   asset: AssetKey;     // 资源名（内置 ASSETS 或自定义素材 key）
@@ -36,6 +45,7 @@ export interface SceneItem {
   alarm?: boolean;     // 是否告警状态
   tone?: 'normal' | 'warn' | 'alarm';
   anchorBottom?: boolean;
+  motion?: SceneMotionConfig;
   /** 2.5D 深度（px） */
   zOffset?: number;
 }
@@ -76,14 +86,101 @@ const LEGACY_SCENE_ALIAS: Partial<Record<SceneId, string>> = {
   rack: 'rackInternal',
 };
 
-const normalizeLoadedLayout = (layout: SceneLayout, sceneId: SceneId): SceneLayout => ({
-  ...layout,
-  sceneId,
-  items: layout.items.map(item => ({
-    ...item,
-    id: sceneId === 'rack' ? item.id.replace(/^rackInternal-/, 'rack-') : item.id,
-  })),
-});
+const normalizeBaseMap = (sceneId: SceneId, baseMap?: string): string | undefined => {
+  if (sceneId !== 'idc3' && sceneId !== 'cmpA') return baseMap;
+  if (baseMap === '/svg/idc/room_base_no_equipment.png') return '/svg/idc/room_base_no_equipment.svg';
+  if (baseMap === '/svg/idc/room_base_empty_raw.png') return '/svg/idc/room_base_empty_raw.svg';
+  return baseMap;
+};
+
+const createInspectionRobotItem = (sceneId: SceneId): SceneItem | undefined => {
+  if (sceneId !== 'idc3' && sceneId !== 'cmpA') return undefined;
+  return {
+    id: `${sceneId}-inspection-robot`,
+    asset: 'idcInspectionRobot',
+    cx: 54,
+    cy: 58,
+    w: 4.8,
+    rotate: -8,
+    anchorBottom: false,
+    label: '机房巡检机器人',
+    motion: {
+      enabled: true,
+      duration: 18000,
+      loop: true,
+      path: [
+        { x: -19, y: -10 },
+        { x: -5, y: -17 },
+        { x: 12, y: -13 },
+        { x: 22, y: -2 },
+        { x: 13, y: 9 },
+        { x: -4, y: 12 },
+        { x: -18, y: 5 },
+        { x: -19, y: -10 },
+      ],
+    },
+  };
+};
+
+const withInspectionRobot = (layout: SceneLayout, sceneId: SceneId): SceneLayout => {
+  const robot = createInspectionRobotItem(sceneId);
+  if (!robot || layout.items.some(item => item.id === robot.id || item.asset === robot.asset)) return layout;
+  return { ...layout, items: [...layout.items, robot] };
+};
+
+const alignIdcRackRows = (layout: SceneLayout, sceneId: SceneId): SceneLayout => {
+  if (sceneId !== 'idc3' && sceneId !== 'cmpA') return layout;
+  return {
+    ...layout,
+    items: layout.items.map(item => {
+      if (item.asset !== 'idcRackRow') return item;
+      return {
+        ...item,
+        rotate: item.rotate == null || item.rotate === 0 ? 10 : item.rotate,
+      };
+    }),
+  };
+};
+
+const normalizeLoadedLayout = (layout: SceneLayout, sceneId: SceneId): SceneLayout => {
+  const normalized: SceneLayout = {
+    ...layout,
+    sceneId,
+    baseMap: normalizeBaseMap(sceneId, layout.baseMap),
+    items: layout.items.map(item => ({
+      ...item,
+      id: sceneId === 'rack' ? item.id.replace(/^rackInternal-/, 'rack-') : item.id,
+      motion: normalizeMotionConfig(item.motion),
+    })),
+  };
+  return withInspectionRobot(alignIdcRackRows(normalized, sceneId), sceneId);
+};
+
+export const normalizeMotionConfig = (motion: unknown): SceneMotionConfig | undefined => {
+  if (!motion || typeof motion !== 'object') return undefined;
+  const value = motion as SceneMotionConfig;
+  const path = Array.isArray(value.path)
+    ? value.path
+        .map(point => {
+          if (!point || typeof point !== 'object') return null;
+          const x = Number((point as MotionPoint).x);
+          const y = Number((point as MotionPoint).y);
+          if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+          return { x, y };
+        })
+        .filter((point): point is MotionPoint => point != null)
+    : undefined;
+  const enabled = typeof value.enabled === 'boolean' ? value.enabled : undefined;
+  const duration = Number.isFinite(value.duration as number) && Number(value.duration) > 0 ? Number(value.duration) : undefined;
+  const loop = typeof value.loop === 'boolean' ? value.loop : undefined;
+  if (enabled == null && duration == null && loop == null && (!path || path.length === 0)) return undefined;
+  return {
+    ...(enabled == null ? {} : { enabled }),
+    ...(path && path.length > 0 ? { path } : {}),
+    ...(duration == null ? {} : { duration }),
+    ...(loop == null ? {} : { loop }),
+  };
+};
 
 const isStaleBundledLayout = (sceneId: SceneId, layout: SceneLayout): boolean => {
   if (sceneId !== 'idc3' && sceneId !== 'cmpA') return false;
@@ -138,15 +235,15 @@ export const DEFAULT_LAYOUTS: Record<SceneId, SceneLayout> = {
   },
   idc3:   {
     sceneId: 'idc3',
-    baseMap: '/svg/idc/layer_base_empty_room.svg',
+    baseMap: '/svg/idc/room_base_no_equipment.svg',
     width: 1672,
     height: 941,
     items: [
       // 四排机柜（参考图）
-      { id: 'idc3-rack-1', asset: 'idcRackRow', cx: 36.78, cy: 80.77, w: 13.16, label: '机柜排1' },
-      { id: 'idc3-rack-2', asset: 'idcRackRow', cx: 50.54, cy: 80.77, w: 13.16, label: '机柜排2' },
-      { id: 'idc3-rack-3', asset: 'idcRackRow', cx: 65.19, cy: 80.45, w: 13.16, label: '机柜排3' },
-      { id: 'idc3-rack-4', asset: 'idcRackRow', cx: 78.65, cy: 80.45, w: 13.16, label: '机柜排4' },
+      { id: 'idc3-rack-1', asset: 'idcRackRow', cx: 36.78, cy: 80.77, w: 13.16, rotate: 10, label: '机柜排1' },
+      { id: 'idc3-rack-2', asset: 'idcRackRow', cx: 50.54, cy: 80.77, w: 13.16, rotate: 10, label: '机柜排2' },
+      { id: 'idc3-rack-3', asset: 'idcRackRow', cx: 65.19, cy: 80.45, w: 13.16, rotate: 10, label: '机柜排3' },
+      { id: 'idc3-rack-4', asset: 'idcRackRow', cx: 78.65, cy: 80.45, w: 13.16, rotate: 10, label: '机柜排4' },
       // 列间空调（冷/热通道中）
       { id: 'idc3-inrow-cold', asset: 'idcInrowAc', cx: 42.73, cy: 62.70, w: 6.28, label: '列间空调-冷通道' },
       { id: 'idc3-inrow-hot', asset: 'idcInrowAc', cx: 69.35, cy: 62.70, w: 6.28, label: '列间空调-热通道', tone: 'warn' },
@@ -164,18 +261,19 @@ export const DEFAULT_LAYOUTS: Record<SceneId, SceneLayout> = {
       { id: 'idc3-smoke-2', asset: 'idcSmokeSensor', cx: 64.77, cy: 20.30, w: 2.69, label: '烟感2' },
       { id: 'idc3-temp-hum', asset: 'idcTempHumSensor', cx: 90.91, cy: 47.82, w: 2.99, label: '温湿度传感器' },
       { id: 'idc3-water', asset: 'idcWaterLeakSensor', cx: 32.30, cy: 91.29, w: 4.19, h: 2.6, anchorBottom: false, label: '水浸传感器' },
+      createInspectionRobotItem('idc3')!,
     ],
   },
   cmpA:   {
     sceneId: 'cmpA',
-    baseMap: '/svg/idc/layer_base_empty_room.svg',
+    baseMap: '/svg/idc/room_base_no_equipment.svg',
     width: 1672,
     height: 941,
     items: [
-      { id: 'cmpA-rack-1', asset: 'idcRackRow', cx: 36.78, cy: 80.77, w: 13.16, label: '机柜排1' },
-      { id: 'cmpA-rack-2', asset: 'idcRackRow', cx: 50.54, cy: 80.77, w: 13.16, label: '机柜排2' },
-      { id: 'cmpA-rack-3', asset: 'idcRackRow', cx: 65.19, cy: 80.45, w: 13.16, label: '机柜排3', tone: 'warn' },
-      { id: 'cmpA-rack-4', asset: 'idcRackRow', cx: 78.65, cy: 80.45, w: 13.16, label: '机柜排4' },
+      { id: 'cmpA-rack-1', asset: 'idcRackRow', cx: 36.78, cy: 80.77, w: 13.16, rotate: 10, label: '机柜排1' },
+      { id: 'cmpA-rack-2', asset: 'idcRackRow', cx: 50.54, cy: 80.77, w: 13.16, rotate: 10, label: '机柜排2' },
+      { id: 'cmpA-rack-3', asset: 'idcRackRow', cx: 65.19, cy: 80.45, w: 13.16, rotate: 10, label: '机柜排3', tone: 'warn' },
+      { id: 'cmpA-rack-4', asset: 'idcRackRow', cx: 78.65, cy: 80.45, w: 13.16, rotate: 10, label: '机柜排4' },
       { id: 'cmpA-inrow-cold', asset: 'idcInrowAc', cx: 42.73, cy: 62.70, w: 6.28, label: '列间空调-冷通道' },
       { id: 'cmpA-inrow-hot', asset: 'idcInrowAc', cx: 69.35, cy: 62.70, w: 6.28, label: '列间空调-热通道', tone: 'alarm' },
       { id: 'cmpA-ups-main', asset: 'idcUpsMain', cx: 10.47, cy: 81.30, w: 12.56, label: 'UPS主机' },
@@ -188,6 +286,7 @@ export const DEFAULT_LAYOUTS: Record<SceneId, SceneLayout> = {
       { id: 'cmpA-smoke-2', asset: 'idcSmokeSensor', cx: 64.77, cy: 20.30, w: 2.69, label: '烟感2' },
       { id: 'cmpA-temp-hum', asset: 'idcTempHumSensor', cx: 90.91, cy: 47.82, w: 2.99, label: '温湿度传感器' },
       { id: 'cmpA-water', asset: 'idcWaterLeakSensor', cx: 32.30, cy: 91.29, w: 4.19, h: 2.6, anchorBottom: false, label: '水浸传感器' },
+      createInspectionRobotItem('cmpA')!,
     ],
   },
   agv:    {
@@ -308,6 +407,9 @@ export function setLayoutAsDefault(layout: SceneLayout) {
   try {
     localStorage.setItem(DEFAULT_KEY(layout.sceneId), JSON.stringify(layout));
   } catch {}
+  try {
+    localStorage.setItem(KEY(layout.sceneId), JSON.stringify(layout));
+  } catch {}
 }
 
 // 资源面板：可拖入的素材库
@@ -356,6 +458,7 @@ export const PALETTE_GROUPS: { title: string; items: { key: AssetKey; name: stri
       { key: 'fireCylinders',    name: '气体灭火' },
       { key: 'cableTray',        name: '桥架' },
       { key: 'deviceServer2u',   name: '2U 服务器' },
+      { key: 'idcInspectionRobot', name: '巡检机器人' },
     ],
   },
   {
